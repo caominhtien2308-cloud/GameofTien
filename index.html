@@ -3,13 +3,16 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Monters of the Ngo Gia</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      touch-action: none;
+      /* Ngăn chặn kéo scroll */
     }
 
     body {
@@ -17,10 +20,13 @@
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
       overflow: hidden;
+      height: 100vh;
+      width: 100vw;
     }
 
     canvas {
       display: block;
+      touch-action: none;
     }
 
     #ui {
@@ -2761,7 +2767,48 @@
 
       game = new Game(selectedCharId);
     }
+    // ==================== MOBILE TOUCH SUPPORT ====================
+    let touchStartX = 0;
+    let isTouching = false;
 
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      isTouching = true;
+      touchStartX = e.touches[0].clientX;
+
+      // Tap để tấn công
+      if (game) game.handleAttack();
+    });
+
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!game || !isTouching) return;
+
+      let currentX = e.touches[0].clientX;
+      let dx = currentX - touchStartX;
+
+      if (dx < -50) game.keys['KeyA'] = true;      // Move left
+      else if (dx > 50) game.keys['KeyD'] = true;  // Move right
+    });
+
+    canvas.addEventListener('touchend', e => {
+      e.preventDefault();
+      isTouching = false;
+      game.keys['KeyA'] = false;
+      game.keys['KeyD'] = false;
+    });
+
+    // Double tap để nhảy
+    let lastTap = 0;
+    canvas.addEventListener('touchend', e => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 500 && tapLength > 0) {
+        // Double tap = Jump
+        if (game && game.player.y >= GROUND) game.player.vy = -600;
+      }
+      lastTap = currentTime;
+    });
     // ============================
     // INIT
     // ============================
