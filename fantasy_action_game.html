@@ -1,0 +1,2778 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monters of the Ngo Gia</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #ui {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #hud {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      z-index: 20;
+    }
+
+    .stat-bar {
+      width: 220px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 8px;
+      display: none;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 3px;
+    }
+
+    .bar-bg {
+      width: 100%;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.2s;
+    }
+
+    .hp-fill {
+      background: linear-gradient(90deg, #ff3333, #ff6666);
+    }
+
+    .mp-fill {
+      background: linear-gradient(90deg, #3366ff, #66aaff);
+    }
+
+    .char-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 5px;
+    }
+
+    #skills-bar {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 20;
+      display: none;
+      pointer-events: all;
+    }
+
+    .skill-slot {
+      width: 60px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .skill-slot .key {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .skill-slot .name {
+      font-size: 8px;
+      color: #ccc;
+      margin-top: 2px;
+    }
+
+    .skill-slot .cooldown-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: #ff6666;
+    }
+
+    .skill-slot.active {
+      border-color: #ffd700;
+      box-shadow: 0 0 10px #ffd700;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.85);
+    }
+
+    #char-select {
+      text-align: center;
+      max-width: 900px;
+      width: 95%;
+    }
+
+    #char-select h1 {
+      font-size: 42px;
+      color: #ffd700;
+      text-shadow: 0 0 20px #ffa500;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    #char-select h2 {
+      font-size: 16px;
+      color: #aaa;
+      margin-bottom: 30px;
+    }
+
+    .chars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .char-card {
+      background: linear-gradient(135deg, rgba(30, 30, 60, 0.9), rgba(10, 10, 30, 0.9));
+      border: 2px solid rgba(100, 100, 200, 0.4);
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+
+    .char-card:hover,
+    .char-card.selected {
+      border-color: #ffd700;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+      transform: translateY(-3px);
+    }
+
+    .char-card .card-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .char-card .card-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .char-card .card-class {
+      font-size: 12px;
+      color: #88aaff;
+      margin-bottom: 8px;
+    }
+
+    .char-card .card-stats {
+      font-size: 11px;
+      color: #ccc;
+    }
+
+    .char-card .card-stat {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .char-card .card-skills {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 6px;
+    }
+
+    #start-btn {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #000;
+      border: none;
+      padding: 15px 50px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: none;
+    }
+
+    #start-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+
+    #message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 28px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 20px #ffa500;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+      text-align: center;
+    }
+
+    #skill-pick {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      flex-direction: column;
+    }
+
+    #skill-pick h2 {
+      font-size: 28px;
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+
+    #skill-pick p {
+      color: #aaa;
+      margin-bottom: 30px;
+    }
+
+    .skill-choices {
+      display: flex;
+      gap: 20px;
+    }
+
+    .skill-choice-card {
+      background: rgba(30, 30, 60, 0.9);
+      border: 2px solid rgba(100, 100, 200, 0.5);
+      border-radius: 12px;
+      padding: 25px;
+      cursor: pointer;
+      max-width: 280px;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .skill-choice-card:hover {
+      border-color: #ffd700;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+
+    .skill-choice-card .skill-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .skill-choice-card .skill-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 8px;
+    }
+
+    .skill-choice-card .skill-desc {
+      font-size: 12px;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    #gameOver {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      flex-direction: column;
+    }
+
+    #gameOver h1 {
+      font-size: 50px;
+      color: #ff3333;
+      text-shadow: 0 0 30px #ff0000;
+      margin-bottom: 20px;
+    }
+
+    #gameOver p {
+      color: #aaa;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    #gameOver button {
+      background: linear-gradient(135deg, #ff3333, #aa0000);
+      color: #fff;
+      border: none;
+      padding: 12px 40px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #victory {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 20, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      flex-direction: column;
+    }
+
+    #victory h1 {
+      font-size: 50px;
+      color: #ffd700;
+      text-shadow: 0 0 30px #ffa500;
+      margin-bottom: 20px;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    #victory p {
+      color: #aaa;
+      font-size: 16px;
+      margin-bottom: 30px;
+      text-align: center;
+      max-width: 500px;
+    }
+
+    #victory button {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #000;
+      border: none;
+      padding: 12px 40px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #controls-hint {
+      position: fixed;
+      bottom: 85px;
+      left: 10px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      z-index: 20;
+      display: none;
+      line-height: 1.6;
+    }
+
+    #floor-display {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 14px;
+      color: #ffd700;
+      z-index: 20;
+      text-align: right;
+      display: none;
+    }
+
+    #boss-hud {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      display: none;
+      z-index: 20;
+    }
+
+    #boss-hud .boss-name {
+      text-align: center;
+      font-size: 14px;
+      color: #ff6666;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    #boss-hud .bar-bg {
+      width: 100%;
+      height: 16px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 100, 100, 0.5);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #boss-hud .bar-fill {
+      background: linear-gradient(90deg, #cc0000, #ff4444);
+    }
+
+    .skill-slot .tooltip {
+      display: none;
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid #ffd700;
+      padding: 10px;
+      border-radius: 6px;
+      width: 180px;
+      color: #fff;
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 100;
+      line-height: 1.4;
+    }
+
+    .skill-slot:hover .tooltip {
+      display: block;
+    }
+
+    #settings-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #ffd700;
+      border: 1px solid #ffd700;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+
+    #settings-btn:hover {
+      background: #ffd700;
+      color: #000;
+      transform: rotate(90deg);
+    }
+
+    #settings-menu {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 10, 30, 0.95);
+      border: 2px solid #ffd700;
+      border-radius: 12px;
+      padding: 30px;
+      z-index: 200;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+    }
+
+    #settings-menu h2 {
+      color: #ffd700;
+      margin-bottom: 25px;
+      text-shadow: 0 0 10px #ffaa00;
+      font-size: 28px;
+    }
+
+    #settings-menu button {
+      display: block;
+      width: 250px;
+      margin: 15px auto;
+      padding: 15px;
+      background: linear-gradient(135deg, #333, #111);
+      color: #fff;
+      border: 1px solid #666;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    #settings-menu button:hover {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #000;
+      border-color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="hud">
+    <div class="stat-bar" id="player-hud">
+      <div class="char-name" id="player-name">-</div>
+      <div class="stat-label">HP: <span id="hp-val">0/0</span></div>
+      <div class="bar-bg">
+        <div class="bar-fill hp-fill" id="hp-bar" style="width:100%"></div>
+      </div>
+      <div class="stat-label">MP: <span id="mp-val">0/0</span></div>
+      <div class="bar-bg">
+        <div class="bar-fill mp-fill" id="mp-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+  <div id="boss-hud">
+    <div class="boss-name" id="boss-name-display">Boss</div>
+    <div class="bar-bg">
+      <div class="bar-fill" id="boss-hp-bar" style="width:100%"></div>
+    </div>
+  </div>
+  <div id="floor-display"></div>
+  <div id="controls-hint">
+    A/D hoặc ←/→: Di chuyển | Space: Nhảy | J/Click: Tấn công<br>
+    1: Kỹ năng 1 | 2: Kỹ năng 2 | 3-6: Kỹ năng boss (nếu có)
+  </div>
+  <div id="skills-bar">
+    <div class="skill-slot" id="sk0">
+      <div class="key">1</div>
+      <div class="name">Skill 1</div>
+      <div class="tooltip"></div>
+    </div>
+    <div class="skill-slot" id="sk1">
+      <div class="key">2</div>
+      <div class="name">Skill 2</div>
+      <div class="tooltip"></div>
+    </div>
+    <div class="skill-slot" id="sk2" style="display:none">
+      <div class="key">3</div>
+      <div class="name">-</div>
+      <div class="tooltip"></div>
+    </div>
+    <div class="skill-slot" id="sk3" style="display:none">
+      <div class="key">4</div>
+      <div class="name">-</div>
+      <div class="tooltip"></div>
+    </div>
+    <div class="skill-slot" id="sk4" style="display:none">
+      <div class="key">5</div>
+      <div class="name">-</div>
+      <div class="tooltip"></div>
+    </div>
+    <div class="skill-slot" id="sk5" style="display:none">
+      <div class="key">6</div>
+      <div class="name">-</div>
+      <div class="tooltip"></div>
+    </div>
+  </div>
+  <div id="message"></div>
+
+  <div id="overlay">
+    <div id="char-select">
+      <h1>⚔ Những con báo nè ⚔</h1>
+      <h2>Chọn con báo mà bạn cho là báo nhất đi</h2>
+      <div class="chars-grid" id="chars-grid"></div>
+      <button id="start-btn" onclick="startGame()">BẮT ĐẦU HÀNH TRÌNH</button>
+    </div>
+  </div>
+
+  <button id="settings-btn" onclick="toggleSettings()" style="display:none;">⚙️</button>
+
+  <div id="settings-menu" style="display:none; flex-direction:column; align-items:center;">
+    <h2>CÀI ĐẶT</h2>
+    <button onclick="resumeGame()">▶ Tiếp Tục</button>
+    <button onclick="restartGame()">🔄 Sắp chết rồi nên chơi lại chứ gì</button>
+    <button onclick="exitGame()">🚪 Không có kỹ năng thì nói đi cưng</button>
+  </div>
+
+  <div id="skill-pick">
+    <h2>⭐ ĐƯỢC BỐ THÍ KỸ NĂNG MỚI TỪ BOSS ⭐</h2>
+    <p>Bạn đã chiến thắng! Hãy nhặt 1 kỹ năng của boss để học:</p>
+    <div class="skill-choices" id="skill-choices"></div>
+  </div>
+
+  <div id="gameOver" style="display:none;flex-direction:column;align-items:center">
+    <h1>☠ HAHAHA GÀ VL ☠</h1>
+    <p>Về bú sữa mẹ tiếp đi...</p>
+    <button onclick="location.reload()">Chơi Lại</button>
+  </div>
+
+  <div id="victory" style="display:none;flex-direction:column;align-items:center">
+    <h1>🏆 CHIẾN THẮNG! 🏆</h1>
+    <p>Bạn đã may mắn vượt qua tất cả 5 màn boss và trở thành huyền thoại!<br>Chó ngáp phải ruồi thôi</p>
+    <button onclick="location.reload()">Bảnh thì thử lại</button>
+  </div>
+
+  <script>
+    // ============================
+    // CHARACTER DEFINITIONS
+    // ============================
+    const CHARS = {
+      tien: {
+        id: 'tien', name: 'Tiến Đẹp Zai', class: 'Chiến Binh', icon: '⚔️',
+        hp: 1100, mp: 1100, atk: 130, color: '#4488ff', weaponColor: '#88ccff',
+        skills: [
+          {
+            name: 'Sống dai như trân châu', key: '1', cd: 40, mpCost: 0, icon: '💚',
+            desc: 'Hồi 100HP+50MP/giây trong 11s. Tiêu hao 1/2 MP hiện có.',
+            use: (g, p) => { let cost = Math.floor(p.mp / 2); if (p.mp < 1) return false; p.mp -= cost; p.regenActive = 11; showMsg('💚 OLONG NO TĂNG LỰCCCC'); return true; }
+          },
+          {
+            name: 'Cục cứt gầm thét', key: '2', cd: 30, mpCost: 200, icon: '🐉',
+            desc: 'Triệu hồi cục cứt khổng lồ tấn công gây 500 sát thương.',
+            use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnEffect('lightning', p.x, p.y, 500 * (1 + p.bonusAtk), false, { game: g }); showMsg('🐉 PHẸTTTTTTTT!'); return true; }
+          }
+        ]
+      },
+      thao: {
+        id: 'thao', name: 'Cô Giáo Thảo', class: 'Pháp Sư Băng', icon: '❄️',
+        hp: 800, mp: 1500, atk: 60, color: '#88ccff', weaponColor: '#ffffff', range: 360,
+        skills: [
+          {
+            name: 'Kết giới chống NYC', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
+            desc: 'Lá chắn băng hấp thụ 400 sát thương trong 8s. Nếu là Tú thì ôm trong 8s',
+            use: (g, p) => { if (p.mp < 180) return false; p.mp -= 180; p.shield = 400; p.shieldTime = 8; showMsg('🛡️ ANH TÚ ĐI RA ĐIIII'); return true; }
+          },
+          {
+            name: 'Hắt xì tạo bão', key: '2', cd: 30, mpCost: 250, icon: '🌨️',
+            desc: 'Hắt xì gây 1000 sát thương, làm chậm 40% tốc độ.',
+            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('blizzard', p.x, p.y, 1000 * (1 + p.bonusAtk), false, { game: g }); showMsg('🌨️ MÙI HƯƠNG EM NỒNG SAYYYY'); return true; }
+          }
+        ]
+      },
+      bin: {
+        id: 'bin', name: 'Bin Chubby', class: 'Sát Thủ Con Nuôi', icon: '🗡️',
+        hp: 800, mp: 800, atk: 220, color: '#884488', weaponColor: '#cc44cc',
+        skills: [
+          {
+            name: 'Chạy trước tính sau', key: '1', cd: 30, mpCost: 0, icon: '👥',
+            desc: 'Tàng hình 5s, tăng tốc tìm con nuôi. Đòn đầu tiên +200 chí mạng.',
+            use: (g, p) => { p.invisible = 5; p.nextHitBonus = 200; showMsg('👥 MÌNH XIN CON NUÔI ĐIIIII'); return true; }
+          },
+          {
+            name: 'Pha 10 ly bát bảo trong 10s', key: '2', cd: 35, mpCost: 250, icon: '⚡',
+            desc: '7 muỗng trân châu đen liên tiếp tổng 500 sát thương.',
+            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('multiSlash', p.x, p.y, 500 * (1 + p.bonusAtk), false, { game: g }); showMsg('⚡ THẤY BỐ NGẦU KHÔNG CÁC CONN'); return true; }
+          }
+        ]
+      },
+      trang: {
+        id: 'trang', name: 'Trang Giấy Trắng', class: 'Cung Thủ', icon: '🏹',
+        hp: 750, mp: 1000, atk: 170, color: '#44cc88', weaponColor: '#88ffaa', range: 240,
+        skills: [
+          {
+            name: 'Chạy về phía anh', key: '1', cd: 10, mpCost: 100, icon: '💨',
+            desc: '+60% tốc độ tấn công, +50% dame trong 10s tấn công anh iu cũ.',
+            use: (g, p) => { if (p.mp < 100) return false; p.mp -= 100; p.speedBuff = 10; p.atkBuff = 0.5; showMsg('💨 ANH ƠI EM TỚI ĐÂYY!'); return true; }
+          },
+          {
+            name: 'Sao anh dám phản bội em?', key: '2', cd: 30, mpCost: 250, icon: '🌪️',
+            desc: 'Mưa tên gây 550 sát thương diện rộng, +50% tốc độ bắn 5s. Bắn thấy mọe mấy thằng đạo dụ',
+            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('arrowRain', p.x, p.y, 550 * (1 + p.bonusAtk), false, { game: g }); p.speedBuff = Math.max(p.speedBuff || 0, 5); showMsg('🌪️ CHỤC LY BÍ ĐAO CHANH ĐÊ'); return true; }
+          }
+        ]
+      },
+      huy: {
+        id: 'huy', name: 'Huy Thẩm Du', class: 'Tanker', icon: '🪓',
+        hp: 2300, mp: 700, atk: 100, color: '#cc6633', weaponColor: '#ff8844',
+        skills: [
+          {
+            name: 'Độ nhục = 0', key: '1', cd: 0, mpCost: 0, icon: '🩸',
+            desc: 'Hy sinh 20% HP tối đa, bất tử 5s. Sủa vang trời',
+            use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.2); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 5; showMsg('🩸 ẲNG ẲNG ẲNGGGGG!'); return true; }
+          },
+          {
+            name: 'Ỉa sập bồn cầu', key: '2', cd: 25, mpCost: 220, icon: '🔥',
+            desc: 'Sóng lửa gây 400 sát thương, giảm 50% sát thương nhận 5s.',
+            use: (g, p) => { if (p.mp < 220) return false; p.mp -= 220; g.spawnEffect('firewave', p.x, p.y, 400 * (1 + p.bonusAtk), false, { game: g }); p.damageReduction = 0.5; p.damageReductionTime = 5; showMsg('🔥 EM ĐỊCH NÈ CHỊ NGA!'); return true; }
+          }
+        ]
+      },
+      nga: {
+        id: 'nga', name: 'Nga Ngố', class: 'Triệu Hồi Sư', icon: '🐼',
+        hp: 900, mp: 1600, atk: 50, color: '#ffcc44', weaponColor: '#ffe088', range: 360,
+        skills: [
+          {
+            name: 'Triệu Hồi Súc Vật', key: '1', cd: 30, mpCost: 200, icon: '🐼',
+            desc: 'Triệu hồi 1 con súc vật học với thông số x3.',
+            use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnPet(p); showMsg('🐼 THẰNG CHIM CỦA BÀ ĐÂU!'); return true; }
+          },
+          {
+            name: 'Phán luôn có tội', key: '2', cd: 60, mpCost: 300, icon: '👼',
+            desc: 'Thiên sứ hiện ra phán đối phương luôn sai gây 400 sát thương, reset chiêu 1.',
+            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('angelJudge', p.x, p.y, 400 * (1 + p.bonusAtk), false, { game: g }); p.skillCooldowns[0] = 0; showMsg('👼 TẤT CẢ ĐỀU SAIIII!'); return true; }
+          }
+        ]
+      }
+    };
+
+    const CHAR_ORDER = ['tien', 'thao', 'bin', 'trang', 'huy', 'nga'];
+    const LAST_BOSS_MAP = { tien: 'huy' };
+
+    // ============================
+    // CANVAS SETUP
+    // ============================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const W = canvas.width, H = canvas.height;
+    const GROUND = H - 100;
+
+    // ============================
+    // GAME STATE
+    // ============================
+    let game = null;
+    let selectedCharId = null;
+
+    // ============================
+    // PARTICLE SYSTEM
+    // ============================
+    class Particle {
+      constructor(x, y, vx, vy, color, life, size = 4, shape = 'circle') {
+        this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+        this.color = color; this.life = life; this.maxLife = life; this.size = size;
+        this.shape = shape; this.rotation = Math.random() * Math.PI * 2; this.rotSpd = (Math.random() - 0.5) * 10;
+      }
+      update(dt) {
+        this.x += this.vx * dt; this.y += this.vy * dt;
+        if (this.shape !== 'wind' && this.shape !== 'spark') this.vy += 300 * dt;
+        this.life -= dt;
+        this.rotation += this.rotSpd * dt;
+      }
+      draw(c) {
+        let alpha = Math.max(0, this.life / this.maxLife);
+        c.save(); c.globalAlpha = alpha;
+        c.translate(this.x, this.y); c.rotate(this.rotation);
+        if (this.shape === 'circle') {
+          c.fillStyle = this.color; c.beginPath(); c.arc(0, 0, this.size * alpha, 0, Math.PI * 2); c.fill();
+        } else if (this.shape === 'rect') {
+          c.fillStyle = this.color; c.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+        } else if (this.shape === 'snowflake') {
+          c.strokeStyle = this.color; c.lineWidth = 1.5;
+          for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(-this.size, 0); c.lineTo(this.size, 0); c.stroke(); c.rotate(Math.PI / 3); }
+        } else if (this.shape === 'leaf') {
+          c.fillStyle = this.color; c.beginPath(); c.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2); c.fill();
+        } else if (this.shape === 'wind') {
+          c.strokeStyle = this.color; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, this.size, 0, Math.PI); c.stroke();
+        } else if (this.shape === 'spark') {
+          c.fillStyle = this.color; c.fillRect(-this.size, -1, this.size * 2, 2);
+        } else if (this.shape === 'arrow') {
+          c.fillStyle = this.color; c.fillRect(-2, -this.size, 4, this.size * 2);
+          c.fillStyle = '#ffffff'; c.beginPath(); c.moveTo(-6, -this.size + 5); c.lineTo(0, -this.size - 5); c.lineTo(6, -this.size + 5); c.fill();
+          c.fillStyle = '#228844'; c.beginPath(); c.moveTo(-4, this.size); c.lineTo(0, this.size - 5); c.lineTo(4, this.size); c.fill();
+        }
+        c.restore();
+      }
+    }
+
+    // ============================
+    // EFFECT SYSTEM
+    // ============================
+    class Effect {
+      constructor(type, x, y, damage, extra = null) {
+        this.type = type; this.x = x; this.y = y; this.damage = damage; this.extra = extra;
+        this.time = 0; this.done = false; this.hit = false;
+        this.particles = [];
+        this.init();
+      }
+      init() {
+        switch (this.type) {
+          case 'sword_slash':
+            for (let i = 0; i < 15; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * this.extra.range, this.y + (Math.random() - 0.5) * 40,
+              this.extra.facing * (Math.random() * 200 + 100), (Math.random() - 0.5) * 100, this.extra.color, 0.3, Math.random() * 4 + 2, 'spark'));
+            this.duration = 0.2; break;
+          case 'dagger_cross': this.duration = 0.2; break;
+          case 'axe_smash': this.duration = 0.3; break;
+          case 'arrow_attack': this.duration = 0.25; break;
+          case 'magic_ice': this.duration = 0.3; break;
+          case 'magic_star': this.duration = 0.4; break;
+          case 'slash':
+            this.duration = 0.2; break;
+          case 'lightning': // Lôi long
+            this.duration = 1.5;
+            // Initial spark
+            for (let i = 0; i < 20; i++) this.particles.push(new Particle(this.x, this.y - 500, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, '#88ccff', 0.5, 3, 'spark'));
+            break;
+          case 'blizzard': // Bão tuyết
+            this.duration = 3;
+            for (let i = 0; i < 150; i++) {
+              let isFlake = Math.random() > 0.3;
+              this.particles.push(new Particle(this.x + Math.random() * 800 - 400, this.y - 400 + Math.random() * 300,
+                (Math.random() - 0.5) * 300, Math.random() * 400 + 100, isFlake ? '#ffffff' : '#aaddff', Math.random() * 2 + 1, Math.random() * 4 + 2, isFlake ? 'snowflake' : 'wind'));
+            }
+            break;
+          case 'multiSlash': // Tử ảnh
+            this.duration = 1.2;
+            break;
+          case 'arrowRain': // Vạn tiễn
+            this.duration = 2.5;
+            this.particles.push(new Particle(this.x, GROUND - 50, 0, -800, '#44cc88', 0.5, 10, 'arrow')); // Initial arrow up
+            break;
+          case 'firewave': // Hỏa ngục
+            this.duration = 2;
+            for (let i = 0; i < 100; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * 300, GROUND,
+              (Math.random() - 0.5) * 800, -Math.random() * 600 - 100, Math.random() > 0.5 ? '#ff3300' : '#ff8800', 1.5, Math.random() * 10 + 5, 'rect'));
+            break;
+          case 'angelJudge': // Phán quyết
+            this.duration = 2;
+            break;
+          default:
+            for (let i = 0; i < 20; i++) this.particles.push(new Particle(this.x, GROUND - 50,
+              (Math.random() - 0.5) * 300, -Math.random() * 200, '#ffcc00', 1, 4));
+            this.duration = 1;
+        }
+      }
+      update(dt) {
+        this.time += dt;
+        this.particles.forEach(p => p.update(dt));
+        this.particles = this.particles.filter(p => p.life > 0);
+
+        // Complex timed spawns
+        if (this.type === 'lightning' && this.time > 0.3 && !this.hit) {
+          this.hit = true;
+          // Dragon impact shockwave
+          for (let i = 0; i < 80; i++) this.particles.push(new Particle(this.x, GROUND, (Math.random() - 0.5) * 1000, -Math.random() * 400, '#cc88ff', 1, Math.random() * 8 + 3, 'spark'));
+        }
+        if (this.type === 'multiSlash') {
+          if (!this.hit && this.time > 0.2) { this.hit = true; }
+          if (this.time < 1 && Math.random() < 0.3) {
+            for (let i = 0; i < 10; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * 400, GROUND - Math.random() * 200,
+              (Math.random() - 0.5) * 800, (Math.random() - 0.5) * 800, '#8800cc', 0.4, Math.random() * 5 + 2, 'wind'));
+          }
+        }
+        if (this.type === 'arrowRain') {
+          if (this.time > 0.5 && !this.hit) {
+            this.hit = true;
+            for (let i = 0; i < 150; i++) this.particles.push(new Particle(this.x + Math.random() * 600 - 300, -100 - Math.random() * 400,
+              (Math.random() - 0.5) * 150, Math.random() * 800 + 400, '#44cc88', 1.5, Math.random() * 6 + 4, 'arrow'));
+          }
+        }
+        if (this.type === 'firewave' && this.time > 0.2 && !this.hit) {
+          this.hit = true;
+          if (this.extra && this.extra.game) this.extra.game.shakeTime = 0.5; // Screen shake
+        }
+        if (this.type === 'angelJudge' && this.time > 0.8 && !this.hit) {
+          this.hit = true;
+          for (let i = 0; i < 100; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * 400, GROUND,
+            (Math.random() - 0.5) * 800, -Math.random() * 500 - 100, '#ffee88', 1, Math.random() * 6 + 3, 'circle'));
+        }
+        if (this.type === 'blizzard' && !this.hit && this.time > 0.5) this.hit = true;
+
+        if (this.time > this.duration) this.done = true;
+      }
+      draw(c) {
+        c.save();
+        let alpha = 1;
+
+        if (this.type === 'sword_slash') {
+          // A sweeping crescent energy slash moving forward slightly
+          let p = this.time / this.duration;
+          let f = this.extra.facing || 1;
+          let r = this.extra.range || 100;
+          let color = this.extra.color || '#fff';
+          let moveX = this.x + f * (p * r * 0.5); // Move forward
+
+          c.save(); c.translate(moveX, this.y); c.scale(f, 1);
+          c.globalAlpha = 1 - p;
+
+          c.beginPath();
+          c.arc(0, 0, 70 * p, -Math.PI / 2, Math.PI / 2);
+          c.arc(20 * p, 0, 50 * p, Math.PI / 2, -Math.PI / 2, true);
+
+          c.fillStyle = color; c.shadowColor = color; c.shadowBlur = 20;
+          c.fill();
+
+          // Outer energy line
+          c.strokeStyle = '#ffffff'; c.lineWidth = 3;
+          c.beginPath(); c.arc(0, 0, 75 * p, -Math.PI / 2, Math.PI / 2); c.stroke();
+          c.restore();
+        }
+
+        if (this.type === 'dagger_cross') {
+          // Fast X-slash
+          let p = this.time / this.duration;
+          let f = this.extra.facing || 1;
+          let color = this.extra.color || '#fff';
+          let ex = this.x + f * 40;
+
+          c.save(); c.translate(ex, this.y);
+          c.globalAlpha = 1 - p;
+          c.strokeStyle = color; c.lineWidth = 10 * (1 - p);
+          c.shadowColor = color; c.shadowBlur = 10;
+
+          let size = 50 * p;
+          // Slash 1
+          c.beginPath(); c.moveTo(-size, -size); c.lineTo(size, size); c.stroke();
+          // Slash 2
+          if (p > 0.3) {
+            c.beginPath(); c.moveTo(size, -size); c.lineTo(-size, size); c.stroke();
+          }
+          c.restore();
+        }
+
+        if (this.type === 'axe_smash') {
+          // Overhead smash that hits the ground and causes a small shockwave
+          let p = this.time / this.duration;
+          let f = this.extra.facing || 1;
+          let color = this.extra.color || '#fff';
+          let r = this.extra.range || 100;
+
+          c.save(); c.translate(this.x + f * (r * 0.4), GROUND);
+          c.globalAlpha = 1 - p;
+
+          // Slash trail coming down
+          if (p < 0.5) {
+            let sp = p * 2;
+            c.strokeStyle = color; c.lineWidth = 15 * (1 - sp);
+            c.beginPath(); c.arc(-f * 30, -50, 80, -Math.PI, 0); c.stroke();
+          } else {
+            // Impact on ground
+            let ip = (p - 0.5) * 2;
+            c.fillStyle = color; c.shadowColor = color; c.shadowBlur = 20;
+            c.beginPath(); c.ellipse(0, 0, ip * 80, ip * 20, 0, 0, Math.PI * 2); c.fill();
+
+            // Crack
+            c.strokeStyle = '#222'; c.lineWidth = 3;
+            c.beginPath(); c.moveTo(-30, 0); c.lineTo(-10, -10); c.lineTo(10, 5); c.lineTo(40, -5); c.stroke();
+          }
+          c.restore();
+        }
+
+        if (this.type === 'arrow_attack') {
+          // Arrow projectile traveling
+          let p = this.time / this.duration;
+          let f = this.extra.facing || 1;
+          let r = this.extra.range || 240;
+          let color = this.extra.color || '#fff';
+
+          let currentX = this.x + f * (p * r);
+
+          c.save(); c.translate(currentX, this.y);
+          c.globalAlpha = 1 - p;
+          c.shadowColor = color; c.shadowBlur = 10;
+
+          // Arrow trail
+          let grad = c.createLinearGradient(-f * 60, 0, 0, 0);
+          grad.addColorStop(0, 'transparent'); grad.addColorStop(1, color);
+          c.fillStyle = grad;
+          c.fillRect(-f * 60, -3, 60, 6);
+
+          // Arrow head
+          c.fillStyle = '#ffffff';
+          c.beginPath();
+          if (f > 0) { c.moveTo(10, 0); c.lineTo(-10, -8); c.lineTo(-10, 8); }
+          else { c.moveTo(-10, 0); c.lineTo(10, -8); c.lineTo(10, 8); }
+          c.fill();
+
+          c.restore();
+        }
+
+        if (this.type === 'magic_ice') {
+          // Ice shard traveling
+          let p = this.time / this.duration;
+          let f = this.extra.facing || 1;
+          let r = this.extra.range || 360;
+          let color = this.extra.color || '#fff';
+
+          let currentX = this.x + f * (p * r);
+
+          c.save(); c.translate(currentX, this.y + Math.sin(p * Math.PI * 4) * 10);
+          c.rotate(p * Math.PI * 4 * f);
+          c.globalAlpha = 1 - Math.pow(p, 3);
+
+          c.shadowColor = color; c.shadowBlur = 15;
+          c.fillStyle = '#ffffff'; c.strokeStyle = color; c.lineWidth = 2;
+
+          // Draw an ice crystal star
+          c.beginPath();
+          for (let i = 0; i < 4; i++) {
+            c.rotate(Math.PI / 2);
+            c.lineTo(0, -25);
+            c.lineTo(5, -5);
+          }
+          c.closePath();
+          c.fill(); c.stroke();
+
+          if (Math.random() < 0.5) globalParticles.push(new Particle(currentX, this.y, 0, 0, color, 0.3, 2, 'snowflake'));
+          c.restore();
+        }
+
+        if (this.type === 'magic_star') {
+          // Magic orb that spins and emits light
+          let p = this.time / this.duration;
+          let f = this.extra.facing || 1;
+          let r = this.extra.range || 360;
+          let color = this.extra.color || '#fff';
+
+          let currentX = this.x + f * (p * r);
+
+          c.save(); c.translate(currentX, this.y);
+          c.globalAlpha = 1 - p;
+
+          c.shadowColor = color; c.shadowBlur = 20;
+          c.fillStyle = color;
+
+          // Pulsing orb
+          let size = 15 + Math.sin(p * Math.PI * 10) * 5;
+          c.beginPath(); c.arc(0, 0, size, 0, Math.PI * 2); c.fill();
+
+          // Rings
+          c.strokeStyle = '#ffffff'; c.lineWidth = 2;
+          c.beginPath(); c.ellipse(0, 0, size * 1.5, size * 0.5, p * Math.PI * 4, 0, Math.PI * 2); c.stroke();
+          c.beginPath(); c.ellipse(0, 0, size * 1.5, size * 0.5, -p * Math.PI * 4, 0, Math.PI * 2); c.stroke();
+
+          c.restore();
+        }
+
+        if (this.type === 'lightning') {
+          if (this.time < 0.3) {
+            let p = this.time / 0.3;
+            let dy = -200 + p * (GROUND + 200);
+            c.save(); c.translate(this.x, dy);
+            // Lightning branches
+            c.strokeStyle = '#88ccff'; c.lineWidth = 3;
+            for (let i = 0; i < 5; i++) {
+              c.beginPath(); c.moveTo(0, -100);
+              c.lineTo((Math.random() - 0.5) * 100, -50);
+              c.lineTo((Math.random() - 0.5) * 150, 0); c.stroke();
+            }
+            // Dragon Head
+            c.fillStyle = '#cc88ff';
+            c.beginPath(); c.moveTo(0, 40); // Snout
+            c.lineTo(30, 0); c.lineTo(20, -40); // Right side
+            c.lineTo(40, -60); c.lineTo(10, -50); // Right horn
+            c.lineTo(-10, -50); c.lineTo(-40, -60); // Left horn
+            c.lineTo(-20, -40); c.lineTo(-30, 0); // Left side
+            c.fill();
+            // Eyes
+            c.fillStyle = '#ffffff'; c.shadowColor = '#fff'; c.shadowBlur = 10;
+            c.beginPath(); c.ellipse(-15, -10, 5, 10, -0.5, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.ellipse(15, -10, 5, 10, 0.5, 0, Math.PI * 2); c.fill();
+            c.restore();
+          } else {
+            // Shockwave with crack
+            let p = (this.time - 0.3) / 1.2;
+            c.globalAlpha = 1 - p; c.strokeStyle = '#88ccff'; c.lineWidth = 15 * (1 - p);
+            c.beginPath(); c.ellipse(this.x, GROUND, p * 400, p * 100, 0, 0, Math.PI * 2); c.stroke();
+            // Jagged crater
+            c.strokeStyle = '#5522aa'; c.lineWidth = 5;
+            c.beginPath(); c.moveTo(this.x - 100, GROUND);
+            c.lineTo(this.x - 50, GROUND + 20); c.lineTo(this.x + 20, GROUND - 10); c.lineTo(this.x + 80, GROUND + 15); c.stroke();
+          }
+        }
+
+        if (this.type === 'blizzard') {
+          let p = this.time / this.duration;
+          c.globalAlpha = Math.sin(p * Math.PI) * 0.4;
+          c.fillStyle = '#000033'; c.fillRect(0, 0, W, H);
+          c.globalAlpha = 1;
+
+          c.save(); c.translate(this.x, GROUND);
+          let tAlpha = Math.sin(p * Math.PI);
+
+          // Magic Snow Circle on Ground (Vòng phép ma thuật băng)
+          c.save();
+          c.scale(1, 0.3);
+          c.rotate(Date.now() / 1000);
+          c.strokeStyle = '#00ffff'; c.lineWidth = 4;
+          c.globalAlpha = tAlpha * 0.8;
+          c.beginPath(); c.arc(0, 0, 300, 0, Math.PI * 2); c.stroke();
+          for (let i = 0; i < 6; i++) {
+            c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(i * Math.PI / 3) * 300, Math.sin(i * Math.PI / 3) * 300); c.stroke();
+          }
+          c.restore();
+
+          // Swirling 3D Blizzard Vortex (Bão lốc xoáy 3D)
+          c.globalAlpha = tAlpha * 0.7;
+          for (let i = 0; i < 15; i++) {
+            let radius = 50 + i * 15;
+            let angle = (Date.now() / 200 + i * 0.5);
+            let px = Math.cos(angle) * radius;
+            let py = Math.sin(angle) * radius * 0.2 - i * 25;
+            let size = 20 + i * 4;
+
+            let grad = c.createRadialGradient(px, py, 0, px, py, size);
+            grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, 'transparent');
+            c.fillStyle = grad;
+            c.beginPath(); c.arc(px, py, size, 0, Math.PI * 2); c.fill();
+          }
+
+          // Jagged 3D Ice Pillars Erupting (Cột băng 3D đâm lên)
+          c.globalAlpha = tAlpha;
+          c.strokeStyle = '#ffffff'; c.lineWidth = 2;
+          for (let i = 0; i < 8; i++) {
+            let sx = (i - 4) * 70 + Math.sin(i * 11) * 40;
+            let sh = -150 - Math.abs(Math.sin(i * 33)) * 200 * p; // Erupt up over time
+
+            // Mặt trái của tinh thể băng
+            c.fillStyle = '#ccffff';
+            c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx - 25, sh * 0.8); c.lineTo(sx, sh); c.fill(); c.stroke();
+            // Mặt phải của tinh thể băng (tạo khối 3D)
+            c.fillStyle = '#88ccff';
+            c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx, sh); c.lineTo(sx + 25, sh * 0.8); c.fill(); c.stroke();
+          }
+          c.restore();
+
+          // Bắn ra các hạt tuyết
+          if (Math.random() < 0.7) {
+            globalParticles.push(new Particle(this.x + (Math.random() - 0.5) * 600, GROUND - Math.random() * 400, (Math.random() - 0.5) * 200, Math.random() * 200, '#ffffff', 1.0, 4, 'snowflake'));
+          }
+        }
+
+        if (this.type === 'arrowRain') {
+          // Magic Circle
+          if (this.time < 0.5) {
+            let cp = this.time / 0.5;
+            c.save(); c.translate(this.x, 100);
+            c.scale(1, 0.3); c.rotate(Date.now() / 500);
+            c.strokeStyle = '#44ff88'; c.lineWidth = 5 * cp;
+            c.beginPath(); c.arc(0, 0, 200, 0, Math.PI * 2); c.stroke();
+            c.beginPath();
+            for (let i = 0; i < 6; i++) {
+              c.lineTo(Math.cos(i * Math.PI * 2 / 3) * 200, Math.sin(i * Math.PI * 2 / 3) * 200);
+            }
+            c.stroke();
+            c.restore();
+          } else {
+            // Raining magic circle
+            c.save(); c.translate(this.x, 100);
+            c.scale(1, 0.3); c.rotate(Date.now() / 200);
+            c.globalAlpha = 1 - ((this.time - 0.5) / 2.0);
+            c.strokeStyle = '#44ff88'; c.lineWidth = 10;
+            c.beginPath(); c.arc(0, 0, 200, 0, Math.PI * 2); c.stroke();
+            c.restore();
+          }
+        }
+
+        if (this.type === 'firewave') {
+          let p = this.time / this.duration;
+          let a = Math.sin(p * Math.PI);
+          c.save(); c.translate(this.x, GROUND);
+
+          // Magma cracks
+          c.strokeStyle = '#ff3300'; c.lineWidth = 5 * a; c.shadowColor = '#ff8800'; c.shadowBlur = 15;
+          c.beginPath();
+          c.moveTo(-200, 0); c.lineTo(-100, 20); c.lineTo(0, -10); c.lineTo(100, 15); c.lineTo(200, 0);
+          c.moveTo(-150, 10); c.lineTo(-80, 40); c.moveTo(50, -5); c.lineTo(120, -30);
+          c.stroke(); c.shadowBlur = 0;
+
+          // Big flames using bezier curves
+          c.globalAlpha = a * 0.9;
+          for (let i = 0; i < 5; i++) {
+            c.fillStyle = (i % 2 === 0) ? '#ff3300' : '#ffaa00';
+            let fx = (i - 2) * 60;
+            let fh = -200 - Math.random() * 200 * a;
+            let cp1x = fx - 50 + Math.sin(Date.now() / 100 + i) * 50;
+            let cp1y = fh / 2;
+            c.beginPath();
+            c.moveTo(fx - 40, 0);
+            c.quadraticCurveTo(cp1x, cp1y, fx, fh);
+            c.quadraticCurveTo(fx + 50, cp1y, fx + 40, 0);
+            c.fill();
+          }
+          c.restore();
+        }
+
+        if (this.type === 'angelJudge') {
+          c.save(); c.translate(this.x, GROUND - 300);
+          if (this.time < 0.8) {
+            let p = this.time / 0.8;
+            c.globalAlpha = p; c.fillStyle = '#ffeeaa';
+            // Sky crack
+            c.beginPath(); c.moveTo(-150, -200); c.lineTo(150, -200); c.lineTo(0, 300 * p - 200); c.fill();
+          } else {
+            let p = (this.time - 0.8) / 1.2;
+            let a = 1 - p;
+            c.globalAlpha = a;
+
+            // Giant Cross
+            c.fillStyle = 'rgba(255,255,150,0.4)';
+            c.fillRect(-40, -200, 80, 500);
+            c.fillRect(-200, -50, 400, 60);
+
+            // Angel Silhouette
+            c.fillStyle = '#ffffff'; c.shadowColor = '#ffee88'; c.shadowBlur = 30;
+            // Body
+            c.beginPath(); c.ellipse(0, 50, 20, 80, 0, 0, Math.PI * 2); c.fill();
+            // Head
+            c.beginPath(); c.arc(0, -50, 15, 0, Math.PI * 2); c.fill();
+            // Halo
+            c.strokeStyle = '#ffee00'; c.lineWidth = 4;
+            c.beginPath(); c.ellipse(0, -80, 30, 10, 0, 0, Math.PI * 2); c.stroke();
+            // Wings
+            c.beginPath();
+            c.moveTo(0, 0);
+            c.quadraticCurveTo(150, -150, 250, -50);
+            c.quadraticCurveTo(100, 50, 0, 50);
+            c.fill();
+            c.beginPath();
+            c.moveTo(0, 0);
+            c.quadraticCurveTo(-150, -150, -250, -50);
+            c.quadraticCurveTo(-100, 50, 0, 50);
+            c.fill();
+          }
+          c.restore();
+        }
+
+        if (this.type === 'multiSlash') {
+          // Crescent slashes
+          c.save(); c.translate(this.x, GROUND - 100);
+          let p = this.time / this.duration;
+          let a = Math.sin(p * Math.PI);
+          c.globalAlpha = a;
+
+          for (let i = 0; i < 4; i++) {
+            let tOffset = (this.time * 10 + i * 2) % 4;
+            if (tOffset < 1) {
+              c.save();
+              c.rotate(i * Math.PI / 3 + Date.now() / 200);
+              let scale = 1 + tOffset * 2;
+              c.scale(scale, scale);
+              c.globalAlpha = 1 - tOffset;
+
+              // Crescent
+              c.fillStyle = '#aa22cc'; c.shadowColor = '#ff44ff'; c.shadowBlur = 10;
+              c.beginPath();
+              c.arc(0, 0, 60, -Math.PI / 2, Math.PI / 2);
+              c.arc(10, 0, 50, Math.PI / 2, -Math.PI / 2, true);
+              c.fill();
+              c.restore();
+            }
+          }
+          c.restore();
+        }
+
+        c.globalAlpha = 1;
+        this.particles.forEach(p => p.draw(c));
+        c.restore();
+      }
+    }
+
+    // ============================
+    // DRAW CHARACTER - PHIÊN BẢN HUMAN 3D-STYLED
+    // ============================
+    function drawCharacter(c, x, y, charId, facing, state, animFrame, alpha = 1, scale = 1) {
+      c.save();
+      c.globalAlpha = alpha;
+      c.translate(x, y);
+      c.scale(facing * scale, scale);
+
+      const t = animFrame * 0.09;
+      let bob = 0;
+      if (state === 'run') bob = Math.sin(t * 8) * 5;
+      if (state === 'idle') bob = Math.sin(t * 2.2) * 2.5;
+
+      c.translate(0, bob - 65);
+
+      // Shadow
+      c.fillStyle = 'rgba(0,0,0,0.5)';
+      c.beginPath();
+      c.ellipse(0, 58, 28, 11, 0, 0, Math.PI * 2);
+      c.fill();
+
+      switch (charId) {
+        case 'tien': drawHumanTien(c, state, t); break;
+        case 'thao': drawHumanThao(c, state, t); break;
+        case 'bin': drawHumanBin(c, state, t); break;
+        case 'trang': drawHumanTrang(c, state, t); break;
+        case 'huy': drawHumanHuy(c, state, t); break;
+        case 'nga': drawHumanNga(c, state, t); break;
+      }
+
+      c.restore();
+    }
+
+    // ====================== NHÂN VẬT NGƯỜI THẬT ======================
+
+    function drawHumanTien(c, state, t) { // Tiến - Chiến binh cao to
+      // Legs
+      c.fillStyle = '#1e2937';
+      c.fillRect(-12, 25, 9, 35);
+      c.fillRect(3, 25, 9, 35);
+
+      // Torso
+      c.fillStyle = '#334155';
+      c.beginPath();
+      c.ellipse(0, 8, 18, 25, 0, 0, Math.PI * 2);
+      c.fill();
+
+      // Arms
+      let armSwing = state === 'run' ? Math.sin(t * 8) * 12 : 0;
+      c.fillStyle = '#475569';
+      c.save(); c.translate(-14, 5); c.rotate(-0.4 + armSwing * 0.02);
+      c.fillRect(-6, 0, 9, 28); c.restore();
+      c.save(); c.translate(14, 5); c.rotate(0.4 - armSwing * 0.02);
+      c.fillRect(-3, 0, 9, 28); c.restore();
+
+      // Head
+      c.fillStyle = '#f8d5b8';
+      c.beginPath(); c.arc(0, -28, 14.5, 0, Math.PI * 2); c.fill();
+
+      // Hair
+      c.fillStyle = '#1e2937';
+      c.beginPath(); c.ellipse(0, -34, 15, 12, 0, 0, Math.PI * 2); c.fill();
+
+      // Helmet
+      c.fillStyle = '#1e40af';
+      c.beginPath(); c.arc(0, -31, 15.5, Math.PI * 0.7, Math.PI * 2.3); c.fill();
+
+      // Eyes
+      c.fillStyle = '#111827';
+      c.beginPath(); c.arc(-5.5, -29, 3.5, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(5.5, -29, 3.5, 0, Math.PI * 2); c.fill();
+    }
+
+    function drawHumanThao(c, state, t) { // Thảo - Pháp sư nữ
+      // Legs + Dress
+      c.fillStyle = '#1e2937';
+      c.fillRect(-13, 25, 26, 32);
+
+      // Robe body
+      c.fillStyle = '#312e81';
+      c.beginPath();
+      c.moveTo(-19, -5);
+      c.quadraticCurveTo(-22, 22, -16, 38);
+      c.lineTo(16, 38);
+      c.quadraticCurveTo(22, 22, 19, -5);
+      c.fill();
+
+      // Hair long
+      c.fillStyle = '#4c1d95';
+      c.beginPath(); c.ellipse(0, -32, 16, 22, 0.1, 0, Math.PI * 2); c.fill();
+
+      // Head
+      c.fillStyle = '#f8d5b8';
+      c.beginPath(); c.arc(0, -29, 13, 0, Math.PI * 2); c.fill();
+
+      // Eyes
+      c.fillStyle = '#1e3a8a';
+      c.beginPath(); c.arc(-4.5, -29, 3, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(4.5, -29, 3, 0, Math.PI * 2); c.fill();
+    }
+
+    function drawHumanBin(c, state, t) { // Bin - Assassin
+      c.fillStyle = '#111827';
+      c.fillRect(-15, 10, 30, 38); // cloak
+
+      // Head + Hood
+      c.fillStyle = '#1f2937';
+      c.beginPath(); c.arc(0, -28, 14, 0, Math.PI * 2); c.fill();
+
+      // Mask
+      c.fillStyle = '#0f172a';
+      c.beginPath(); c.arc(0, -26, 11, 0, Math.PI * 2); c.fill();
+
+      c.fillStyle = '#ef4444';
+      c.beginPath(); c.arc(-5, -27, 3.5, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(5, -27, 3.5, 0, Math.PI * 2); c.fill();
+    }
+
+    function drawHumanTrang(c, state, t) { // Trang - Archer nữ
+      c.fillStyle = '#166534';
+      c.fillRect(-14, 12, 28, 35);
+
+      c.fillStyle = '#4ade80';
+      c.beginPath();
+      c.moveTo(-18, -8); c.quadraticCurveTo(-35, 20, -17, 40);
+      c.lineTo(17, 40); c.quadraticCurveTo(32, 18, 18, -8);
+      c.fill();
+
+      c.fillStyle = '#854d0e';
+      c.beginPath(); c.ellipse(0, -32, 14, 18, 0, 0, Math.PI * 2); c.fill();
+    }
+
+    function drawHumanHuy(c, state, t) { // Huy - Tanker
+      c.fillStyle = '#334155';
+      c.fillRect(-20, 8, 40, 42);
+
+      c.fillStyle = '#b91c1c';
+      c.fillRect(-19, 18, 38, 12);
+
+      c.fillStyle = '#1e2937';
+      c.beginPath(); c.arc(0, -29, 16.5, 0, Math.PI * 2); c.fill();
+    }
+
+    function drawHumanNga(c, state, t) { // Nga - Summoner
+      c.fillStyle = '#4338ca';
+      c.fillRect(-18, 10, 36, 38);
+
+      c.fillStyle = '#1e2937';
+      c.beginPath(); c.arc(-13, -35, 10, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(13, -35, 10, 0, Math.PI * 2); c.fill();
+
+      c.fillStyle = '#e0e7ff';
+      c.beginPath(); c.arc(0, -29, 13.5, 0, Math.PI * 2); c.fill();
+    }
+
+    // ============================
+    // PET (Panda)
+    // ============================
+    class Pet {
+      constructor(owner) {
+        this.owner = owner; this.x = owner.x - 60; this.y = GROUND;
+        this.hp = owner.maxHp * 3; this.maxHp = this.hp;
+        this.atk = owner.baseAtk * 3; this.attackCd = 0; this.active = true; this.animFrame = 0;
+        this.spawnTime = 0;
+        this.facing = 1;
+        this.state = 'idle';
+        this.lifeTime = 25; // Tồn tại 25s
+      }
+      update(dt, game) {
+        this.animFrame += dt * 60;
+        this.spawnTime += dt;
+        if (!this.active) return;
+
+        // Đếm ngược 25s
+        this.lifeTime -= dt;
+        if (this.lifeTime <= 0) {
+          this.active = false;
+          for (let i = 0; i < 30; i++) globalParticles.push(new Particle(this.x, this.y - 40, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, '#ffffff', 0.5, 4, 'spark'));
+          return;
+        }
+
+        this.attackCd -= dt;
+        let targets = [];
+        if (game.boss) targets.push(game.boss);
+        if (game.minions) targets.push(...game.minions);
+        targets = targets.filter(t => t.hp > 0);
+
+        if (targets.length === 0) {
+          let dx = this.owner.x - this.x - 80;
+          this.facing = dx > 0 ? 1 : -1;
+          if (Math.abs(dx) > 20) {
+            this.x += Math.sign(dx) * 100 * dt;
+            this.state = 'run';
+          } else this.state = 'idle';
+          return;
+        }
+
+        let target = targets.reduce((min, t) => Math.abs(t.x - this.x) < Math.abs(min.x - this.x) ? t : min, targets[0]);
+        let dx = target.x - this.x;
+        this.facing = dx > 0 ? 1 : -1;
+
+        if (Math.abs(dx) > 100) {
+          this.x += Math.sign(dx) * 150 * dt;
+          this.state = 'run';
+        } else {
+          this.state = 'idle';
+        }
+
+        if (this.attackCd <= 0 && Math.abs(dx) < 120) {
+          target.takeDamage(this.atk);
+          this.attackCd = 1.5;
+          this.state = 'attack';
+          spawnHitParticles(target.x, target.y - 50, '#ffaaaa');
+          if (game.audioCtx) game.playHitSound();
+        }
+      }
+      draw(c) {
+        if (!this.active) return;
+
+        // Vòng sáng ma thuật dưới chân
+        c.save(); c.translate(this.x, this.y);
+        let t = Date.now() / 200;
+        c.save(); c.scale(1, 0.3); c.rotate(t);
+        c.strokeStyle = 'rgba(255, 255, 100, 0.5)'; c.lineWidth = 4;
+        c.beginPath(); c.arc(0, 0, 60, 0, Math.PI * 2); c.stroke();
+        for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(i * Math.PI / 2) * 60, Math.sin(i * Math.PI / 2) * 60); c.stroke(); }
+        c.restore();
+
+        // Portal effect khi mới sinh ra
+        if (this.spawnTime < 1) {
+          let p = this.spawnTime;
+          c.save(); c.globalAlpha = 1 - p;
+          c.strokeStyle = '#44ff44'; c.lineWidth = 15; c.shadowColor = '#44ff44'; c.shadowBlur = 20;
+          c.beginPath(); c.ellipse(0, -10, 80 * p, 20 * p, 0, 0, Math.PI * 2); c.stroke();
+          c.restore();
+        }
+
+        // Nhấp nháy khi sắp hết giờ
+        if (this.lifeTime < 3) {
+          c.globalAlpha = (Math.sin(this.lifeTime * 20) + 1) / 2 + 0.2;
+        }
+
+        // Scale up Panda (x1.5)
+        let pop = Math.min(1, this.spawnTime * 2);
+        c.scale(1.5 * pop * this.facing, 1.5 * pop);
+
+        // Chuyển động nhảy nhót (bob)
+        let bob = this.state === 'run' ? Math.abs(Math.sin(this.animFrame * 0.2)) * 8 : Math.sin(this.animFrame * 0.05) * 2;
+        c.translate(0, -bob);
+
+        // Chân
+        c.fillStyle = '#000000';
+        if (this.state === 'run') {
+          let leg1 = Math.sin(this.animFrame * 0.3) * 10;
+          let leg2 = -leg1;
+          c.fillRect(-15, -10 + leg1, 10, 15);
+          c.fillRect(5, -10 + leg2, 10, 15);
+        } else {
+          c.fillRect(-15, -10, 10, 10);
+          c.fillRect(5, -10, 10, 10);
+        }
+
+        // Panda body béo tròn
+        c.fillStyle = '#ffffff';
+        c.beginPath(); c.arc(0, -30, 25, 0, Math.PI * 2); c.fill();
+
+        // Tai
+        c.fillStyle = '#000000';
+        c.beginPath(); c.arc(-15, -50, 8, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(15, -50, 8, 0, Math.PI * 2); c.fill();
+
+        // Mắt - Đeo kính Thug Life siêu ngầu
+        c.fillStyle = '#111';
+        c.fillRect(-14, -36, 12, 6); c.fillRect(2, -36, 12, 6);
+        c.fillRect(-2, -35, 4, 2);
+        c.fillStyle = '#fff'; c.fillRect(-12, -35, 3, 2); c.fillRect(4, -35, 3, 2);
+
+        // Mũi và miệng
+        c.fillStyle = '#ff8888'; c.beginPath(); c.arc(0, -25, 3, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = '#222'; c.lineWidth = 2; c.beginPath(); c.moveTo(-4, -22); c.lineTo(0, -20); c.lineTo(4, -22); c.stroke();
+
+        // Tay
+        c.fillStyle = '#000000';
+        if (this.attackCd > 1.2) {
+          // Tung cú đấm boxing đỏ
+          c.save(); c.translate(15, -20); c.rotate(Math.PI / 4);
+          c.fillRect(0, 0, 20, 8);
+          c.fillStyle = '#ff0000'; c.beginPath(); c.arc(20, 4, 8, 0, Math.PI * 2); c.fill();
+          c.restore();
+        } else if (this.state === 'run') {
+          // Vung vẩy tay khi chạy
+          c.save(); c.translate(15, -20); c.rotate(Math.sin(this.animFrame * 0.3));
+          c.fillRect(0, 0, 8, 15); c.restore();
+          c.save(); c.translate(-15, -20); c.rotate(-Math.sin(this.animFrame * 0.3));
+          c.fillRect(-8, 0, 8, 15); c.restore();
+        } else {
+          c.fillRect(-22, -20, 8, 15); c.fillRect(14, -20, 8, 15);
+        }
+
+        c.restore();
+
+        // UI bars (không bị lật hướng)
+        if (this.active && this.spawnTime > 0.5) {
+          c.save(); c.translate(this.x, this.y);
+          c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(-30, -90, 60, 6);
+          c.fillStyle = '#44ff44'; c.fillRect(-30, -90, 60 * (this.hp / this.maxHp), 6);
+
+          // Thanh đếm ngược thời gian sống (25s)
+          c.fillStyle = '#aaaaaa'; c.fillRect(-30, -82, 60, 3);
+          c.fillStyle = '#ffaa00'; c.fillRect(-30, -82, 60 * (Math.max(0, this.lifeTime) / 25), 3);
+          c.restore();
+        }
+      }
+      takeDamage(dmg) { this.hp -= dmg; if (this.hp <= 0) { this.active = false; for (let i = 0; i < 20; i++) globalParticles.push(new Particle(this.x, this.y - 40, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, '#ff4444', 1, 3, 'spark')); } }
+    }
+
+    // ============================
+    // BOSS AI
+    // ============================
+    class Boss {
+      constructor(charId, floor) {
+        const ch = CHARS[charId];
+        const mult = 1 + floor * 0.2;
+        const skillMult = 1 + floor * 0.15;
+        this.charId = charId; this.name = ch.name; this.floor = floor;
+        this.maxHp = Math.floor(ch.hp * mult * 3);
+        this.hp = this.maxHp;
+        this.atk = Math.floor(ch.atk * mult * 1.5);
+        this.x = W * 0.75; this.y = GROUND;
+        this.vx = 0; this.vy = 0; this.facing = -1;
+        this.state = 'idle'; this.animFrame = 0;
+        this.attackCd = 2; this.moveCd = 1; this.skillCd = 8;
+        this.moveTarget = W * 0.75;
+        this.skills = ch.skills.map(s => ({ ...s }));
+        this.skillMult = skillMult;
+        this.color = ch.color; this.weaponColor = ch.weaponColor;
+        this.hurtTime = 0;
+        this.shield = 0; this.shieldTime = 0;
+        this.damageReduction = 0; this.damageReductionTime = 0;
+        this.slowEffect = 0; this.slowTime = 0;
+      }
+      update(dt, player, game) {
+        this.animFrame += dt * 60;
+        this.attackCd -= dt; this.moveCd -= dt; this.skillCd -= dt;
+        this.hurtTime = Math.max(0, this.hurtTime - dt);
+        if (this.shieldTime > 0) { this.shieldTime -= dt; if (this.shieldTime <= 0) this.shield = 0; }
+        if (this.damageReductionTime > 0) this.damageReductionTime -= dt;
+        if (this.slowTime > 0) { this.slowTime -= dt; if (this.slowTime <= 0) this.slowEffect = 0; }
+
+        // Physics
+        if (this.y < GROUND) { this.vy += 800 * dt; }
+        this.y = Math.min(GROUND, this.y + this.vy * dt);
+        if (this.y >= GROUND) { this.vy = 0; }
+
+        let spd = 120 * (1 - this.slowEffect);
+
+        // AI behavior
+        let dx = player.x - this.x;
+        this.facing = dx < 0 ? -1 : 1;
+
+        if (this.moveCd <= 0) {
+          let dist = Math.abs(dx);
+          if (dist > 200) { this.moveTarget = player.x - this.facing * 80; }
+          else if (dist < 60) { this.moveTarget = this.x - this.facing * 100; }
+          this.moveCd = 0.5 + Math.random() * 1;
+        }
+
+        let tdx = this.moveTarget - this.x;
+        if (Math.abs(tdx) > 5) this.x += Math.sign(tdx) * spd * dt;
+        this.x = Math.max(30, Math.min(W - 60, this.x));
+
+        // Attack
+        if (this.attackCd <= 0 && Math.abs(dx) < 120) {
+          this.state = 'attack';
+          let dmg = this.atk;
+          if (Math.abs(dx) < 120) game.damagePlayer(dmg);
+          this.attackCd = 1.5 + Math.random() * 1;
+        }
+
+        // Skill
+        if (this.skillCd <= 0) {
+          this.useRandomSkill(game, player);
+          this.skillCd = 6 + Math.random() * 4;
+        }
+
+        if (this.state !== 'attack') this.state = Math.abs(tdx) > 10 ? 'run' : 'idle';
+        if (this.hurtTime > 0) this.state = 'hurt';
+      }
+      useRandomSkill(game, player) {
+        let skill = this.skills[Math.floor(Math.random() * this.skills.length)];
+        let dmg = Math.floor(500 * this.skillMult);
+        game.spawnEffect(skill.use ? 'lightning' : 'firewave', this.x, this.y, dmg, true, { game: game });
+        showMsg('💀 Boss dùng: ' + skill.name + '!', false);
+      }
+      takeDamage(dmg) {
+        if (this.damageReductionTime > 0) dmg = Math.floor(dmg * (1 - this.damageReduction));
+        if (this.shield > 0) {
+          let absorbed = Math.min(this.shield, dmg);
+          this.shield -= absorbed; dmg -= absorbed;
+        }
+        this.hp -= dmg; this.hurtTime = 0.2;
+        this.state = 'hurt';
+      }
+      draw(c) {
+        let alpha = this.hurtTime > 0 ? 0.6 : 1;
+        drawCharacter(c, this.x, this.y, this.charId, this.facing, this.state, this.animFrame, alpha, 1.3);
+        // HP bar above boss
+        c.save(); c.translate(this.x - 40, this.y - 120);
+        c.fillStyle = 'rgba(0,0,0,0.7)'; c.fillRect(0, 0, 80, 10);
+        c.fillStyle = '#ff4444'; c.fillRect(0, 0, 80 * (Math.max(0, this.hp) / this.maxHp), 10);
+        c.strokeStyle = 'rgba(255,100,100,0.5)'; c.lineWidth = 1; c.strokeRect(0, 0, 80, 10);
+        // Shield indicator
+        if (this.shield > 0) { c.fillStyle = 'rgba(100,200,255,0.4)'; c.fillRect(0, 0, 80 * (this.shield / 500), 10); }
+        c.restore();
+      }
+    }
+
+    // ============================
+    // ENEMY (Minion)
+    // ============================
+    class Minion {
+      constructor(x, wave) {
+        this.x = x; this.y = GROUND;
+        this.hp = 100 + wave * 50; this.maxHp = this.hp;
+        this.atk = 15 + wave * 5; this.attackCd = 1.5;
+        this.facing = -1; this.animFrame = 0; this.hurtTime = 0;
+        this.vx = 0;
+      }
+      update(dt, player, game) {
+        this.animFrame += dt * 60;
+        this.hurtTime = Math.max(0, this.hurtTime - dt);
+        this.attackCd -= dt;
+        let dx = player.x - this.x;
+        this.facing = dx < 0 ? -1 : 1;
+        if (Math.abs(dx) > 80) this.x += Math.sign(dx) * 80 * dt;
+        if (this.attackCd <= 0 && Math.abs(dx) < 100) {
+          game.damagePlayer(this.atk);
+          this.attackCd = 1.5;
+        }
+      }
+      takeDamage(dmg) { this.hp -= dmg; this.hurtTime = 0.15; }
+      draw(c) {
+        c.save(); c.translate(this.x, this.y); c.scale(this.facing, 1);
+        let alpha = this.hurtTime > 0 ? 0.5 : 1; c.globalAlpha = alpha;
+        // Slime enemy
+        c.fillStyle = '#aa4444';
+        c.beginPath(); c.ellipse(0, -15, 18, 18, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#cc6666';
+        c.beginPath(); c.ellipse(0, -18, 12, 10, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#000'; c.fillRect(-6, -20, 5, 5); c.fillRect(2, -20, 5, 5);
+        // HP bar
+        c.globalAlpha = 1; c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(-18, -40, 36, 5);
+        c.fillStyle = '#ff4444'; c.fillRect(-18, -40, 36 * (this.hp / this.maxHp), 5);
+        c.restore();
+      }
+    }
+
+    // ============================
+    // PLAYER
+    // ============================
+    class Player {
+      constructor(charId) {
+        const ch = CHARS[charId];
+        this.charId = charId; this.name = ch.name;
+        this.maxHp = ch.hp; this.hp = ch.hp;
+        this.mp = ch.mp; this.maxMp = ch.mp;
+        this.baseAtk = ch.atk; this.atk = ch.atk;
+        this.range = ch.range || 120;
+        this.x = 150; this.y = GROUND; this.vy = 0;
+        this.facing = 1; this.state = 'idle'; this.animFrame = 0;
+        this.skills = ch.skills.map(s => ({ ...s }));
+        this.skillCooldowns = ch.skills.map(() => 0);
+        this.extraSkills = []; this.extraSkillCooldowns = [];
+        this.attackCd = 0;
+        this.hurtTime = 0;
+        this.shield = 0; this.shieldTime = 0;
+        this.regenActive = 0;
+        this.invisible = 0; this.nextHitBonus = 0;
+        this.invincible = 0;
+        this.speedBuff = 0; this.atkBuff = 0;
+        this.damageReduction = 0; this.damageReductionTime = 0;
+        this.bonusAtk = 0;
+        this.pet = null;
+      }
+      update(dt, keys) {
+        this.animFrame += dt * 60;
+        this.hurtTime = Math.max(0, this.hurtTime - dt);
+        this.invincible = Math.max(0, this.invincible - dt);
+        this.invisible = Math.max(0, this.invisible - dt);
+        this.speedBuff = Math.max(0, this.speedBuff - dt);
+        if (this.speedBuff <= 0) this.atkBuff = 0;
+        this.attackCd = Math.max(0, this.attackCd - dt);
+        if (this.shieldTime > 0) { this.shieldTime -= dt; if (this.shieldTime <= 0) this.shield = 0; }
+        if (this.damageReductionTime > 0) this.damageReductionTime -= dt;
+        if (this.regenActive > 0) {
+          this.regenActive -= dt;
+          this.hp = Math.min(this.maxHp, this.hp + 100 * dt);
+          this.mp = Math.min(this.maxMp, this.mp + 50 * dt);
+        }
+        for (let i = 0; i < this.skillCooldowns.length; i++) this.skillCooldowns[i] = Math.max(0, this.skillCooldowns[i] - dt);
+        for (let i = 0; i < this.extraSkillCooldowns.length; i++) this.extraSkillCooldowns[i] = Math.max(0, this.extraSkillCooldowns[i] - dt);
+
+        // MP regen
+        this.mp = Math.min(this.maxMp, this.mp + 5 * dt);
+
+        // Movement
+        let spd = 200;
+        if (this.speedBuff > 0) spd *= 1.6;
+        let moving = false;
+        if ((keys['KeyA'] || keys['ArrowLeft']) && this.x > 30) { this.x -= spd * dt; this.facing = -1; moving = true; }
+        if ((keys['KeyD'] || keys['ArrowRight']) && this.x < W - 30) { this.x += spd * dt; this.facing = 1; moving = true; }
+
+        // Jump
+        if ((keys['Space']) && this.y >= GROUND) { this.vy = -600; }
+
+        // Gravity
+        if (this.y < GROUND) { this.vy += 800 * dt; }
+        this.y = Math.min(GROUND, this.y + this.vy * dt);
+        if (this.y >= GROUND) this.vy = 0;
+
+        // State
+        if (this.hurtTime > 0) this.state = 'hurt';
+        else if (this.y < GROUND) this.state = 'jump';
+        else if (this.state !== 'attack' && this.state !== 'skill') this.state = moving ? 'run' : 'idle';
+        if (this.invisible > 0) this.state = 'idle';
+      }
+      takeDamage(dmg) {
+        if (this.invincible > 0 || this.invisible > 0) return 0;
+        if (this.damageReductionTime > 0) dmg = Math.floor(dmg * (1 - this.damageReduction));
+        if (this.shield > 0) {
+          let absorbed = Math.min(this.shield, dmg);
+          this.shield -= absorbed; dmg -= absorbed;
+        }
+        this.hp -= dmg; this.hurtTime = 0.25;
+        this.state = 'hurt';
+        return dmg;
+      }
+      attack(targets, game) {
+        if (this.attackCd > 0) return;
+        let dmg = this.baseAtk * (1 + this.atkBuff);
+        if (this.nextHitBonus > 0) { dmg += this.nextHitBonus; this.nextHitBonus = 0; }
+        let hit = false;
+        targets.forEach(t => {
+          if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
+            t.takeDamage(Math.floor(dmg));
+            hit = true;
+            spawnHitParticles(t.x, t.y - 50);
+          }
+        });
+        // Hiệu ứng tấn công cơ bản tuỳ biến theo nhân vật
+        if (game) {
+          let wColor = CHARS[this.charId].weaponColor;
+          let effectType = 'sword_slash'; // mặc định
+          if (this.charId === 'trang') effectType = 'arrow_attack';
+          else if (this.charId === 'thao') effectType = 'magic_ice';
+          else if (this.charId === 'nga') effectType = 'magic_star';
+          else if (this.charId === 'bin') effectType = 'dagger_cross';
+          else if (this.charId === 'huy') effectType = 'axe_smash';
+
+          // Tạo một khoảng cách nhỏ phía trước để vung vũ khí đẹp hơn
+          let spawnX = this.x + this.facing * 20;
+          let spawnY = this.y - 30;
+          game.spawnEffect(effectType, spawnX, spawnY, 0, false, { color: wColor, range: this.range, facing: this.facing });
+        }
+        this.state = 'attack';
+        this.attackCd = this.speedBuff > 0 ? 0.35 : 0.55;
+        setTimeout(() => { if (this.state === 'attack') this.state = 'idle'; }, 300);
+        return hit;
+      }
+      draw(c) {
+        let t = Date.now() / 200;
+
+        // --- VẼ HIỆU ỨNG PHÍA SAU (Background 3D Auras) ---
+        c.save();
+
+        // Regen Aura (Tiến) - Xoắn ốc 3D (Double Helix) - Mặt sau
+        if (this.regenActive > 0) {
+          c.lineWidth = 4;
+          for (let i = 0; i < 20; i++) {
+            let angle = t * 2 + i * 0.4;
+            let z = Math.cos(angle);
+            if (z < 0) { // Vẽ phía sau
+              c.strokeStyle = `rgba(255, 200, 0, ${0.1 - z * 0.4})`;
+              c.beginPath();
+              c.ellipse(this.x + Math.sin(angle) * 40, this.y - i * 5, 8, 4, 0, 0, Math.PI * 2);
+              c.stroke();
+            }
+          }
+        }
+
+        // Speed/Atk Buff (Trang) - Quỹ đạo nguyên tử 3D - Mặt sau
+        if (this.speedBuff > 0) {
+          c.lineWidth = 3;
+          for (let i = 0; i < 3; i++) {
+            let rotX = t + i * Math.PI / 1.5;
+            c.save(); c.translate(this.x, this.y - 40);
+            c.rotate(i * Math.PI / 3);
+            c.scale(1, 0.3); // Tạo độ nghiêng 3D
+            c.rotate(rotX);
+            c.beginPath();
+            // Vẽ nửa sau của vòng cung
+            c.strokeStyle = 'rgba(100, 255, 150, 0.2)';
+            c.arc(0, 0, 50, Math.PI, Math.PI * 2);
+            c.stroke();
+            c.restore();
+          }
+        }
+
+        // Invincible (Huy) - Quả cầu máu 3D bay quanh quỹ đạo - Mặt sau
+        if (this.invincible > 0) {
+          for (let i = 0; i < 4; i++) {
+            let angle = t * 1.5 + i * (Math.PI / 2);
+            let z = Math.cos(angle);
+            if (z < 0) {
+              let px = this.x + Math.sin(angle) * 50;
+              let py = this.y - 40 + Math.sin(t + i) * 10;
+              let scale = 1 + z * 0.3; // Chìm vào trong thì nhỏ đi
+              c.fillStyle = '#ff0000'; c.globalAlpha = 0.4 - z * 0.4;
+              c.beginPath(); c.arc(px, py, 15 * scale, 0, Math.PI * 2); c.fill();
+            }
+          }
+        }
+        c.restore();
+
+        // --- VẼ NHÂN VẬT ---
+        // Invisible (Bin) - Smoke trail and blur
+        if (this.invisible > 0) {
+          c.save();
+          // Khói đen bay theo sau
+          for (let i = 1; i <= 6; i++) {
+            c.globalAlpha = 0.6 * (1 - i / 6);
+            c.fillStyle = '#0a0a0a';
+            let stretch = (this.state === 'run' || this.state === 'jump') ? 22 : 8;
+            let ox = this.x - this.facing * (i * stretch) + (Math.random() - 0.5) * 15;
+            let oy = this.y - 20 - (Math.random() * 30);
+            c.beginPath();
+            c.arc(ox, oy, 12 + i * 3, 0, Math.PI * 2);
+            c.fill();
+          }
+          c.restore();
+
+          c.globalAlpha = 0.35; // Làm mờ nhân vật chính
+          c.filter = 'blur(1px) drop-shadow(0 0 8px rgba(0,0,0,0.8))'; // Nhòa bóng đen
+        }
+
+        drawCharacter(c, this.x, this.y, this.charId, this.facing, this.state, this.animFrame);
+        c.globalAlpha = 1;
+        c.filter = 'none';
+
+        // --- VẼ HIỆU ỨNG PHÍA TRƯỚC (Foreground 3D Auras) ---
+        c.save();
+
+        // Regen Aura (Tiến) - Mặt trước
+        if (this.regenActive > 0) {
+          c.lineWidth = 4;
+          c.shadowColor = '#ffcc00'; c.shadowBlur = 15;
+          for (let i = 0; i < 20; i++) {
+            let angle = t * 2 + i * 0.4;
+            let z = Math.cos(angle);
+            if (z >= 0) { // Vẽ phía trước
+              c.strokeStyle = `rgba(255, 255, 100, ${0.4 + z * 0.6})`;
+              c.beginPath();
+              c.ellipse(this.x + Math.sin(angle) * 40, this.y - i * 5, 8 + z * 4, 4 + z * 2, 0, 0, Math.PI * 2);
+              c.stroke();
+            }
+          }
+          c.shadowBlur = 0;
+          if (Math.random() < 0.2) globalParticles.push(new Particle(this.x + (Math.random() - 0.5) * 60, this.y - Math.random() * 80, 0, -50, '#ffcc00', 0.5, 3, 'spark'));
+        }
+
+        // Shield Hexagon 3D Dome (Thảo)
+        if (this.shield > 0) {
+          c.save(); c.translate(this.x, this.y - 40);
+          c.strokeStyle = 'rgba(100, 220, 255, 0.8)';
+          c.shadowColor = '#00ffff'; c.shadowBlur = 10;
+
+          // Hiệu ứng phập phồng (Pulse)
+          let pulse = 1 + 0.05 * Math.sin(t * 10);
+          c.scale(pulse, pulse);
+
+          // Vẽ 3 vòng cung ngang (latitude) - chuyển động trượt lên xuống (scanning)
+          for (let r = 0; r < 3; r++) {
+            c.beginPath();
+            let phase = (t * 2 + r * 2) % (Math.PI); // Phase từ 0 đến PI
+            let radius = 45 * Math.sin(phase);
+            let yOff = 45 * Math.cos(phase);
+            c.ellipse(0, yOff, radius, Math.max(0.1, radius * 0.3), 0, 0, Math.PI * 2);
+            c.stroke();
+          }
+          // Vẽ các đường kinh tuyến (longitude) quay 3D nhanh
+          for (let i = 0; i < 4; i++) {
+            c.save();
+            c.rotate(t * 3 + i * Math.PI / 4);
+            c.beginPath();
+            c.ellipse(0, 0, 45, 45, 0, 0, Math.PI * 2);
+            c.stroke();
+            c.restore();
+          }
+          c.fillStyle = 'rgba(100, 220, 255, 0.15)';
+          c.beginPath(); c.arc(0, 0, 45, 0, Math.PI * 2); c.fill();
+          c.restore();
+
+          if (Math.random() < 0.4) globalParticles.push(new Particle(this.x + (Math.random() - 0.5) * 50, this.y - 30 + (Math.random() - 0.5) * 50, 0, 50, '#ffffff', 0.5, 2, 'snowflake'));
+        }
+
+        // Speed/Atk Buff (Trang) - Mặt trước
+        if (this.speedBuff > 0) {
+          c.lineWidth = 3; c.shadowColor = '#44ffaa'; c.shadowBlur = 10;
+          for (let i = 0; i < 3; i++) {
+            let rotX = t + i * Math.PI / 1.5;
+            c.save(); c.translate(this.x, this.y - 40);
+            c.rotate(i * Math.PI / 3);
+            c.scale(1, 0.3);
+            c.rotate(rotX);
+            c.beginPath();
+            // Vẽ nửa trước vòng cung
+            c.strokeStyle = 'rgba(100, 255, 150, 0.9)';
+            c.arc(0, 0, 50, 0, Math.PI);
+            c.stroke();
+            c.restore();
+          }
+        }
+
+        // Fire Armor Aura
+        if (this.damageReductionTime > 0) {
+          c.save(); c.globalAlpha = 0.5;
+          for (let i = 0; i < 3; i++) {
+            c.fillStyle = '#ff5500';
+            c.beginPath(); c.arc(this.x + Math.sin(t * 3 + i) * 20, this.y - 10 - Math.random() * 40, Math.random() * 15 + 5, 0, Math.PI * 2); c.fill();
+          }
+          c.restore();
+        }
+
+        // Invincible (Huy) - Quả cầu máu 3D bay quanh quỹ đạo - Mặt trước
+        if (this.invincible > 0) {
+          c.shadowColor = '#ff0000'; c.shadowBlur = 15;
+          for (let i = 0; i < 4; i++) {
+            let angle = t * 1.5 + i * (Math.PI / 2);
+            let z = Math.cos(angle);
+            if (z >= 0) {
+              let px = this.x + Math.sin(angle) * 50;
+              let py = this.y - 40 + Math.sin(t + i) * 10;
+              let scale = 1 + z * 0.3; // Nổi ra ngoài thì to lên
+
+              // Vẽ cục máu 3D với gradient
+              let grad = c.createRadialGradient(px - 5 * scale, py - 5 * scale, 0, px, py, 15 * scale);
+              grad.addColorStop(0, '#ffaaaa'); grad.addColorStop(0.3, '#ff0000'); grad.addColorStop(1, '#880000');
+              c.fillStyle = grad;
+              c.beginPath(); c.arc(px, py, 15 * scale, 0, Math.PI * 2); c.fill();
+            }
+          }
+        }
+
+        c.restore();
+      }
+    }
+
+    // ============================
+    // GAME ENGINE
+    // ============================
+    class Game {
+      constructor(charId) {
+        this.player = new Player(charId);
+        this.floor = 1;
+        this.isBossFloor = false;
+        this.boss = null;
+        this.minions = [];
+        this.effects = [];
+        this.particles = [];
+        this.keys = {};
+        this.mouseClick = false;
+        this.running = true;
+        this.paused = false;
+        this.bgOffset = 0;
+        this.minionSpawnCd = 0;
+        this.waveKills = 0;
+        this.waveGoal = 5;
+        this.bossOrder = this.buildBossOrder(charId);
+        this.bossIndex = 0;
+        this.showingSkillPick = false;
+        this.shakeTime = 0;
+        this.bossSpawnTimer = 0;
+        this.lastTime = 0;
+        this.audioCtx = null;
+        this.initAudio();
+        this.setupInput();
+        this.startFloor();
+        this.updateHUD();
+        requestAnimationFrame(t => this.loop(t));
+      }
+
+      buildBossOrder(charId) {
+        let others = CHAR_ORDER.filter(c => c !== charId);
+        // Last boss rule
+        let lastBoss = LAST_BOSS_MAP[charId] || 'tien';
+        if (charId === 'tien') lastBoss = 'huy';
+        // Remove lastBoss from middle
+        others = others.filter(c => c !== lastBoss);
+        // Shuffle middle 4
+        for (let i = others.length - 1; i > 0; i--) { let j = Math.floor(Math.random() * (i + 1));[others[i], others[j]] = [others[j], others[i]]; }
+        others.push(lastBoss);
+        return others.slice(0, 5);
+      }
+
+      startFloor() {
+        this.minions = []; this.effects = []; this.particles = [];
+        this.minionSpawnCd = 2; this.waveKills = 0;
+        this.isBossFloor = (this.floor % 2 === 0);
+
+        let floorDiv = document.getElementById('floor-display');
+        if (this.isBossFloor) {
+          // Hồi đầy HP và MP khi sang màn Boss
+          this.player.hp = this.player.maxHp;
+          this.player.mp = this.player.maxMp;
+
+          this.boss = null;
+          this.bossSpawnTimer = 6;
+
+          document.getElementById('boss-hud').style.display = 'none';
+          floorDiv.textContent = `Tầng ${this.floor} | Chuẩn bị gặp Boss...`;
+          showMsg(`⚠️ BỐ MÀY SẮP XUẤT HIỆN! Đã hồi đầy HP & MP!`);
+        } else {
+          this.boss = null;
+          this.waveGoal = 5 + this.floor;
+          document.getElementById('boss-hud').style.display = 'none';
+          floorDiv.textContent = `Tầng ${this.floor} | Tiêu diệt: 0/${this.waveGoal}`;
+          showMsg(`🗡️ Tầng ${this.floor} - Tiêu diệt ${this.waveGoal} quái!`);
+        }
+      }
+
+      setupInput() {
+        // Make canvas focusable
+        canvas.setAttribute('tabindex', '0');
+        canvas.focus();
+        canvas.addEventListener('click', () => { canvas.focus(); this.handleAttack(); });
+
+        const SKILL_KEYS = new Set(['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyJ',
+          'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6']);
+
+        window.addEventListener('keydown', e => {
+          this.keys[e.code] = true;
+          if (SKILL_KEYS.has(e.code)) e.preventDefault();
+          if (e.code === 'KeyJ') this.handleAttack();
+          if (e.code === 'Digit1' || e.key === '1') this.useSkill(0);
+          if (e.code === 'Digit2' || e.key === '2') this.useSkill(1);
+          if (e.code === 'Digit3' || e.key === '3') this.useExtraSkill(0);
+          if (e.code === 'Digit4' || e.key === '4') this.useExtraSkill(1);
+          if (e.code === 'Digit5' || e.key === '5') this.useExtraSkill(2);
+          if (e.code === 'Digit6' || e.key === '6') this.useExtraSkill(3);
+        });
+        window.addEventListener('keyup', e => { this.keys[e.code] = false; });
+
+        // Clickable skill buttons
+        document.getElementById('sk0').addEventListener('mousedown', e => { e.stopPropagation(); this.useSkill(0); });
+        document.getElementById('sk1').addEventListener('mousedown', e => { e.stopPropagation(); this.useSkill(1); });
+        document.getElementById('sk2').addEventListener('mousedown', e => { e.stopPropagation(); this.useExtraSkill(0); });
+        document.getElementById('sk3').addEventListener('mousedown', e => { e.stopPropagation(); this.useExtraSkill(1); });
+        document.getElementById('sk4').addEventListener('mousedown', e => { e.stopPropagation(); this.useExtraSkill(2); });
+        document.getElementById('sk5').addEventListener('mousedown', e => { e.stopPropagation(); this.useExtraSkill(3); });
+      }
+
+      handleAttack() {
+        if (this.paused || !this.running) return;
+        let targets = [];
+        if (this.boss) targets.push(this.boss);
+        targets.push(...this.minions);
+        this.player.attack(targets, this);
+      }
+
+      useSkill(idx) {
+        if (this.paused || !this.running) return;
+        let sk = this.player.skills[idx];
+        if (!sk) return;
+        if (this.player.skillCooldowns[idx] > 0) { showMsg(`⏱ ${sk.name} hồi chiêu: ${this.player.skillCooldowns[idx].toFixed(0)}s`); return; }
+        if (sk.use(this, this.player)) {
+          this.player.skillCooldowns[idx] = sk.cd;
+          this.player.state = 'skill';
+          setTimeout(() => { if (this.player.state === 'skill') this.player.state = 'idle'; }, 500);
+        } else { showMsg('❌ HẾT CỨT RỒI RẶN HOÀI!'); }
+      }
+
+      useExtraSkill(idx) {
+        if (this.paused || !this.running) return;
+        let sk = this.player.extraSkills[idx];
+        if (!sk) return;
+        if (this.player.extraSkillCooldowns[idx] > 0) { showMsg(`⏱ Hồi chiêu: ${this.player.extraSkillCooldowns[idx].toFixed(0)}s`); return; }
+        if (sk.use(this, this.player)) {
+          this.player.extraSkillCooldowns[idx] = sk.cd;
+        } else { showMsg('❌ HẾT CỨT RỒI RẶN HOÀI'); }
+      }
+
+      spawnEffect(type, x, y, damage, fromBoss = false, extra = null) {
+        let eff = new Effect(type, x, y, damage, extra);
+        this.effects.push(eff);
+        if (this.audioCtx) this.playSkillSound(type);
+
+        let radius = 300;
+        if (type === 'blizzard') radius = 600; // Bão tuyết rộng hơn
+        if (type === 'arrowRain') radius = 400;
+        if (type === 'firewave') radius = 350;
+        if (type === 'lightning') radius = 250;
+        if (type === 'multiSlash') radius = 200;
+        if (type === 'angelJudge') radius = 350;
+
+        // Apply damage after short delay
+        setTimeout(() => {
+          if (fromBoss) {
+            if (Math.abs(this.player.x - x) < radius) {
+              this.damagePlayer(damage);
+            }
+          }
+          else {
+            if (this.boss && Math.abs(this.boss.x - x) < radius) {
+              this.boss.takeDamage(damage);
+            }
+            this.minions.forEach(m => {
+              if (Math.abs(m.x - x) < radius) m.takeDamage(damage);
+            });
+          }
+        }, 300);
+      }
+
+      spawnPet(player) {
+        if (player.pet && player.pet.active) return;
+        player.pet = new Pet(player);
+        this.playBossRoar(); // Dùng tiếng gầm
+        for (let i = 0; i < 30; i++) {
+          this.particles.push(new Particle(player.x - 60 + (Math.random() - 0.5) * 100, GROUND - 10, (Math.random() - 0.5) * 300, -Math.random() * 400, '#44ff44', 1.5, Math.random() * 5 + 3, 'leaf'));
+        }
+      }
+
+      damagePlayer(dmg) {
+        let actual = this.player.takeDamage(dmg);
+        if (actual > 0) {
+          spawnHitParticles(this.player.x, this.player.y - 50, '#ff4444');
+          if (this.player.hp <= 0) this.playerDied();
+        }
+      }
+
+      playerDied() {
+        this.running = false;
+        this.player.state = 'death';
+        showMsg('☠️ Bạn đã thua!');
+        setTimeout(() => { document.getElementById('gameOver').style.display = 'flex'; }, 2000);
+      }
+
+      spawnMinion() {
+        let x = Math.random() < 0.5 ? W + 50 : -50;
+        this.minions.push(new Minion(x, Math.floor(this.floor / 2)));
+      }
+
+      floorComplete() {
+        this.paused = true;
+        if (this.isBossFloor) {
+          this.bossIndex++;
+          if (this.bossIndex >= 5) {
+            // Victory!
+            setTimeout(() => { document.getElementById('victory').style.display = 'flex'; }, 1500);
+            return;
+          }
+          showMsg(`🏆 Boss đã bị tiêu diệt!`);
+          this.playVictoryFanfare();
+          setTimeout(() => { this.showSkillPick(); }, 1500);
+        } else {
+          showMsg(`✅ Tầng ${this.floor} hoàn thành!`);
+          setTimeout(() => {
+            this.floor++;
+            this.paused = false;
+            this.startFloor();
+          }, 2000);
+        }
+      }
+
+      showSkillPick() {
+        let boss = this.bossOrder[this.bossIndex - 1];
+        let bossData = CHARS[boss];
+        let choicesEl = document.getElementById('skill-choices');
+        choicesEl.innerHTML = '';
+        bossData.skills.forEach((sk, i) => {
+          let card = document.createElement('div');
+          card.className = 'skill-choice-card';
+          card.innerHTML = `<div class="skill-icon">${sk.icon || '⭐'}</div>
+        <div class="skill-name">${sk.name}</div>
+        <div class="skill-desc">${sk.desc}</div>`;
+          card.onclick = () => { this.learnSkill(sk); };
+          choicesEl.appendChild(card);
+        });
+        document.getElementById('skill-pick').style.display = 'flex';
+      }
+
+      learnSkill(sk) {
+        document.getElementById('skill-pick').style.display = 'none';
+        this.player.extraSkills.push(sk);
+        this.player.extraSkillCooldowns.push(0);
+        this.updateExtraSkillSlots();
+        showMsg(`✨ Đã học: ${sk.name}!`);
+        this.paused = false;
+        this.floor++;
+        this.startFloor();
+      }
+
+      updateExtraSkillSlots() {
+        for (let i = 0; i < 4; i++) {
+          let el = document.getElementById(`sk${i + 2}`);
+          if (!el) continue;
+          if (i < this.player.extraSkills.length) {
+            el.style.display = 'flex';
+            let sk = this.player.extraSkills[i];
+            el.querySelector('.name').textContent = sk.name.substring(0, 10);
+            el.querySelector('.tooltip').innerHTML = `<strong>${sk.name}</strong><br>Hồi chiêu: ${sk.cd}s<br>MP: ${sk.mpCost}<br><span style="color:#aaa">${sk.desc}</span>`;
+          } else {
+            el.style.display = 'none';
+          }
+        }
+      }
+
+      updateHUD() {
+        let p = this.player;
+        document.getElementById('hp-bar').style.width = (p.hp / p.maxHp * 100) + '%';
+        document.getElementById('mp-bar').style.width = (p.mp / p.maxMp * 100) + '%';
+        document.getElementById('hp-val').textContent = `${Math.ceil(p.hp)}/${p.maxHp}`;
+        document.getElementById('mp-val').textContent = `${Math.ceil(p.mp)}/${p.maxMp}`;
+        document.getElementById('player-name').textContent = p.name;
+        // Skill cooldowns
+        for (let i = 0; i < 2; i++) {
+          let el = document.getElementById(`sk${i}`);
+          if (!el) continue;
+          let cd = p.skillCooldowns[i];
+          let ov = el.querySelector('.cooldown-overlay');
+          if (!ov) { ov = document.createElement('div'); ov.className = 'cooldown-overlay'; el.appendChild(ov); }
+          if (cd > 0) { ov.style.display = 'flex'; ov.textContent = Math.ceil(cd) + 's'; }
+          else { ov.style.display = 'none'; }
+          let sk = p.skills[i];
+          el.querySelector('.name').textContent = sk ? sk.name.substring(0, 10) : '-';
+        }
+        for (let i = 0; i < p.extraSkills.length; i++) {
+          let el = document.getElementById(`sk${i + 2}`);
+          if (!el) continue;
+          let cd = p.extraSkillCooldowns[i];
+          let ov = el.querySelector('.cooldown-overlay');
+          if (!ov) { ov = document.createElement('div'); ov.className = 'cooldown-overlay'; el.appendChild(ov); }
+          if (cd > 0) { ov.style.display = 'flex'; ov.textContent = Math.ceil(cd) + 's'; }
+          else { ov.style.display = 'none'; }
+        }
+        // Boss HP
+        if (this.boss) {
+          document.getElementById('boss-hp-bar').style.width = (Math.max(0, this.boss.hp) / this.boss.maxHp * 100) + '%';
+        }
+        // Floor
+        if (!this.isBossFloor) {
+          document.getElementById('floor-display').textContent = `Tầng ${this.floor} | Tiêu diệt: ${this.waveKills}/${this.waveGoal}`;
+        }
+      }
+
+      // Background layers
+      drawBackground() {
+        let t = Date.now() / 1000;
+
+        // 1. Deep space gradient
+        let grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#020008');
+        grad.addColorStop(0.5, '#0b0020');
+        grad.addColorStop(1, '#150030');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+        // 2. Dynamic Nebula clouds (Tinh vân)
+        ctx.globalCompositeOperation = 'screen';
+        let colors = ['rgba(100, 0, 200, 0.2)', 'rgba(0, 150, 255, 0.15)', 'rgba(255, 0, 100, 0.15)'];
+        for (let i = 0; i < 3; i++) {
+          let cx = (W / 2) + Math.sin(t * 0.2 + i) * (W * 0.4);
+          let cy = (H / 3) + Math.cos(t * 0.3 + i * 2) * (H * 0.3);
+          let aGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.5);
+          aGrad.addColorStop(0, colors[i]); aGrad.addColorStop(1, 'transparent');
+          ctx.fillStyle = aGrad; ctx.fillRect(0, 0, W, H);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+
+        // 3. Multi-layer Stars (Parallax 3 lớp sao)
+        for (let layer = 1; layer <= 3; layer++) {
+          let numStars = layer * 50;
+          let speed = layer * 20;
+          let size = layer === 3 ? 2 : 1;
+          ctx.fillStyle = `rgba(255,255,255,${0.3 + layer * 0.2})`;
+          for (let i = 0; i < numStars; i++) {
+            let sx = ((i * 937.5 - this.bgOffset * 0.1 * layer - t * speed) % W);
+            if (sx < 0) sx += W;
+            let sy = ((i * 473.1) % (GROUND - 50));
+            let alpha = 0.5 + 0.5 * Math.sin(t * (1 + i % 3) + i);
+            ctx.globalAlpha = alpha;
+            ctx.beginPath(); ctx.arc(sx, sy, size, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 1;
+
+        // 4. Shooting Stars (Sao băng)
+        let shootT = (t * 1.5) % 8; // Bắn ra mỗi 5.3s
+        if (shootT < 1) {
+          let startX = (W * 0.8) - shootT * 2000;
+          let startY = (H * 0.1) + shootT * 800;
+          ctx.save();
+          ctx.globalAlpha = 1 - shootT;
+          let sGrad = ctx.createLinearGradient(startX, startY, startX + 250, startY - 100);
+          sGrad.addColorStop(0, '#ffffff'); sGrad.addColorStop(1, 'transparent');
+          ctx.strokeStyle = sGrad; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(startX + 250, startY - 100); ctx.stroke();
+          ctx.restore();
+        }
+
+        // 5. Floating Asteroids (Thiên thạch lơ lửng)
+        ctx.fillStyle = '#111122';
+        for (let i = 0; i < 7; i++) {
+          let ax = ((i * 350 - this.bgOffset * 0.3) % (W + 400));
+          if (ax < 0) ax += W + 400;
+          ax -= 200;
+
+          let ay = (GROUND - 250) + Math.cos(t * 0.5 + i) * 50 + (i % 2 * 120);
+
+          ctx.save();
+          ctx.translate(ax, ay);
+          ctx.rotate(Math.sin(t * 0.2 + i) * 0.2);
+
+          ctx.beginPath();
+          ctx.moveTo(-50, 0); ctx.lineTo(-20, -40); ctx.lineTo(30, -50); ctx.lineTo(60, -10);
+          ctx.lineTo(40, 40); ctx.lineTo(-10, 50); ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(100, 255, 255, 0.15)'; ctx.lineWidth = 2; ctx.stroke();
+          ctx.restore();
+        }
+
+        // 6. Crystalline Ground (Mặt đất pha lê tím)
+        let gGrad = ctx.createLinearGradient(0, GROUND, 0, H);
+        gGrad.addColorStop(0, '#2a004a');
+        gGrad.addColorStop(1, '#0a001a');
+        ctx.fillStyle = gGrad; ctx.fillRect(0, GROUND, W, H - GROUND);
+
+        ctx.strokeStyle = '#aa44ff'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND);
+        ctx.shadowColor = '#aa44ff'; ctx.shadowBlur = 20;
+        ctx.stroke(); ctx.shadowBlur = 0;
+
+        // Ground crystal details
+        ctx.strokeStyle = 'rgba(150, 100, 255, 0.4)'; ctx.lineWidth = 2;
+        let numCrystals = Math.floor(W / 60) + 2;
+        for (let i = 0; i < numCrystals; i++) {
+          let cx = ((i * 60 - this.bgOffset * 0.8) % (W + 120));
+          if (cx < 0) cx += W + 120;
+          cx -= 60;
+
+          ctx.beginPath();
+          ctx.moveTo(cx, GROUND);
+          ctx.lineTo(cx - 15, GROUND + 30 + (i % 3) * 10);
+          ctx.lineTo(cx + 10, GROUND + 50 + (i % 2) * 20);
+          ctx.stroke();
+        }
+      }
+
+      loop(timestamp) {
+        if (!this.running && !this.paused) return;
+        let dt = Math.min((timestamp - this.lastTime) / 1000, 0.05);
+        this.lastTime = timestamp;
+
+        if (!this.paused) {
+          this.update(dt);
+        }
+        this.draw();
+        requestAnimationFrame(t => this.loop(t));
+      }
+
+      update(dt) {
+        this.bgOffset += 50 * dt;
+        this.shakeTime = Math.max(0, this.shakeTime - dt);
+        this.player.update(dt, this.keys);
+        if (this.player.pet) this.player.pet.update(dt, this);
+
+        if (this.isBossFloor) {
+          if (this.bossSpawnTimer > 0) {
+            this.bossSpawnTimer -= dt;
+            if (this.bossSpawnTimer <= 0) {
+              let bossChar = this.bossOrder[this.bossIndex];
+              this.boss = new Boss(bossChar, this.bossIndex);
+              document.getElementById('boss-hud').style.display = 'block';
+              document.getElementById('boss-name-display').textContent = `👹 BOSS: ${this.boss.name}`;
+              document.getElementById('floor-display').textContent = `Tầng ${this.floor} | Boss: ${this.boss.name}`;
+              showMsg(`⚔️ BỐ TỚI NÈ CON: ${this.boss.name}!`);
+              this.playBossRoar();
+            }
+          } else if (this.boss) {
+            this.boss.update(dt, this.player, this);
+            if (this.boss.hp <= 0) { this.boss = null; this.floorComplete(); }
+          }
+        } else if (!this.isBossFloor) {
+          this.minionSpawnCd -= dt;
+          if (this.minionSpawnCd <= 0 && this.minions.length < 6) {
+            this.spawnMinion(); this.minionSpawnCd = 3;
+          }
+          this.minions.forEach(m => m.update(dt, this.player, this));
+          let prev = this.minions.length;
+          this.minions = this.minions.filter(m => m.hp > 0);
+          let killed = prev - this.minions.length;
+          if (killed > 0) {
+            this.waveKills += killed;
+            // MP regen on kill
+            this.player.mp = Math.min(this.player.maxMp, this.player.mp + 50 * killed);
+          }
+          if (this.waveKills >= this.waveGoal) { this.minions = []; this.floorComplete(); }
+        }
+
+        this.effects.forEach(e => e.update(dt));
+        this.effects = this.effects.filter(e => !e.done);
+        this.particles.forEach(p => p.update(dt));
+        this.particles = this.particles.filter(p => p.life > 0);
+
+        this.updateHUD();
+      }
+
+      draw() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.save();
+        if (this.shakeTime > 0) {
+          let mag = this.shakeTime * 20;
+          ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+        }
+        this.drawBackground();
+
+        // Draw pets
+        if (this.player.pet) this.player.pet.draw(ctx);
+
+        // Draw minions
+        this.minions.forEach(m => m.draw(ctx));
+
+        // Draw boss
+        if (this.boss) this.boss.draw(ctx);
+
+        // Draw effects
+        this.effects.forEach(e => e.draw(ctx));
+
+        // Draw particles
+        this.particles.forEach(p => p.draw(ctx));
+
+        // Draw player
+        this.player.draw(ctx);
+
+        // Draw boss countdown
+        if (this.isBossFloor && this.bossSpawnTimer > 0) {
+          ctx.save();
+          ctx.fillStyle = '#ffd700';
+          ctx.font = 'bold 70px "Segoe UI"';
+          ctx.textAlign = 'center';
+          ctx.shadowColor = '#ffa500';
+          ctx.shadowBlur = 20;
+          ctx.fillText(Math.ceil(this.bossSpawnTimer), W / 2, H / 3);
+          ctx.font = '24px "Segoe UI"';
+          ctx.fillText("Boss đang tới...", W / 2, H / 3 + 40);
+          ctx.restore();
+        }
+
+        // Draw damage numbers
+        ctx.restore();
+      }
+
+      // ---- AUDIO ----
+      initAudio() {
+        try {
+          this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          this.playBgMusic();
+        } catch (e) { }
+      }
+      playBgMusic() {
+        if (!this.audioCtx) return;
+        let ac = this.audioCtx;
+        const notes = [261, 293, 329, 349, 392, 440, 493, 523];
+        let play = (freq, time, dur) => {
+          let o = ac.createOscillator(), g = ac.createGain();
+          o.connect(g); g.connect(ac.destination);
+          o.type = 'sine'; o.frequency.value = freq * 0.5;
+          g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(0.03, time + 0.1);
+          g.gain.linearRampToValueAtTime(0, time + dur);
+          o.start(time); o.stop(time + dur + 0.1);
+        };
+        let t = ac.currentTime;
+        let melody = [0, 2, 4, 5, 4, 2, 0, 2];
+        melody.forEach((n, i) => { play(notes[n], t + i * 0.8, 0.7); });
+        setTimeout(() => this.playBgMusic(), 7000);
+      }
+      playBossRoar() {
+        if (!this.audioCtx) return;
+        let ac = this.audioCtx, t = ac.currentTime;
+        let o = ac.createOscillator(), g = ac.createGain();
+        o.connect(g); g.connect(ac.destination);
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(80, t); o.frequency.linearRampToValueAtTime(30, t + 1);
+        g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t + 1);
+        o.start(t); o.stop(t + 1.1);
+      }
+      playHitSound() {
+        if (!this.audioCtx) return;
+        let ac = this.audioCtx, t = ac.currentTime;
+        let o = ac.createOscillator(), g = ac.createGain();
+        o.connect(g); g.connect(ac.destination);
+        o.type = 'square'; o.frequency.setValueAtTime(400, t); o.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+        g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        o.start(t); o.stop(t + 0.15);
+      }
+      playSkillSound(type) {
+        if (!this.audioCtx) return;
+        let ac = this.audioCtx, t = ac.currentTime;
+        let o = ac.createOscillator(), g = ac.createGain();
+        o.connect(g); g.connect(ac.destination);
+        if (type === 'lightning' || type === 'firewave') {
+          // Nổ
+          o.type = 'square'; o.frequency.setValueAtTime(100, t); o.frequency.exponentialRampToValueAtTime(20, t + 0.5);
+          g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+          o.start(t); o.stop(t + 0.6);
+        } else if (type === 'arrowRain' || type === 'blizzard' || type === 'multiSlash') {
+          // Rít gió / chém
+          o.type = 'triangle'; o.frequency.setValueAtTime(800, t); o.frequency.linearRampToValueAtTime(400, t + 0.3);
+          g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+          o.start(t); o.stop(t + 0.4);
+        } else if (type === 'angelJudge') {
+          // Thánh ca
+          o.type = 'sine'; o.frequency.setValueAtTime(880, t); o.frequency.linearRampToValueAtTime(1108, t + 1);
+          g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t + 1.5);
+          o.start(t); o.stop(t + 1.5);
+        }
+      }
+      playVictoryFanfare() {
+        if (!this.audioCtx) return;
+        let ac = this.audioCtx, t = ac.currentTime;
+        [[523, 0], [659, 0.2], [784, 0.4], [1047, 0.6]].forEach(([f, delay]) => {
+          let o = ac.createOscillator(), g = ac.createGain();
+          o.connect(g); g.connect(ac.destination);
+          o.type = 'square'; o.frequency.value = f;
+          g.gain.setValueAtTime(0, t + delay); g.gain.linearRampToValueAtTime(0.05, t + delay + 0.05);
+          g.gain.linearRampToValueAtTime(0, t + delay + 0.4);
+          o.start(t + delay); o.stop(t + delay + 0.5);
+        });
+      }
+    }
+
+    // ============================
+    // GLOBAL HELPERS
+    // ============================
+    let globalParticles = [];
+    function spawnHitParticles(x, y, color = '#ffaa00') {
+      for (let i = 0; i < 15; i++) {
+        globalParticles.push(new Particle(x, y, (Math.random() - 0.5) * 300, -Math.random() * 300, color, 0.6, Math.random() * 4 + 2));
+      }
+    }
+
+    let msgTimeout = null;
+    function showMsg(text, auto = true) {
+      let el = document.getElementById('message');
+      el.textContent = text; el.style.opacity = '1';
+      if (msgTimeout) clearTimeout(msgTimeout);
+      if (auto) msgTimeout = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+    }
+
+    function toggleSettings() {
+      let menu = document.getElementById('settings-menu');
+      if (menu.style.display === 'none' || menu.style.display === '') {
+        if (game) game.paused = true;
+        menu.style.display = 'flex';
+      } else {
+        resumeGame();
+      }
+    }
+
+    function resumeGame() {
+      document.getElementById('settings-menu').style.display = 'none';
+      if (game) game.paused = false;
+    }
+
+    function restartGame() {
+      document.getElementById('settings-menu').style.display = 'none';
+      document.getElementById('gameOver').style.display = 'none';
+      document.getElementById('victory').style.display = 'none';
+      if (game) {
+        game.running = false;
+        // Hide extra skills
+        for (let i = 2; i <= 5; i++) {
+          let el = document.getElementById(`sk${i}`);
+          if (el) el.style.display = 'none';
+        }
+        game = new Game(selectedCharId);
+      }
+    }
+
+    function exitGame() {
+      location.reload();
+    }
+
+    // ============================
+    // CHARACTER SELECT UI
+    // ============================
+    function buildCharSelect() {
+      let grid = document.getElementById('chars-grid');
+      grid.innerHTML = '';
+      CHAR_ORDER.forEach(id => {
+        let ch = CHARS[id];
+        let card = document.createElement('div');
+        card.className = 'char-card';
+        card.setAttribute('data-id', id);
+        card.innerHTML = `
+      <div class="card-icon">${ch.icon}</div>
+      <div class="card-name">${ch.name}</div>
+      <div class="card-class">${ch.class}</div>
+      <div class="card-stats">
+        <div class="card-stat"><span>❤️ HP</span><span>${ch.hp}</span></div>
+        <div class="card-stat"><span>⚔️ ATK</span><span>${ch.atk}</span></div>
+        <div class="card-stat"><span>💙 MP</span><span>${ch.mp}</span></div>
+      </div>
+      <div class="card-skills">
+        <strong>Kỹ năng:</strong><br>
+        ${ch.skills.map(s => `${s.icon || '•'} ${s.name}`).join('<br>')}
+      </div>`;
+        card.onclick = () => {
+          document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedCharId = id;
+          document.getElementById('start-btn').style.display = 'inline-block';
+        };
+        grid.appendChild(card);
+      });
+    }
+
+    function startGame() {
+      if (!selectedCharId) return;
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('player-hud').style.display = 'block';
+      document.getElementById('skills-bar').style.display = 'flex';
+      document.getElementById('controls-hint').style.display = 'block';
+      document.getElementById('floor-display').style.display = 'block';
+      document.getElementById('settings-btn').style.display = 'block';
+
+      // Init skills bar
+      let p = CHARS[selectedCharId];
+      let sk0 = document.getElementById('sk0');
+      sk0.querySelector('.name').textContent = p.skills[0].name.substring(0, 10);
+      sk0.querySelector('.tooltip').innerHTML = `<strong>${p.skills[0].name}</strong><br>Hồi chiêu: ${p.skills[0].cd}s<br>MP: ${p.skills[0].mpCost}<br><span style="color:#aaa">${p.skills[0].desc}</span>`;
+
+      let sk1 = document.getElementById('sk1');
+      sk1.querySelector('.name').textContent = p.skills[1].name.substring(0, 10);
+      sk1.querySelector('.tooltip').innerHTML = `<strong>${p.skills[1].name}</strong><br>Hồi chiêu: ${p.skills[1].cd}s<br>MP: ${p.skills[1].mpCost}<br><span style="color:#aaa">${p.skills[1].desc}</span>`;
+
+      game = new Game(selectedCharId);
+    }
+
+    // ============================
+    // INIT
+    // ============================
+    buildCharSelect();
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+
+</html>
