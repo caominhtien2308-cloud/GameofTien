@@ -2809,16 +2809,83 @@
       }
       lastTap = currentTime;
     });
+    // ==================== VIRTUAL CONTROLS FOR MOBILE ====================
+    const controls = {
+      left: false,
+      right: false,
+      jump: false,
+      attack: false
+    };
+
+    function createVirtualControls() {
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.bottom = '20px';
+      container.style.left = '20px';
+      container.style.zIndex = '100';
+      container.style.display = 'flex';
+      container.style.gap = '15px';
+      container.style.opacity = '0.85';
+
+      // Left & Right
+      const moveDiv = document.createElement('div');
+      moveDiv.innerHTML = `
+    <button id="btn-left" style="width:60px;height:60px;font-size:24px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;">←</button>
+    <button id="btn-right" style="width:60px;height:60px;font-size:24px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;">→</button>
+  `;
+      container.appendChild(moveDiv);
+
+      // Jump & Attack
+      const actionDiv = document.createElement('div');
+      actionDiv.innerHTML = `
+    <button id="btn-jump" style="width:70px;height:70px;font-size:18px;background:rgba(0,0,0,0.6);color:#ffd700;border:none;border-radius:50%;">JUMP</button>
+    <button id="btn-attack" style="width:70px;height:70px;font-size:18px;background:rgba(255,100,100,0.8);color:white;border:none;border-radius:50%;">ATTACK</button>
+  `;
+      container.appendChild(actionDiv);
+
+      document.body.appendChild(container);
+
+      // Event listeners
+      document.getElementById('btn-left').addEventListener('touchstart', e => { e.preventDefault(); controls.left = true; });
+      document.getElementById('btn-left').addEventListener('touchend', e => { e.preventDefault(); controls.left = false; });
+
+      document.getElementById('btn-right').addEventListener('touchstart', e => { e.preventDefault(); controls.right = true; });
+      document.getElementById('btn-right').addEventListener('touchend', e => { e.preventDefault(); controls.right = false; });
+
+      document.getElementById('btn-jump').addEventListener('touchstart', e => {
+        e.preventDefault();
+        if (game && game.player.y >= GROUND) game.player.vy = -650;
+      });
+
+      document.getElementById('btn-attack').addEventListener('touchstart', e => {
+        e.preventDefault();
+        if (game) game.handleAttack();
+      });
+    }
+
+    // Gọi hàm tạo nút
+    createVirtualControls();
     // ============================
     // INIT
     // ============================
     buildCharSelect();
 
     // Handle resize
-    window.addEventListener('resize', () => {
+    // ==================== MOBILE OPTIMIZATION ====================
+    function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      W = canvas.width;
+      H = canvas.height;
+      GROUND = H - 100;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(resizeCanvas, 200);
     });
+
+    resizeCanvas(); // Gọi lần đầu
   </script>
 </body>
 
