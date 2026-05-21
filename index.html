@@ -576,10 +576,439 @@
       color: #000;
       border-color: #fff;
     }
+
+    /* ==========================================================================
+       MOBILE OPTIMIZATIONS & VIRTUAL CONTROLS
+       ========================================================================== */
+
+    /* Screen Orientation Warning Overlay */
+    #orientation-warning {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, #150030 0%, #020008 100%);
+      color: #fff;
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #orientation-warning .rotate-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: rotate-anim 2s infinite linear;
+      display: inline-block;
+    }
+
+    #orientation-warning h2 {
+      color: #ffd700;
+      font-size: 24px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    #orientation-warning p {
+      color: #ccc;
+      font-size: 14px;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+
+    @keyframes rotate-anim {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      50% {
+        transform: rotate(90deg);
+      }
+
+      100% {
+        transform: rotate(90deg);
+      }
+    }
+
+    /* Show warning in portrait mode on mobile/tablet devices */
+    @media (max-width: 1024px) and (orientation: portrait) {
+      #orientation-warning {
+        display: flex;
+      }
+    }
+
+    /* Virtual Controllers CSS */
+    #mobile-controls {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    body.mobile-device #mobile-controls {
+      display: block;
+    }
+
+    /* Left Directional Controls */
+    .mobile-dir-pad {
+      position: absolute;
+      bottom: 25px;
+      left: 30px;
+      display: flex;
+      gap: 20px;
+      pointer-events: auto;
+    }
+
+    /* Right Action Button Cluster */
+    .mobile-action-pad {
+      position: absolute;
+      bottom: 25px;
+      right: 30px;
+      display: flex;
+      align-items: flex-end;
+      gap: 15px;
+      pointer-events: auto;
+    }
+
+    /* Touch Button Styles */
+    .touch-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(15, 15, 35, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 2px 10px rgba(255, 255, 255, 0.1);
+      transition: transform 0.05s, background 0.1s, border-color 0.1s;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 215, 0, 0.3) !important;
+      border-color: #ffd700 !important;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6) !important;
+    }
+
+    /* Specific Button Sizes & Styles */
+    .btn-dir {
+      width: 65px;
+      height: 65px;
+      font-size: 28px;
+      background: rgba(30, 30, 60, 0.65);
+      border-color: rgba(100, 100, 250, 0.4);
+    }
+
+    .btn-action-jump {
+      width: 70px;
+      height: 70px;
+      font-size: 16px;
+      background: rgba(30, 60, 120, 0.7);
+      border-color: rgba(100, 180, 255, 0.5);
+      color: #e0f2fe;
+    }
+
+    .btn-action-attack {
+      width: 88px;
+      height: 88px;
+      font-size: 16px;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.8) 0%, rgba(185, 28, 28, 0.8) 100%);
+      border: 3px solid rgba(254, 202, 202, 0.6);
+      color: #fff;
+      font-weight: 900;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5), inset 0 2px 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-action-attack:active {
+      background: linear-gradient(135deg, rgba(254, 240, 138, 0.8) 0%, rgba(253, 224, 71, 0.8) 100%) !important;
+    }
+
+    /* Responsive CSS for Mobile Screens (< 1024px) */
+    @media (max-width: 1024px) {
+
+      /* Hide desktop controls hint */
+      #controls-hint {
+        display: none !important;
+      }
+
+      /* Compact Player HUD */
+      #hud {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+      }
+
+      .stat-bar {
+        width: 170px;
+        padding: 5px;
+      }
+
+      .char-name {
+        font-size: 11px;
+        margin-bottom: 2px;
+      }
+
+      .stat-label {
+        font-size: 9px;
+        margin-bottom: 1px;
+      }
+
+      .bar-bg {
+        height: 8px;
+        margin-bottom: 2px;
+      }
+
+      /* Relocate Boss HUD to top center */
+      #boss-hud {
+        top: 8px;
+        bottom: auto !important;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40%;
+        max-width: 350px;
+      }
+
+      #boss-hud .boss-name {
+        font-size: 11px;
+        margin-bottom: 2px;
+      }
+
+      #boss-hud .bar-bg {
+        height: 10px;
+      }
+
+      /* Adjust floor display */
+      #floor-display {
+        top: 8px;
+        right: 8px;
+        font-size: 11px;
+      }
+
+      /* Character Selection Mobile Layout */
+      #char-select {
+        max-height: 95vh;
+        overflow-y: auto;
+        padding: 10px 0;
+      }
+
+      #char-select h1 {
+        font-size: 26px;
+        margin-bottom: 4px;
+      }
+
+      #char-select h2 {
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+
+      .chars-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .char-card {
+        padding: 8px;
+        border-width: 1.5px;
+      }
+
+      .char-card .card-icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+      }
+
+      .char-card .card-name {
+        font-size: 12px;
+      }
+
+      .char-card .card-class {
+        font-size: 10px;
+        margin-bottom: 4px;
+      }
+
+      .char-card .card-stats {
+        font-size: 9px;
+      }
+
+      .char-card .card-skills {
+        font-size: 8px;
+        margin-top: 4px;
+        padding-top: 4px;
+      }
+
+      #start-btn {
+        padding: 10px 30px;
+        font-size: 14px;
+      }
+
+      /* Skill Pick Screen mobile adjustments */
+      #skill-pick h2 {
+        font-size: 20px;
+        margin-bottom: 5px;
+      }
+
+      #skill-pick p {
+        font-size: 12px;
+        margin-bottom: 15px;
+      }
+
+      .skill-choices {
+        gap: 10px;
+      }
+
+      .skill-choice-card {
+        padding: 12px;
+        max-width: 180px;
+      }
+
+      .skill-choice-card .skill-icon {
+        font-size: 28px;
+      }
+
+      .skill-choice-card .skill-name {
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .skill-choice-card .skill-desc {
+        font-size: 10px;
+      }
+
+      /* Game settings, Overlays */
+      #settings-menu {
+        padding: 20px;
+      }
+
+      #settings-menu h2 {
+        font-size: 22px;
+        margin-bottom: 15px;
+      }
+
+      #settings-menu button {
+        width: 180px;
+        padding: 10px;
+        font-size: 14px;
+        margin: 10px auto;
+      }
+
+      #gameOver h1,
+      #victory h1 {
+        font-size: 32px;
+      }
+
+      #gameOver p,
+      #victory p {
+        font-size: 13px;
+        margin-bottom: 15px;
+      }
+
+      #gameOver button,
+      #victory button {
+        padding: 8px 25px;
+        font-size: 14px;
+      }
+
+      /* Skills bar re-styling for Touch Interface */
+      #skills-bar {
+        bottom: auto;
+        top: 50px;
+        left: 8px;
+        transform: none;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      body.mobile-device #skills-bar {
+        display: flex !important;
+        /* Force show */
+      }
+
+      .skill-slot {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(10, 10, 20, 0.85);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+      }
+
+      .skill-slot .key {
+        font-size: 11px;
+        color: #ffd700;
+      }
+
+      .skill-slot .name {
+        display: none;
+        /* Hide name for compact circular slots */
+      }
+
+      .skill-slot .cooldown-overlay {
+        font-size: 11px;
+      }
+
+      .skill-slot .tooltip {
+        left: 60px;
+        bottom: 50%;
+        transform: translateY(50%);
+        width: 150px;
+        font-size: 10px;
+      }
+
+      #settings-btn {
+        top: 8px;
+        right: 40px;
+        /* shift left of floor display */
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+    }
+
+    /* For very small devices, chars-grid becomes 2 columns */
+    @media (max-width: 600px) {
+      .chars-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Screen Orientation Warning -->
+  <div id="orientation-warning">
+    <div class="rotate-icon">🔄</div>
+    <h2>Xoay Ngang Thiết Bị</h2>
+    <p>Hãy xoay ngang màn hình thiết bị của bạn để có góc nhìn tốt nhất và bắt đầu chiến đấu nhé!</p>
+  </div>
+
+  <!-- Virtual Mobile Controller -->
+  <div id="mobile-controls">
+    <!-- Left Pad: Movement -->
+    <div class="mobile-dir-pad">
+      <div id="touch-left" class="touch-btn btn-dir">←</div>
+      <div id="touch-right" class="touch-btn btn-dir">→</div>
+    </div>
+
+    <!-- Right Pad: Actions -->
+    <div class="mobile-action-pad">
+      <div id="touch-jump" class="touch-btn btn-action-jump">JUMP</div>
+      <div id="touch-attack" class="touch-btn btn-action-attack">ATTACK</div>
+    </div>
+  </div>
+
   <canvas id="gameCanvas"></canvas>
   <div id="hud">
     <div class="stat-bar" id="player-hud">
@@ -788,8 +1217,8 @@
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const W = canvas.width, H = canvas.height;
-    const GROUND = H - 100;
+    let W = canvas.width, H = canvas.height;
+    let GROUND = H - 100;
 
     // ============================
     // GAME STATE
@@ -1620,7 +2049,6 @@
         } else {
           c.fillRect(-22, -20, 8, 15); c.fillRect(14, -20, 8, 15);
         }
-
         c.restore();
 
         // UI bars (không bị lật hướng)
@@ -1638,9 +2066,6 @@
       takeDamage(dmg) { this.hp -= dmg; if (this.hp <= 0) { this.active = false; for (let i = 0; i < 20; i++) globalParticles.push(new Particle(this.x, this.y - 40, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, '#ff4444', 1, 3, 'spark')); } }
     }
 
-    // ============================
-    // BOSS AI
-    // ============================
     class Boss {
       constructor(charId, floor) {
         const ch = CHARS[charId];
@@ -1662,6 +2087,22 @@
         this.shield = 0; this.shieldTime = 0;
         this.damageReduction = 0; this.damageReductionTime = 0;
         this.slowEffect = 0; this.slowTime = 0;
+        this.isFurious = false;
+      }
+      enterFuryMode(game) {
+        this.isFurious = true;
+        this.maxHp *= 2;
+        this.hp = this.maxHp;
+        this.atk *= 2;
+        this.shield = 0;
+        this.shieldTime = 0;
+        showMsg('👹 BOSS CUỒNG NỘ: Đã hồi sinh, tăng x2 HP, x2 Sát thương và Tốc chạy!', false);
+        game.shakeTime = 1.2;
+
+        // Tạo vụ nổ hạt lửa đỏ rực
+        for (let i = 0; i < 40; i++) {
+          game.particles.push(new Particle(this.x, this.y - 40, (Math.random() - 0.5) * 500, -Math.random() * 500 - 100, '#ff3300', 1.5, Math.random() * 6 + 4, 'rect'));
+        }
       }
       update(dt, player, game) {
         this.animFrame += dt * 60;
@@ -1677,14 +2118,20 @@
         if (this.y >= GROUND) { this.vy = 0; }
 
         let spd = 120 * (1 - this.slowEffect);
+        if (this.isFurious) spd *= 2.0; // Tăng gấp đôi tốc độ di chuyển
 
-        // AI behavior
-        let dx = player.x - this.x;
+        // AI behavior - target player or player's pet
+        let targetX = player.x;
+        if (player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < Math.abs(player.x - this.x)) {
+          targetX = player.pet.x;
+        }
+
+        let dx = targetX - this.x;
         this.facing = dx < 0 ? -1 : 1;
 
         if (this.moveCd <= 0) {
           let dist = Math.abs(dx);
-          if (dist > 200) { this.moveTarget = player.x - this.facing * 80; }
+          if (dist > 200) { this.moveTarget = targetX - this.facing * 80; }
           else if (dist < 60) { this.moveTarget = this.x - this.facing * 100; }
           this.moveCd = 0.5 + Math.random() * 1;
         }
@@ -1697,12 +2144,22 @@
         if (this.attackCd <= 0 && Math.abs(dx) < 120) {
           this.state = 'attack';
           let dmg = this.atk;
-          if (Math.abs(dx) < 120) game.damagePlayer(dmg);
+
+          let petNearby = player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < 120;
+          let playerNearby = Math.abs(player.x - this.x) < 120;
+
+          if (petNearby && Math.abs(player.pet.x - this.x) <= Math.abs(player.x - this.x)) {
+            player.pet.takeDamage(dmg);
+          } else if (playerNearby) {
+            game.damagePlayer(dmg);
+          }
+
           this.attackCd = 1.5 + Math.random() * 1;
         }
 
-        // Skill
-        if (this.skillCd <= 0) {
+
+        // Skill - không xài chiêu nếu Cuồng nộ
+        if (this.skillCd <= 0 && !this.isFurious) {
           this.useRandomSkill(game, player);
           this.skillCd = 6 + Math.random() * 4;
         }
@@ -1711,10 +2168,62 @@
         if (this.hurtTime > 0) this.state = 'hurt';
       }
       useRandomSkill(game, player) {
-        let skill = this.skills[Math.floor(Math.random() * this.skills.length)];
+        if (this.isFurious) return; // Boss cuồng nộ chỉ đánh thường
+
+        let idx = Math.floor(Math.random() * this.skills.length);
+        let skill = this.skills[idx];
         let dmg = Math.floor(500 * this.skillMult);
-        game.spawnEffect(skill.use ? 'lightning' : 'firewave', this.x, this.y, dmg, true, { game: game });
+
         showMsg('💀 Boss dùng: ' + skill.name + '!', false);
+
+        if (this.charId === 'tien') {
+          if (idx === 0) {
+            this.hp = Math.min(this.maxHp, this.hp + 300);
+            game.spawnEffect('lightning', player.x, player.y, dmg, true, { game: game });
+          } else {
+            game.spawnEffect('lightning', player.x, player.y, dmg, true, { game: game });
+          }
+        }
+        else if (this.charId === 'thao') {
+          if (idx === 0) {
+            this.shield = 400;
+            this.shieldTime = 8;
+            showMsg('🛡️ Boss kích hoạt Lá Chắn Băng!', false);
+          } else {
+            game.spawnEffect('blizzard', player.x, player.y, dmg, true, { game: game });
+          }
+        }
+        else if (this.charId === 'bin') {
+          game.spawnEffect('multiSlash', player.x, player.y, dmg, true, { game: game });
+        }
+        else if (this.charId === 'trang') {
+          if (idx === 0) {
+            this.slowTime = 0;
+            this.slowEffect = -0.5;
+            this.slowTime = 5;
+            showMsg('💨 Boss tăng tốc độ di chuyển!', false);
+          } else {
+            game.spawnEffect('arrowRain', player.x, player.y, dmg, true, { game: game });
+          }
+        }
+        else if (this.charId === 'huy') {
+          if (idx === 0) {
+            this.shield = 800;
+            this.shieldTime = 3;
+            showMsg('🩸 Boss kích hoạt Bất Tử Lá Chắn!', false);
+          } else {
+            game.spawnEffect('firewave', player.x, player.y, dmg, true, { game: game });
+          }
+        }
+        else if (this.charId === 'nga') {
+          if (idx === 0) {
+            let mx = this.x - this.facing * 80;
+            game.minions.push(new Minion(mx, this.floor));
+            showMsg('🐼 Boss triệu hồi quái vật trợ chiến!', false);
+          } else {
+            game.spawnEffect('angelJudge', player.x, player.y, dmg, true, { game: game });
+          }
+        }
       }
       takeDamage(dmg) {
         if (this.damageReductionTime > 0) dmg = Math.floor(dmg * (1 - this.damageReduction));
@@ -1727,6 +2236,17 @@
       }
       draw(c) {
         let alpha = this.hurtTime > 0 ? 0.6 : 1;
+
+        // Vẽ hiệu ứng hào quang đỏ nếu Cuồng nộ
+        if (this.isFurious) {
+          c.save();
+          c.shadowColor = '#ff3300';
+          c.shadowBlur = 30;
+          // Vẽ bóng mờ hơi lệch và phóng to hơn 5%
+          drawCharacter(c, this.x, this.y, this.charId, this.facing, this.state, this.animFrame, 0.45, 1.365);
+          c.restore();
+        }
+
         drawCharacter(c, this.x, this.y, this.charId, this.facing, this.state, this.animFrame, alpha, 1.3);
         // HP bar above boss
         c.save(); c.translate(this.x - 40, this.y - 120);
@@ -1739,9 +2259,6 @@
       }
     }
 
-    // ============================
-    // ENEMY (Minion)
-    // ============================
     class Minion {
       constructor(x, wave) {
         this.x = x; this.y = GROUND;
@@ -1754,11 +2271,25 @@
         this.animFrame += dt * 60;
         this.hurtTime = Math.max(0, this.hurtTime - dt);
         this.attackCd -= dt;
-        let dx = player.x - this.x;
+
+        // Target nearest between player and pet Panda
+        let target = player;
+        if (player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < Math.abs(player.x - this.x)) {
+          target = player.pet;
+        }
+
+        let dx = target.x - this.x;
         this.facing = dx < 0 ? -1 : 1;
         if (Math.abs(dx) > 80) this.x += Math.sign(dx) * 80 * dt;
+
         if (this.attackCd <= 0 && Math.abs(dx) < 100) {
-          game.damagePlayer(this.atk);
+          if (target === player) {
+            game.damagePlayer(this.atk);
+          } else {
+            target.takeDamage(this.atk);
+            spawnHitParticles(target.x, target.y - 50, '#ffaaaa');
+            if (game.audioCtx) game.playHitSound();
+          }
           this.attackCd = 1.5;
         }
       }
@@ -2232,6 +2763,9 @@
             if (Math.abs(this.player.x - x) < radius) {
               this.damagePlayer(damage);
             }
+            if (this.player.pet && this.player.pet.active && Math.abs(this.player.pet.x - x) < radius) {
+              this.player.pet.takeDamage(damage);
+            }
           }
           else {
             if (this.boss && Math.abs(this.boss.x - x) < radius) {
@@ -2510,7 +3044,14 @@
             }
           } else if (this.boss) {
             this.boss.update(dt, this.player, this);
-            if (this.boss.hp <= 0) { this.boss = null; this.floorComplete(); }
+            if (this.boss.hp <= 0) {
+              if (this.bossIndex === 4 && !this.boss.isFurious) {
+                this.boss.enterFuryMode(this);
+              } else {
+                this.boss = null;
+                this.floorComplete();
+              }
+            }
           }
         } else if (!this.isBossFloor) {
           this.minionSpawnCd -= dt;
@@ -2767,104 +3308,84 @@
 
       game = new Game(selectedCharId);
     }
-    // ==================== MOBILE TOUCH SUPPORT ====================
-    let touchStartX = 0;
-    let isTouching = false;
+    // ==================== MOBILE TOUCH & VIRTUAL CONTROLS ====================
+    // Tự động nhận diện thiết bị di động
+    const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
 
-    canvas.addEventListener('touchstart', e => {
-      e.preventDefault();
-      isTouching = true;
-      touchStartX = e.touches[0].clientX;
-
-      // Tap để tấn công
-      if (game) game.handleAttack();
-    });
-
-    canvas.addEventListener('touchmove', e => {
-      e.preventDefault();
-      if (!game || !isTouching) return;
-
-      let currentX = e.touches[0].clientX;
-      let dx = currentX - touchStartX;
-
-      if (dx < -50) game.keys['KeyA'] = true;      // Move left
-      else if (dx > 50) game.keys['KeyD'] = true;  // Move right
-    });
-
-    canvas.addEventListener('touchend', e => {
-      e.preventDefault();
-      isTouching = false;
-      game.keys['KeyA'] = false;
-      game.keys['KeyD'] = false;
-    });
-
-    // Double tap để nhảy
-    let lastTap = 0;
-    canvas.addEventListener('touchend', e => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-      if (tapLength < 500 && tapLength > 0) {
-        // Double tap = Jump
-        if (game && game.player.y >= GROUND) game.player.vy = -600;
-      }
-      lastTap = currentTime;
-    });
-    // ==================== VIRTUAL CONTROLS FOR MOBILE ====================
-    const controls = {
-      left: false,
-      right: false,
-      jump: false,
-      attack: false
-    };
-
-    function createVirtualControls() {
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.bottom = '20px';
-      container.style.left = '20px';
-      container.style.zIndex = '100';
-      container.style.display = 'flex';
-      container.style.gap = '15px';
-      container.style.opacity = '0.85';
-
-      // Left & Right
-      const moveDiv = document.createElement('div');
-      moveDiv.innerHTML = `
-    <button id="btn-left" style="width:60px;height:60px;font-size:24px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;">←</button>
-    <button id="btn-right" style="width:60px;height:60px;font-size:24px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;">→</button>
-  `;
-      container.appendChild(moveDiv);
-
-      // Jump & Attack
-      const actionDiv = document.createElement('div');
-      actionDiv.innerHTML = `
-    <button id="btn-jump" style="width:70px;height:70px;font-size:18px;background:rgba(0,0,0,0.6);color:#ffd700;border:none;border-radius:50%;">JUMP</button>
-    <button id="btn-attack" style="width:70px;height:70px;font-size:18px;background:rgba(255,100,100,0.8);color:white;border:none;border-radius:50%;">ATTACK</button>
-  `;
-      container.appendChild(actionDiv);
-
-      document.body.appendChild(container);
-
-      // Event listeners
-      document.getElementById('btn-left').addEventListener('touchstart', e => { e.preventDefault(); controls.left = true; });
-      document.getElementById('btn-left').addEventListener('touchend', e => { e.preventDefault(); controls.left = false; });
-
-      document.getElementById('btn-right').addEventListener('touchstart', e => { e.preventDefault(); controls.right = true; });
-      document.getElementById('btn-right').addEventListener('touchend', e => { e.preventDefault(); controls.right = false; });
-
-      document.getElementById('btn-jump').addEventListener('touchstart', e => {
-        e.preventDefault();
-        if (game && game.player.y >= GROUND) game.player.vy = -650;
-      });
-
-      document.getElementById('btn-attack').addEventListener('touchstart', e => {
-        e.preventDefault();
-        if (game) game.handleAttack();
-      });
+    if (isMobile) {
+      document.body.classList.add('mobile-device');
     }
 
-    // Gọi hàm tạo nút
-    createVirtualControls();
+    function setupMobileControls() {
+      if (!isMobile) return;
+
+      const btnLeft = document.getElementById('touch-left');
+      const btnRight = document.getElementById('touch-right');
+      const btnJump = document.getElementById('touch-jump');
+      const btnAttack = document.getElementById('touch-attack');
+
+      // Helper gán sự kiện cho nút bấm ảo
+      const bindBtn = (el, startKey) => {
+        if (!el) return;
+
+        el.addEventListener('touchstart', e => {
+          e.preventDefault();
+          if (game) {
+            game.keys[startKey] = true;
+          }
+        });
+
+        el.addEventListener('touchend', e => {
+          e.preventDefault();
+          if (game) {
+            game.keys[startKey] = false;
+          }
+        });
+
+        el.addEventListener('touchcancel', e => {
+          e.preventDefault();
+          if (game) {
+            game.keys[startKey] = false;
+          }
+        });
+      };
+
+      // Gán sự kiện cho các nút di chuyển & nhảy
+      bindBtn(btnLeft, 'KeyA');
+      bindBtn(btnRight, 'KeyD');
+      bindBtn(btnJump, 'Space');
+
+      // Tấn công (Attack) phản hồi ngay khi touchstart
+      if (btnAttack) {
+        btnAttack.addEventListener('touchstart', e => {
+          e.preventDefault();
+          if (game && game.running && !game.paused) {
+            game.handleAttack();
+          }
+        });
+      }
+
+      // Đăng ký sự kiện touch cho thanh Kỹ năng (Skills) trên điện thoại để phản hồi lập tức (không bị trễ)
+      for (let i = 0; i <= 5; i++) {
+        const skEl = document.getElementById(`sk${i}`);
+        if (skEl) {
+          skEl.addEventListener('touchstart', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (game && game.running && !game.paused) {
+              if (i < 2) {
+                game.useSkill(i);
+              } else {
+                game.useExtraSkill(i - 2);
+              }
+            }
+          });
+        }
+      }
+    }
+
+    // Khởi tạo bộ phím ảo
+    setupMobileControls();
     // ============================
     // INIT
     // ============================
