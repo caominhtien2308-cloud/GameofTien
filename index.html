@@ -1110,8 +1110,8 @@
     // ============================
     const CHARS = {
       tien: {
-        id: 'tien', name: 'Tiến Đẹp Zai', class: 'Chiến Binh', icon: '⚔️',
-        hp: 1100, mp: 1100, atk: 130, color: '#4488ff', weaponColor: '#88ccff',
+        id: 'tien', name: 'Tiến Đẹp Zai', class: 'Chiến Binh Farm Tiền', icon: '⚔️',
+        hp: 2100, mp: 1100, atk: 150, color: '#4488ff', weaponColor: '#88ccff',
         skills: [
           {
             name: 'Sống dai như trân châu', key: '1', cd: 40, mpCost: 0, icon: '💚',
@@ -1120,88 +1120,88 @@
           },
           {
             name: 'Cục cứt gầm thét', key: '2', cd: 30, mpCost: 200, icon: '🐉',
-            desc: 'Triệu hồi cục cứt khổng lồ tấn công gây 500 sát thương.',
-            use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnEffect('lightning', p.x, p.y, 500 * (1 + p.bonusAtk), false, { game: g }); showMsg('🐉 PHẸTTTTTTTT!'); return true; }
+            desc: 'Triệu hồi cục cứt khổng lồ tấn công gây 800 sát thương.',
+            use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnEffect('lightning', p.x, p.y, 800 * (1 + p.bonusAtk), false, { game: g }); showMsg('🐉 PHẸTTTTTTTT!'); return true; }
           }
         ]
       },
       thao: {
-        id: 'thao', name: 'Cô Giáo Thảo', class: 'Pháp Sư Băng', icon: '❄️',
-        hp: 800, mp: 1500, atk: 60, color: '#88ccff', weaponColor: '#ffffff', range: 360,
+        id: 'thao', name: 'Cô Giáo Thảo', class: 'Phù Thủy Của Lò Vi Sóng', icon: '❄️',
+        hp: 1800, mp: 1500, atk: 80, color: '#88ccff', weaponColor: '#ffffff', range: 360,
         skills: [
           {
-            name: 'Kết giới chống NYC', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
-            desc: 'Lá chắn băng hấp thụ 400 sát thương trong 8s. Nếu là Tú thì ôm trong 8s',
-            use: (g, p) => { if (p.mp < 180) return false; p.mp -= 180; p.shield = 400; p.shieldTime = 8; showMsg('🛡️ ANH TÚ ĐI RA ĐIIII'); return true; }
+            name: 'Người Yêu Cũ Là Người Yêu Mới', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
+            desc: 'Lá chắn băng hấp thụ 700 sát thương trong 8s. Nếu là anh yêu thì ôm trong 8s',
+            use: (g, p) => { if (p.mp < 180) return false; p.mp -= 180; p.shield = 700; p.shieldTime = 8; showMsg('🛡️ ANH TÚ ĐI RA ĐIIII'); return true; }
           },
           {
-            name: 'Hắt xì tạo bão', key: '2', cd: 30, mpCost: 250, icon: '🌨️',
-            desc: 'Hắt xì gây 1000 sát thương, làm chậm 40% tốc độ.',
-            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('blizzard', p.x, p.y, 1000 * (1 + p.bonusAtk), false, { game: g }); showMsg('🌨️ MÙI HƯƠNG EM NỒNG SAYYYY'); return true; }
+            name: 'Dù Chậm Cũng Về Bên Nhau', key: '2', cd: 30, mpCost: 250, icon: '🌨️',
+            desc: 'Đợi chờ gây 1500 sát thương, làm chậm 40% tốc độ tiếp cận.',
+            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('blizzard', p.x, p.y, 1500 * (1 + p.bonusAtk), false, { game: g }); showMsg('🌨️ MÙI HƯƠNG EM NỒNG SAYYYY'); return true; }
           }
         ]
       },
       bin: {
-        id: 'bin', name: 'Bin Chubby', class: 'Sát Thủ Con Nuôi', icon: '🗡️',
-        hp: 800, mp: 800, atk: 220, color: '#884488', weaponColor: '#cc44cc',
+        id: 'bin', name: 'Bin Chubby', class: 'Sát Thủ Lỗ Ass Bự', icon: '🗡️',
+        hp: 1500, mp: 800, atk: 300, color: '#884488', weaponColor: '#cc44cc',
         skills: [
           {
-            name: 'Chạy trước tính sau', key: '1', cd: 30, mpCost: 0, icon: '👥',
-            desc: 'Tàng hình 5s, tăng tốc tìm con nuôi. Đòn đầu tiên +200 chí mạng.',
+            name: 'Cứt tới cửa đít', key: '1', cd: 30, mpCost: 0, icon: '👥',
+            desc: 'Tàng hình 5s, chạy đi tìm cầu tiêu. Đòn đầu tiên sau khi ỉa +200 chí mạng.',
             use: (g, p) => { p.invisible = 5; p.nextHitBonus = 200; showMsg('👥 MÌNH XIN CON NUÔI ĐIIIII'); return true; }
           },
           {
-            name: 'Pha 10 ly bát bảo trong 10s', key: '2', cd: 35, mpCost: 250, icon: '⚡',
-            desc: '7 muỗng trân châu đen liên tiếp tổng 500 sát thương.',
-            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('multiSlash', p.x, p.y, 500 * (1 + p.bonusAtk), false, { game: g }); showMsg('⚡ THẤY BỐ NGẦU KHÔNG CÁC CONN'); return true; }
+            name: 'Rửa đít thần tốc', key: '2', cd: 35, mpCost: 250, icon: '⚡',
+            desc: 'Rửa đít quá nhanh bắn cứt gây 700 sát thương cho kẻ địch xung quanh.',
+            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('multiSlash', p.x, p.y, 700 * (1 + p.bonusAtk), false, { game: g }); showMsg('⚡ THẤY BỐ NGẦU KHÔNG CÁC CONN'); return true; }
           }
         ]
       },
       trang: {
-        id: 'trang', name: 'Trang Giấy Trắng', class: 'Cung Thủ', icon: '🏹',
-        hp: 750, mp: 1000, atk: 170, color: '#44cc88', weaponColor: '#88ffaa', range: 240,
+        id: 'trang', name: 'Trang Giấy Trắng', class: 'Cung Thủ Bắn Trượt Tim Anh', icon: '🏹',
+        hp: 1750, mp: 1000, atk: 200, color: '#44cc88', weaponColor: '#88ffaa', range: 240,
         skills: [
           {
-            name: 'Chạy về phía anh', key: '1', cd: 10, mpCost: 100, icon: '💨',
-            desc: '+60% tốc độ tấn công, +50% dame trong 10s tấn công anh iu cũ.',
-            use: (g, p) => { if (p.mp < 100) return false; p.mp -= 100; p.speedBuff = 10; p.atkBuff = 0.5; showMsg('💨 ANH ƠI EM TỚI ĐÂYY!'); return true; }
+            name: 'Sức mạnh của chủ nợ', key: '1', cd: 10, mpCost: 100, icon: '💨',
+            desc: '+60% tốc độ tấn công, +50% dame trong 10s kiểm tra xem ai còn nợ.',
+            use: (g, p) => { if (p.mp < 100) return false; p.mp -= 100; p.speedBuff = 10; p.atkBuff = 0.5; showMsg('💨 ĐỂ CHỊ CHECK LIST NỢ CÁIII'); return true; }
           },
           {
             name: 'Sao anh dám phản bội em?', key: '2', cd: 30, mpCost: 250, icon: '🌪️',
-            desc: 'Mưa tên gây 550 sát thương diện rộng, +50% tốc độ bắn 5s. Bắn thấy mọe mấy thằng đạo dụ',
+            desc: 'Mưa tên gây 550 sát thương diện rộng, +50% tốc độ bắn 5s. Bắn thấy mọe mấy thằng phản bội',
             use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('arrowRain', p.x, p.y, 550 * (1 + p.bonusAtk), false, { game: g }); p.speedBuff = Math.max(p.speedBuff || 0, 5); showMsg('🌪️ CHỤC LY BÍ ĐAO CHANH ĐÊ'); return true; }
           }
         ]
       },
       huy: {
-        id: 'huy', name: 'Huy Thẩm Du', class: 'Tanker', icon: '🪓',
-        hp: 2300, mp: 700, atk: 100, color: '#cc6633', weaponColor: '#ff8844',
+        id: 'huy', name: 'Huy Thẩm Du', class: 'Tanker Sống Dai Hơn Chó', icon: '🪓',
+        hp: 3100, mp: 700, atk: 120, color: '#cc6633', weaponColor: '#ff8844',
         skills: [
           {
             name: 'Độ nhục = 0', key: '1', cd: 0, mpCost: 0, icon: '🩸',
-            desc: 'Hy sinh 20% HP tối đa, bất tử 5s. Sủa vang trời',
-            use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.2); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 5; showMsg('🩸 ẲNG ẲNG ẲNGGGGG!'); return true; }
+            desc: 'Hy sinh 20% HP tối đa, trở nên bất tử 5s. Không biết nhục là gì',
+            use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.2); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 5; showMsg('🩸 ẲNG ẲNG ẲNGGGGG HÚUUUUUUU!'); return true; }
           },
           {
             name: 'Ỉa sập bồn cầu', key: '2', cd: 25, mpCost: 220, icon: '🔥',
-            desc: 'Sóng lửa gây 400 sát thương, giảm 50% sát thương nhận 5s.',
-            use: (g, p) => { if (p.mp < 220) return false; p.mp -= 220; g.spawnEffect('firewave', p.x, p.y, 400 * (1 + p.bonusAtk), false, { game: g }); p.damageReduction = 0.5; p.damageReductionTime = 5; showMsg('🔥 EM ĐỊCH NÈ CHỊ NGA!'); return true; }
+            desc: 'Dồn hơi làm cú địch gây 400 sát thương, giảm 50% sát thương nhận 5s.',
+            use: (g, p) => { if (p.mp < 220) return false; p.mp -= 220; g.spawnEffect('firewave', p.x, p.y, 400 * (1 + p.bonusAtk), false, { game: g }); p.damageReduction = 0.5; p.damageReductionTime = 5; showMsg('🔥 EM ĐỊCH NÈ CHỊ NGAAAAA  AAAAAAAA!'); return true; }
           }
         ]
       },
       nga: {
-        id: 'nga', name: 'Nga Ngố', class: 'Triệu Hồi Sư', icon: '🐼',
-        hp: 900, mp: 1600, atk: 50, color: '#ffcc44', weaponColor: '#ffe088', range: 360,
+        id: 'nga', name: 'Nga Ngố', class: 'Kẻ Nắm Đầu Súc Vật', icon: '🐼',
+        hp: 1900, mp: 1600, atk: 60, color: '#ffcc44', weaponColor: '#ffe088', range: 360,
         skills: [
           {
-            name: 'Triệu Hồi Súc Vật', key: '1', cd: 30, mpCost: 200, icon: '🐼',
+            name: 'Triệu Hồi Súc Vật BIN', key: '1', cd: 30, mpCost: 200, icon: '🐼',
             desc: 'Triệu hồi 1 con súc vật học với thông số x3.',
             use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnPet(p); showMsg('🐼 THẰNG CHIM CỦA BÀ ĐÂU!'); return true; }
           },
           {
-            name: 'Phán luôn có tội', key: '2', cd: 60, mpCost: 300, icon: '👼',
-            desc: 'Thiên sứ hiện ra phán đối phương luôn sai gây 400 sát thương, reset chiêu 1.',
-            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('angelJudge', p.x, p.y, 400 * (1 + p.bonusAtk), false, { game: g }); p.skillCooldowns[0] = 0; showMsg('👼 TẤT CẢ ĐỀU SAIIII!'); return true; }
+            name: 'Phán HUY luôn có tội', key: '2', cd: 60, mpCost: 300, icon: '👼',
+            desc: 'Thiên sứ hiện ra phán khứa HUY luôn sai gây 800 sát thương, reset chiêu 1.',
+            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('angelJudge', p.x, p.y, 800 * (1 + p.bonusAtk), false, { game: g }); p.skillCooldowns[0] = 0; showMsg('👼 TẤT CẢ ĐỀU SAIIII!'); return true; }
           }
         ]
       }
