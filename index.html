@@ -991,7 +991,7 @@
   <div id="orientation-warning">
     <div class="rotate-icon">🔄</div>
     <h2>Xoay Ngang Thiết Bị</h2>
-    <p>Hãy xoay ngang màn hình thiết bị của bạn để có góc nhìn tốt nhất và bắt đầu chiến đấu nhé!</p>
+    <p>Xoay ngang thiết bị để nếu có thua cũng đừng đổ thừa tại khó chơi nha kuu!</p>
   </div>
 
   <!-- Virtual Mobile Controller -->
@@ -1115,8 +1115,8 @@
         skills: [
           {
             name: 'Sống dai như trân châu', key: '1', cd: 40, mpCost: 0, icon: '💚',
-            desc: 'Hồi 100HP+50MP/giây trong 11s. Tiêu hao 1/2 MP hiện có.',
-            use: (g, p) => { let cost = Math.floor(p.mp / 2); if (p.mp < 1) return false; p.mp -= cost; p.regenActive = 11; showMsg('💚 OLONG NO TĂNG LỰCCCC'); return true; }
+            desc: 'Hồi 200HP+100MP/giây trong 11s. Tiêu hao 1/2 MP hiện có.',
+            use: (g, p) => { let cost = Math.floor(p.mp / 2); if (p.mp < 1) return false; p.mp -= cost; p.regenActive = 11; showMsg('💚 OLONG NHO TĂNG LỰCCCC'); return true; }
           },
           {
             name: 'Cục cứt gầm thét', key: '2', cd: 30, mpCost: 200, icon: '🐉',
@@ -2349,8 +2349,8 @@
         if (this.damageReductionTime > 0) this.damageReductionTime -= dt;
         if (this.regenActive > 0) {
           this.regenActive -= dt;
-          this.hp = Math.min(this.maxHp, this.hp + 100 * dt);
-          this.mp = Math.min(this.maxMp, this.mp + 50 * dt);
+          this.hp = Math.min(this.maxHp, this.hp + 200 * dt);
+          this.mp = Math.min(this.maxMp, this.mp + 100 * dt);
         }
         for (let i = 0; i < this.skillCooldowns.length; i++) this.skillCooldowns[i] = Math.max(0, this.skillCooldowns[i] - dt);
         for (let i = 0; i < this.extraSkillCooldowns.length; i++) this.extraSkillCooldowns[i] = Math.max(0, this.extraSkillCooldowns[i] - dt);
@@ -2750,6 +2750,9 @@
         if (this.audioCtx) this.playSkillSound(type);
 
         let radius = 300;
+        if (fromBoss) {
+          radius = 240;   // ← Tầm đánh của Boss 
+        }
         if (type === 'blizzard') radius = 600; // Bão tuyết rộng hơn
         if (type === 'arrowRain') radius = 400;
         if (type === 'firewave') radius = 350;
