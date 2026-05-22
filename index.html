@@ -1268,7 +1268,7 @@
       },
       bin: {
         id: 'bin', name: 'Bin Chubby', class: 'Sát Thủ Lỗ Ass Bự', icon: '🗡️',
-        hp: 1500, mp: 800, atk: 300, color: '#884488', weaponColor: '#cc44cc',
+        hp: 1500, mp: 1000, atk: 380, color: '#884488', weaponColor: '#cc44cc',
         skills: [
           {
             name: 'Cứt tới cửa đít', key: '1', cd: 30, mpCost: 0, icon: '👥',
@@ -1897,13 +1897,29 @@
       c.ellipse(0, 58, 28, 11, 0, 0, Math.PI * 2);
       c.fill();
 
+      // Add running dust particles dynamically during drawing
+      if (state === 'run' && Math.random() < 0.25) {
+        if (typeof globalParticles !== 'undefined') {
+          globalParticles.push(new Particle(
+            x - facing * 15, 
+            y, 
+            -facing * (40 + Math.random() * 60), 
+            -10 - Math.random() * 20, 
+            'rgba(180, 160, 140, 0.6)', 
+            0.4 + Math.random() * 0.3, 
+            3 + Math.random() * 4, 
+            'circle'
+          ));
+        }
+      }
+
       switch (charId) {
-        case 'tien': drawHumanTien(c, state, t); break;
-        case 'thao': drawHumanThao(c, state, t); break;
-        case 'bin': drawHumanBin(c, state, t); break;
-        case 'trang': drawHumanTrang(c, state, t); break;
-        case 'huy': drawHumanHuy(c, state, t); break;
-        case 'nga': drawHumanNga(c, state, t); break;
+        case 'tien': drawHumanTien(c, state, t, x, y, facing); break;
+        case 'thao': drawHumanThao(c, state, t, x, y, facing); break;
+        case 'bin': drawHumanBin(c, state, t, x, y, facing); break;
+        case 'trang': drawHumanTrang(c, state, t, x, y, facing); break;
+        case 'huy': drawHumanHuy(c, state, t, x, y, facing); break;
+        case 'nga': drawHumanNga(c, state, t, x, y, facing); break;
       }
 
       c.restore();
@@ -1911,124 +1927,799 @@
 
     // ====================== NHÂN VẬT NGƯỜI THẬT ======================
 
-    function drawHumanTien(c, state, t) { // Tiến - Chiến binh cao to
+    function drawHumanTien(c, state, t, x, y, facing) { // Tiến - Chiến binh cao to
       // Legs
-      c.fillStyle = '#1e2937';
-      c.fillRect(-12, 25, 9, 35);
-      c.fillRect(3, 25, 9, 35);
+      let legL = 0, legR = 0;
+      if (state === 'run') {
+        legL = Math.sin(t * 8) * 0.6;
+        legR = -Math.sin(t * 8) * 0.6;
+      } else if (state === 'jump') {
+        legL = -0.4; legR = 0.4;
+      } else if (state === 'attack') {
+        legL = -0.2; legR = 0.2;
+      }
 
-      // Torso
-      c.fillStyle = '#334155';
+      function drawLeg(c, hx, hy, angle, color) {
+        c.save();
+        c.translate(hx, hy);
+        c.rotate(angle);
+        // Thigh
+        c.fillStyle = color;
+        c.fillRect(-4.5, 0, 9, 18);
+        // Knee / Shin guard
+        let shinGrad = c.createLinearGradient(-4.5, 18, 4.5, 32);
+        shinGrad.addColorStop(0, '#94a3b8');
+        shinGrad.addColorStop(1, '#1e293b');
+        c.fillStyle = shinGrad;
+        c.fillRect(-4.5, 18, 9, 14);
+        // Silver knee cap
+        c.fillStyle = '#e2e8f0';
+        c.beginPath(); c.arc(0, 18, 4.5, 0, Math.PI * 2); c.fill();
+        // Boot
+        c.fillStyle = '#0f172a';
+        c.fillRect(-5.5, 30, 13, 6);
+        c.restore();
+      }
+
+      drawLeg(c, -8, 20, legL, '#334155');
+      drawLeg(c, 8, 20, legR, '#334155');
+
+      // Cloak (Behind body)
+      c.fillStyle = '#dc2626';
       c.beginPath();
-      c.ellipse(0, 8, 18, 25, 0, 0, Math.PI * 2);
+      c.moveTo(-12, -2);
+      for (let i = 1; i <= 6; i++) {
+        let wave = Math.sin(t * 10 - i * 0.8) * 8 * (state === 'run' ? 1.5 : 1);
+        c.lineTo(-12 - i * 8, -2 + i * 4 + wave);
+      }
+      c.lineTo(-12 - 48, 30);
+      c.closePath();
       c.fill();
 
-      // Arms
-      let armSwing = state === 'run' ? Math.sin(t * 8) * 12 : 0;
-      c.fillStyle = '#475569';
-      c.save(); c.translate(-14, 5); c.rotate(-0.4 + armSwing * 0.02);
-      c.fillRect(-6, 0, 9, 28); c.restore();
-      c.save(); c.translate(14, 5); c.rotate(0.4 - armSwing * 0.02);
-      c.fillRect(-3, 0, 9, 28); c.restore();
+      // Torso/Body
+      c.save();
+      let tilt = state === 'run' ? 0.12 : (state === 'attack' ? 0.2 : 0);
+      if (state === 'jump') tilt = -0.05;
+      c.rotate(tilt);
 
-      // Head
-      c.fillStyle = '#f8d5b8';
-      c.beginPath(); c.arc(0, -28, 14.5, 0, Math.PI * 2); c.fill();
-
-      // Hair
-      c.fillStyle = '#1e2937';
-      c.beginPath(); c.ellipse(0, -34, 15, 12, 0, 0, Math.PI * 2); c.fill();
-
-      // Helmet
-      c.fillStyle = '#1e40af';
-      c.beginPath(); c.arc(0, -31, 15.5, Math.PI * 0.7, Math.PI * 2.3); c.fill();
-
-      // Eyes
-      c.fillStyle = '#111827';
-      c.beginPath(); c.arc(-5.5, -29, 3.5, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.arc(5.5, -29, 3.5, 0, Math.PI * 2); c.fill();
-    }
-
-    function drawHumanThao(c, state, t) { // Thảo - Pháp sư nữ
-      // Legs + Dress
-      c.fillStyle = '#1e2937';
-      c.fillRect(-13, 25, 26, 32);
-
-      // Robe body
-      c.fillStyle = '#312e81';
+      // Heavy metallic breastplate
+      let torsoGrad = c.createLinearGradient(-16, -10, 16, 25);
+      torsoGrad.addColorStop(0, '#e2e8f0');
+      torsoGrad.addColorStop(0.5, '#475569');
+      torsoGrad.addColorStop(1, '#1e293b');
+      c.fillStyle = torsoGrad;
       c.beginPath();
-      c.moveTo(-19, -5);
-      c.quadraticCurveTo(-22, 22, -16, 38);
-      c.lineTo(16, 38);
-      c.quadraticCurveTo(22, 22, 19, -5);
-      c.fill();
+      c.moveTo(-16, -10); c.lineTo(16, -10); c.lineTo(14, 24); c.lineTo(-14, 24);
+      c.closePath(); c.fill();
 
-      // Hair long
-      c.fillStyle = '#4c1d95';
-      c.beginPath(); c.ellipse(0, -32, 16, 22, 0.1, 0, Math.PI * 2); c.fill();
+      // Glowing Neon Blue Core in center of chest
+      let coreGrad = c.createRadialGradient(0, 5, 0, 0, 5, 7);
+      coreGrad.addColorStop(0, '#ffffff');
+      coreGrad.addColorStop(0.4, '#00ffff');
+      coreGrad.addColorStop(1, '#0055ff');
+      c.fillStyle = coreGrad;
+      c.beginPath(); c.arc(0, 5, 7, 0, Math.PI * 2); c.fill();
 
-      // Head
+      // Golden shield emblem border
+      c.strokeStyle = 'rgba(255, 215, 0, 0.7)'; c.lineWidth = 1.5;
+      c.strokeRect(-10, -5, 20, 20);
+
+      // Spaulders (shoulder pads)
+      c.fillStyle = '#64748b';
+      // Left
+      c.fillRect(-22, -12, 8, 8);
+      c.beginPath(); c.moveTo(-22, -12); c.lineTo(-26, -2); c.lineTo(-14, -12); c.fill();
+      // Right
+      c.fillRect(14, -12, 8, 8);
+      c.beginPath(); c.moveTo(22, -12); c.lineTo(26, -2); c.lineTo(14, -12); c.fill();
+
+      // Head / Helmet
+      c.save();
+      c.translate(0, -22);
+      // Spiky black hair behind
+      c.fillStyle = '#1e293b';
+      c.beginPath();
+      c.moveTo(-14, -2);
+      c.lineTo(-20, -14);
+      c.lineTo(-10, -10);
+      c.lineTo(-12, -22);
+      c.lineTo(-4, -16);
+      c.lineTo(0, -26);
+      c.lineTo(4, -16);
+      c.lineTo(12, -22);
+      c.lineTo(10, -10);
+      c.lineTo(20, -14);
+      c.lineTo(14, -2);
+      c.closePath(); c.fill();
+
+      // Face skin
       c.fillStyle = '#f8d5b8';
-      c.beginPath(); c.arc(0, -29, 13, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(0, 0, 11, 0, Math.PI * 2); c.fill();
 
-      // Eyes
+      // Helmet visor (neon metallic blue)
       c.fillStyle = '#1e3a8a';
-      c.beginPath(); c.arc(-4.5, -29, 3, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.arc(4.5, -29, 3, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(0, -3, 11.5, Math.PI * 0.8, Math.PI * 2.2); c.fill();
+      // Visor glowing cyan slit
+      c.strokeStyle = '#00ffff'; c.lineWidth = 2.5; c.shadowColor = '#00ffff'; c.shadowBlur = 6;
+      c.beginPath(); c.moveTo(-7, -2); c.lineTo(5, -2); c.stroke();
+      c.shadowBlur = 0;
+      c.restore(); // end head
+
+      // Arms & Trọng Kiếm
+      // Background arm
+      let armL = state === 'run' ? Math.sin(t * 8) * 0.6 : -0.2;
+      if (state === 'attack') armL = -0.6;
+      c.save();
+      c.translate(-15, -6);
+      c.rotate(armL);
+      c.fillStyle = '#475569'; c.fillRect(-4.5, 0, 9, 26);
+      c.restore();
+
+      // Foreground arm with Trọng Kiếm
+      let armR = state === 'run' ? -Math.sin(t * 8) * 0.5 : 0.2;
+      if (state === 'jump') armR = -1.2;
+      if (state === 'attack') armR = -1.2 + Math.sin(t * 18) * 1.4;
+      c.save();
+      c.translate(15, -6);
+      c.rotate(armR);
+      // Sleeve/Arm
+      c.fillStyle = '#64748b'; c.fillRect(-4.5, 0, 9, 24);
+      c.fillStyle = '#f8d5b8'; c.beginPath(); c.arc(0, 24, 4, 0, Math.PI * 2); c.fill(); // Hand
+
+      // Trọng Kiếm (Greatsword)
+      c.save();
+      c.translate(0, 24);
+      c.rotate(-Math.PI / 2); // align along hand extension
+      // Sword handle
+      c.strokeStyle = '#78350f'; c.lineWidth = 3.5;
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(12, 0); c.stroke();
+      // Gold pommel
+      c.fillStyle = '#ffd700'; c.beginPath(); c.arc(12, 0, 3, 0, Math.PI * 2); c.fill();
+      // Guard
+      c.fillStyle = '#1e293b'; c.fillRect(-3, -12, 5, 24);
+      // Giant blade with glowing gold core
+      let bladeGrad = c.createLinearGradient(-3, -48, -3, 0);
+      bladeGrad.addColorStop(0, '#ffffff');
+      bladeGrad.addColorStop(0.5, '#ffd700');
+      bladeGrad.addColorStop(1, '#ffaa00');
+      c.fillStyle = bladeGrad; c.shadowColor = '#ffbb00'; c.shadowBlur = 10;
+      c.fillRect(-48, -7, 46, 14);
+      // Tip
+      c.beginPath(); c.moveTo(-48, -7); c.lineTo(-56, 0); c.lineTo(-48, 7); c.closePath(); c.fill();
+      c.shadowBlur = 0;
+      c.restore(); // sword
+      c.restore(); // armR
+
+      c.restore(); // body
+
+      // Attack golden arc trail
+      if (state === 'attack') {
+        c.save();
+        c.strokeStyle = 'rgba(255, 215, 0, 0.25)'; c.lineWidth = 16; c.shadowColor = '#ffd700'; c.shadowBlur = 15;
+        c.beginPath();
+        c.arc(0, 0, 60, -Math.PI / 3, Math.PI / 2);
+        c.stroke();
+        c.restore();
+      }
     }
 
-    function drawHumanBin(c, state, t) { // Bin - Assassin
-      c.fillStyle = '#111827';
-      c.fillRect(-15, 10, 30, 38); // cloak
+    function drawHumanThao(c, state, t, x, y, facing) { // Thảo - Pháp sư nữ
+      // Shoe swing
+      c.fillStyle = '#4c1d95';
+      let lSwing = state === 'run' ? Math.sin(t * 8) * 8 : 0;
+      c.fillRect(-8 + lSwing, 28, 6, 8);
+      c.fillRect(2 - lSwing, 28, 6, 8);
 
-      // Head + Hood
-      c.fillStyle = '#1f2937';
-      c.beginPath(); c.arc(0, -28, 14, 0, Math.PI * 2); c.fill();
-
-      // Mask
-      c.fillStyle = '#0f172a';
-      c.beginPath(); c.arc(0, -26, 11, 0, Math.PI * 2); c.fill();
-
-      c.fillStyle = '#ef4444';
-      c.beginPath(); c.arc(-5, -27, 3.5, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.arc(5, -27, 3.5, 0, Math.PI * 2); c.fill();
-    }
-
-    function drawHumanTrang(c, state, t) { // Trang - Archer nữ
-      c.fillStyle = '#166534';
-      c.fillRect(-14, 12, 28, 35);
-
-      c.fillStyle = '#4ade80';
+      // Starry Cloak (Behind body)
+      c.save();
+      let capeGrad = c.createLinearGradient(0, -5, -45, 35);
+      capeGrad.addColorStop(0, '#1e1b4b');
+      capeGrad.addColorStop(0.5, '#312e81');
+      capeGrad.addColorStop(1, '#4c1d95');
+      c.fillStyle = capeGrad;
       c.beginPath();
-      c.moveTo(-18, -8); c.quadraticCurveTo(-35, 20, -17, 40);
-      c.lineTo(17, 40); c.quadraticCurveTo(32, 18, 18, -8);
+      c.moveTo(-12, -5);
+      c.bezierCurveTo(-38 - Math.sin(t * 6) * 10, 5, -38 - Math.sin(t * 6) * 10, 25, -12, 35);
+      c.closePath();
+      c.fill();
+      // Glow stars on cape
+      c.fillStyle = '#ffffff';
+      for (let i = 0; i < 5; i++) {
+        let sx = -18 - (i * 4.5) + Math.cos(t + i) * 2;
+        let sy = 5 + (i * 5);
+        c.beginPath(); c.arc(sx, sy, 0.9, 0, Math.PI * 2); c.fill();
+      }
+      c.restore();
+
+      // Robe Gown
+      let robeGrad = c.createLinearGradient(0, -5, 0, 30);
+      robeGrad.addColorStop(0, '#311042');
+      robeGrad.addColorStop(0.6, '#4c1d95');
+      robeGrad.addColorStop(1, '#6d28d9');
+      c.fillStyle = robeGrad;
+      c.beginPath();
+      c.moveTo(-16, -5);
+      c.quadraticCurveTo(-22, 12, -18, 30);
+      c.lineTo(18, 30);
+      c.quadraticCurveTo(22, 12, 16, -5);
+      c.fill();
+      // Gold trim
+      c.strokeStyle = '#eab308'; c.lineWidth = 2.5;
+      c.beginPath(); c.moveTo(-18, 30); c.lineTo(18, 30); c.stroke();
+
+      // Head & giant pointed witch hat
+      c.save();
+      c.translate(0, -28);
+      c.rotate(-0.06 + Math.sin(t * 4) * 0.05);
+      // Long hair behind
+      c.fillStyle = '#7c3aed';
+      c.beginPath(); c.ellipse(0, 0, 16, 20, 0, 0, Math.PI * 2); c.fill();
+      // Face skin
+      c.fillStyle = '#f8d5b8';
+      c.beginPath(); c.arc(0, 0, 12, 0, Math.PI * 2); c.fill();
+      // Big beautiful blue eyes
+      c.fillStyle = '#06b6d4';
+      c.beginPath(); c.arc(-4, 0, 2.5, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(4, 0, 2.5, 0, Math.PI * 2); c.fill();
+      // Hat brim
+      c.fillStyle = '#311042';
+      c.beginPath(); c.ellipse(0, -8, 24, 6, 0.08, 0, Math.PI * 2); c.fill();
+      // Hat cone
+      c.beginPath();
+      c.moveTo(-12, -10);
+      c.quadraticCurveTo(-14, -32, -26 + Math.sin(t * 3) * 3, -38);
+      c.quadraticCurveTo(0, -28, 12, -10);
+      c.fill();
+      // Golden hat band
+      c.fillStyle = '#eab308';
+      c.fillRect(-10, -12, 20, 3);
+      // Jewel on hat tip
+      c.fillStyle = '#06b6d4'; c.shadowColor = '#00ffff'; c.shadowBlur = 6;
+      c.beginPath(); c.arc(-26 + Math.sin(t * 3) * 3, -38, 3, 0, Math.PI * 2); c.fill();
+      c.shadowBlur = 0;
+      c.restore();
+
+      // Floating Spellbook (Left Side)
+      c.save();
+      let bBob = Math.sin(t * 4) * 8;
+      c.translate(-32, -30 + bBob);
+      c.rotate(0.1 + Math.sin(t * 3) * 0.1);
+      // Leather cover
+      c.fillStyle = '#7f1d1d';
+      c.fillRect(-12, -8, 24, 16);
+      // Pages flapping
+      c.fillStyle = '#fef08a';
+      let flap = Math.abs(Math.sin(t * 10)) * 10;
+      c.beginPath();
+      c.moveTo(0, -6);
+      c.lineTo(-8, -6 + flap * 0.5);
+      c.lineTo(-8, 6 - flap * 0.5);
+      c.lineTo(0, 6);
+      c.lineTo(8, 6 - flap * 0.5);
+      c.lineTo(8, -6 + flap * 0.5);
+      c.closePath(); c.fill();
+      // Spine
+      c.fillStyle = '#3f0712';
+      c.fillRect(-2, -7, 4, 14);
+      // Tiny magic star sparks
+      if (Math.random() < 0.1) {
+        if (typeof globalParticles !== 'undefined') {
+          globalParticles.push(new Particle(
+            x - facing * 32,
+            y - 95 + bBob,
+            (Math.random() - 0.5) * 30,
+            -25 - Math.random() * 25,
+            '#a7f3d0',
+            0.5,
+            3,
+            'snowflake'
+          ));
+        }
+      }
+      c.restore();
+
+      // Pha lê Trượng (Crystal Staff in right hand)
+      let staffAngle = state === 'attack' ? -1.0 + Math.sin(t * 15) * 0.8 : -0.2 + Math.sin(t * 2) * 0.15;
+      c.save();
+      c.translate(14, 5);
+      c.rotate(staffAngle);
+      // Gold staff rod
+      c.strokeStyle = '#eab308'; c.lineWidth = 3.5;
+      c.beginPath(); c.moveTo(0, 25); c.lineTo(0, -35); c.stroke();
+      // Staff head rotating crystal
+      c.save();
+      c.translate(0, -42);
+      c.rotate(t * 3.5);
+      let cryGrad = c.createRadialGradient(0, 0, 0, 0, 0, 11);
+      cryGrad.addColorStop(0, '#ffffff');
+      cryGrad.addColorStop(1, '#06b6d4');
+      c.fillStyle = cryGrad;
+      c.beginPath();
+      for (let i = 0; i < 6; i++) {
+        c.lineTo(Math.cos(i * Math.PI / 3) * 9, Math.sin(i * Math.PI / 3) * 9);
+        c.lineTo(Math.cos(i * Math.PI / 3 + Math.PI / 6) * 3.5, Math.sin(i * Math.PI / 3 + Math.PI / 6) * 3.5);
+      }
+      c.closePath(); c.fill();
+      // Glow ring
+      c.strokeStyle = 'rgba(6, 182, 212, 0.4)'; c.lineWidth = 1.5;
+      c.beginPath(); c.arc(0, 0, 12 + Math.sin(t * 5) * 3, 0, Math.PI * 2); c.stroke();
+      c.restore();
+      c.restore();
+    }
+
+    function drawHumanBin(c, state, t, x, y, facing) { // Bin - Assassin
+      // Red Scarf waving (Behind body)
+      c.fillStyle = '#dc2626';
+      c.beginPath();
+      c.moveTo(-10, -5);
+      let sAmp = state === 'run' ? 1.6 : 1.0;
+      for (let i = 1; i <= 6; i++) {
+        let wave = Math.sin(t * 14 - i * 0.8) * 12 * sAmp;
+        c.lineTo(-10 - i * 12, -5 - i * 2.2 + wave);
+      }
+      c.lineTo(-70, 15);
+      c.closePath();
       c.fill();
 
-      c.fillStyle = '#854d0e';
-      c.beginPath(); c.ellipse(0, -32, 14, 18, 0, 0, Math.PI * 2); c.fill();
+      // Legs
+      let legL = 0, legR = 0;
+      if (state === 'run') {
+        legL = Math.sin(t * 10) * 0.8;
+        legR = -Math.sin(t * 10) * 0.8;
+      } else if (state === 'jump') {
+        legL = -0.5; legR = 0.5;
+      } else if (state === 'attack') {
+        legL = -0.3; legR = 0.3;
+      }
+
+      function drawBinLeg(c, hx, hy, angle) {
+        c.save();
+        c.translate(hx, hy);
+        c.rotate(angle);
+        c.fillStyle = '#1e1b4b';
+        c.fillRect(-3.5, 0, 7, 20);
+        c.fillStyle = '#e11d48';
+        c.fillRect(-4, 10, 8, 3.5);
+        c.fillStyle = '#111827';
+        c.fillRect(-4.5, 20, 11, 5.5);
+        c.restore();
+      }
+
+      drawBinLeg(c, -6, 20, legL);
+      drawBinLeg(c, 6, 20, legR);
+
+      // Torso/Body (leaning forward in run)
+      c.save();
+      let bodyTilt = state === 'run' ? 0.6 : (state === 'attack' ? 0.35 : 0.1);
+      c.rotate(bodyTilt);
+
+      // Purple/Dark stealth suit
+      let suitGrad = c.createLinearGradient(-14, 0, 14, 25);
+      suitGrad.addColorStop(0, '#1e1b4b');
+      suitGrad.addColorStop(1, '#090514');
+      c.fillStyle = suitGrad;
+      c.beginPath(); c.ellipse(0, 8, 14, 22, 0, 0, Math.PI * 2); c.fill();
+
+      // Red sash
+      c.fillStyle = '#dc2626';
+      c.fillRect(-13, 14, 26, 4.5);
+      c.restore();
+
+      // Head & Cowl Mask
+      c.save();
+      let headOffY = state === 'run' ? -10 : -22;
+      let headOffX = state === 'run' ? 12 : 0;
+      c.translate(headOffX, headOffY);
+
+      // Cowl hood
+      c.fillStyle = '#111827';
+      c.beginPath(); c.arc(0, 0, 13, 0, Math.PI * 2); c.fill();
+
+      // Mask face cutout
+      c.fillStyle = '#0f172a';
+      c.beginPath(); c.arc(0, 2, 9, 0, Math.PI * 2); c.fill();
+
+      // Glowing red assassin eyes
+      c.fillStyle = '#ef4444'; c.shadowColor = '#ff0000'; c.shadowBlur = 8;
+      c.beginPath(); c.arc(-3.5, 1, 2.5, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(3.5, 1, 2.5, 0, Math.PI * 2); c.fill();
+      c.shadowBlur = 0;
+      c.restore();
+
+      // Dual Daggers (Left and Right hands)
+      let armSwingL = state === 'run' ? Math.PI * 0.75 : -0.3;
+      let armSwingR = state === 'run' ? Math.PI * 0.75 : 0.3;
+      if (state === 'attack') {
+        armSwingL = -0.5 - Math.sin(t * 22) * 1.3;
+        armSwingR = 0.5 + Math.sin(t * 22) * 1.3;
+      }
+
+      function drawDagger(c, hx, hy, angle, isForeground) {
+        c.save();
+        c.translate(hx, hy);
+        c.rotate(angle);
+        // Sleeve
+        c.fillStyle = '#1e1b4b'; c.fillRect(-3, 0, 6, 12);
+        // Guard
+        c.fillStyle = '#7c2d12'; c.fillRect(-6, 12, 12, 3);
+        // Glowing crimson blade
+        let blGrad = c.createLinearGradient(0, 15, 0, 32);
+        blGrad.addColorStop(0, '#f43f5e');
+        blGrad.addColorStop(1, '#ffffff');
+        c.fillStyle = blGrad; c.shadowColor = '#f43f5e'; c.shadowBlur = 8;
+        c.beginPath();
+        c.moveTo(-3, 15); c.lineTo(0, 34); c.lineTo(3, 15);
+        c.closePath(); c.fill();
+        c.shadowBlur = 0;
+        c.restore();
+      }
+
+      // Draw background dagger
+      drawDagger(c, -15, 8, armSwingL, false);
+      // Draw foreground dagger
+      drawDagger(c, 15, 8, armSwingR, true);
+
+      // Red slash trail under attack
+      if (state === 'attack') {
+        c.save();
+        c.strokeStyle = 'rgba(239, 68, 68, 0.25)'; c.lineWidth = 10; c.shadowColor = '#ef4444'; c.shadowBlur = 12;
+        c.beginPath();
+        c.arc(10, 5, 30, -Math.PI / 2, Math.PI / 2);
+        c.stroke();
+        c.restore();
+      }
     }
 
-    function drawHumanHuy(c, state, t) { // Huy - Tanker
-      c.fillStyle = '#334155';
-      c.fillRect(-20, 8, 40, 42);
+    function drawHumanTrang(c, state, t, x, y, facing) { // Trang - Archer nữ
+      // Long slender legs
+      let legL = 0, legR = 0;
+      if (state === 'run') {
+        legL = Math.sin(t * 8) * 0.55;
+        legR = -Math.sin(t * 8) * 0.55;
+      } else if (state === 'jump') {
+        legL = -0.35; legR = 0.35;
+      }
 
-      c.fillStyle = '#b91c1c';
-      c.fillRect(-19, 18, 38, 12);
+      function drawElfLeg(c, hx, hy, angle) {
+        c.save();
+        c.translate(hx, hy);
+        c.rotate(angle);
+        // Skin
+        c.fillStyle = '#f8d5b8'; c.fillRect(-3, 0, 6, 18);
+        // Leaf boot
+        c.fillStyle = '#166534'; c.fillRect(-3.5, 12, 7, 16);
+        c.fillStyle = '#facc15'; c.fillRect(-4, 28, 9, 3);
+        c.restore();
+      }
 
-      c.fillStyle = '#1e2937';
-      c.beginPath(); c.arc(0, -29, 16.5, 0, Math.PI * 2); c.fill();
+      drawElfLeg(c, -7, 20, legL);
+      drawElfLeg(c, 7, 20, legR);
+
+      // Quiver on her back
+      c.save();
+      c.translate(-10, -2);
+      c.rotate(-0.4);
+      c.fillStyle = '#78350f'; c.fillRect(-4, -14, 8, 22);
+      c.fillStyle = '#10b981';
+      c.fillRect(-3, -18, 2, 4); c.fillRect(1, -18, 2, 4);
+      c.restore();
+
+      // Gown Body & Leaf Skirt
+      let skirtGrad = c.createLinearGradient(0, -6, 0, 24);
+      skirtGrad.addColorStop(0, '#10b981');
+      skirtGrad.addColorStop(1, '#064e3b');
+      c.fillStyle = skirtGrad;
+      c.beginPath();
+      c.moveTo(-14, -6);
+      c.quadraticCurveTo(-24, 10, -16, 24);
+      c.lineTo(16, 24);
+      c.quadraticCurveTo(24, 10, 14, -6);
+      c.fill();
+      // Gold sash belt
+      c.fillStyle = '#facc15';
+      c.fillRect(-10, 0, 20, 3.5);
+
+      // Head & Long Blonde Hair & Crown
+      c.save();
+      c.translate(0, -28);
+      // Flowing blonde hair behind
+      c.fillStyle = '#fef08a';
+      c.beginPath();
+      c.moveTo(-12, -8);
+      c.bezierCurveTo(-26 - Math.sin(t * 5) * 5, 10, -24 - Math.sin(t * 5) * 5, 25, -12, 35);
+      c.lineTo(10, 25);
+      c.lineTo(12, -8);
+      c.closePath(); c.fill();
+
+      // Face skin
+      c.fillStyle = '#f8d5b8';
+      c.beginPath(); c.arc(0, 0, 11.5, 0, Math.PI * 2); c.fill();
+
+      // Emerald eyes
+      c.fillStyle = '#10b981';
+      c.beginPath(); c.arc(-3.5, 0, 2.2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(3.5, 0, 2.2, 0, Math.PI * 2); c.fill();
+
+      // Tiara gold crown
+      c.strokeStyle = '#facc15'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(-10, -6); c.lineTo(0, -12); c.lineTo(10, -6); c.stroke();
+      c.fillStyle = '#10b981'; c.beginPath(); c.arc(0, -12, 3, 0, Math.PI * 2); c.fill();
+      c.restore();
+
+      // Emerald Bow (Left hand front)
+      let bowAngle = state === 'attack' ? -0.2 : 0.3 + Math.sin(t * 3) * 0.1;
+      c.save();
+      c.translate(12, 4);
+      c.rotate(bowAngle);
+      // Bow arch (glowing green emerald)
+      c.strokeStyle = '#10b981'; c.lineWidth = 3.5; c.shadowColor = '#00ff66'; c.shadowBlur = 10;
+      c.beginPath();
+      c.arc(0, -6, 28, -Math.PI / 1.6, Math.PI / 1.6);
+      c.stroke();
+      c.shadowBlur = 0;
+
+      // Bow string
+      c.strokeStyle = 'rgba(255,255,255,0.6)'; c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(Math.cos(-Math.PI / 1.6) * 28, Math.sin(-Math.PI / 1.6) * 28 - 6);
+      c.lineTo(state === 'attack' ? -18 : 0, -6);
+      c.lineTo(Math.cos(Math.PI / 1.6) * 28, Math.sin(Math.PI / 1.6) * 28 - 6);
+      c.stroke();
+
+      // Magical emerald arrow during attack
+      if (state === 'attack') {
+        let arrGrad = c.createLinearGradient(-18, -6, 22, -6);
+        arrGrad.addColorStop(0, '#ffffff');
+        arrGrad.addColorStop(1, '#10b981');
+        c.strokeStyle = arrGrad; c.lineWidth = 3.5; c.shadowColor = '#00ffcc'; c.shadowBlur = 12;
+        c.beginPath(); c.moveTo(-18, -6); c.lineTo(26, -6); c.stroke();
+        // Arrow head
+        c.fillStyle = '#ffffff';
+        c.beginPath(); c.moveTo(26, -6); c.lineTo(20, -10); c.lineTo(20, -2); c.closePath(); c.fill();
+        c.shadowBlur = 0;
+      }
+      c.restore();
     }
 
-    function drawHumanNga(c, state, t) { // Nga - Summoner
-      c.fillStyle = '#4338ca';
-      c.fillRect(-18, 10, 36, 38);
+    function drawHumanHuy(c, state, t, x, y, facing) { // Huy - Tanker
+      // Plate legs
+      let legL = 0, legR = 0;
+      if (state === 'run') {
+        legL = Math.sin(t * 8) * 0.5;
+        legR = -Math.sin(t * 8) * 0.5;
+      } else if (state === 'jump') {
+        legL = -0.3; legR = 0.3;
+      }
 
-      c.fillStyle = '#1e2937';
-      c.beginPath(); c.arc(-13, -35, 10, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.arc(13, -35, 10, 0, Math.PI * 2); c.fill();
+      function drawTitanLeg(c, hx, hy, angle) {
+        c.save();
+        c.translate(hx, hy);
+        c.rotate(angle);
+        c.fillStyle = '#374151'; c.fillRect(-6, 0, 12, 18);
+        c.fillStyle = '#ea580c'; c.beginPath(); c.arc(0, 18, 5, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#111827'; c.fillRect(-8, 18, 16, 14);
+        c.fillStyle = '#374151'; c.fillRect(-8, 28, 18, 6);
+        c.restore();
+      }
 
-      c.fillStyle = '#e0e7ff';
-      c.beginPath(); c.arc(0, -29, 13.5, 0, Math.PI * 2); c.fill();
+      drawTitanLeg(c, -10, 20, legL);
+      drawTitanLeg(c, 10, 20, legR);
+
+      // Volcanic Shield (Left hand, Background side but translated left)
+      c.save();
+      c.translate(-22, 6);
+      c.rotate(-0.2 + Math.sin(t * 3) * 0.1);
+      // Shield plate
+      c.fillStyle = '#111827';
+      c.beginPath();
+      c.moveTo(-14, -28); c.lineTo(14, -28); c.lineTo(10, 24); c.lineTo(0, 36); c.lineTo(-10, 24);
+      c.closePath(); c.fill();
+      // Glowing core cracks
+      let shGrad = c.createRadialGradient(0, 0, 2, 0, 0, 20);
+      shGrad.addColorStop(0, '#f97316');
+      shGrad.addColorStop(1, '#7f1d1d');
+      c.fillStyle = shGrad;
+      c.beginPath();
+      c.moveTo(-10, -22); c.lineTo(10, -22); c.lineTo(6, 18); c.lineTo(0, 28); c.lineTo(-6, 18);
+      c.closePath(); c.fill();
+      // Center steel spikes
+      c.fillStyle = '#9ca3af';
+      c.beginPath(); c.moveTo(-4, -4); c.lineTo(0, -22); c.lineTo(4, -4); c.lineTo(12, 0); c.lineTo(4, 4); c.lineTo(0, 22); c.lineTo(-4, 4); c.lineTo(-12, 0);
+      c.closePath(); c.fill();
+      c.restore();
+
+      // Heavy body with volcanic magma cracks
+      c.save();
+      let tTilt = state === 'run' ? 0.15 : (state === 'attack' ? 0.3 : 0.05);
+      c.rotate(tTilt);
+
+      let bodyGrad = c.createLinearGradient(-20, -10, 20, 24);
+      bodyGrad.addColorStop(0, '#374151');
+      bodyGrad.addColorStop(0.6, '#1f2937');
+      bodyGrad.addColorStop(1, '#111827');
+      c.fillStyle = bodyGrad;
+      c.beginPath();
+      c.moveTo(-20, -10); c.lineTo(20, -10); c.lineTo(16, 24); c.lineTo(-16, 24);
+      c.closePath(); c.fill();
+
+      // Magma cracks on torso
+      c.strokeStyle = '#ea580c'; c.lineWidth = 3.5; c.shadowColor = '#ff4500'; c.shadowBlur = 10;
+      c.beginPath(); c.moveTo(-10, 0); c.lineTo(0, 10); c.lineTo(10, -4); c.stroke();
+      c.shadowBlur = 0;
+
+      // Heavy spaulders (shoulder plates with spikes)
+      c.fillStyle = '#1f2937';
+      // Left
+      c.fillRect(-26, -14, 10, 10);
+      c.beginPath(); c.moveTo(-26, -14); c.lineTo(-32, -26); c.lineTo(-20, -14); c.fill();
+      // Right
+      c.fillRect(16, -14, 10, 10);
+      c.beginPath(); c.moveTo(26, -14); c.lineTo(32, -26); c.lineTo(20, -14); c.fill();
+
+      // Head & Demon Horned Helmet
+      c.save();
+      c.translate(0, -28);
+      // Dark helm base
+      c.fillStyle = '#1f2937';
+      c.beginPath(); c.arc(0, 0, 15, 0, Math.PI * 2); c.fill();
+      // Demon horns
+      c.fillStyle = '#991b1b';
+      // Left horn
+      c.beginPath(); c.moveTo(-12, -4); c.quadraticCurveTo(-22, -18, -18, -26); c.quadraticCurveTo(-10, -16, -6, -12); c.fill();
+      // Right horn
+      c.beginPath(); c.moveTo(12, -4); c.quadraticCurveTo(22, -18, 18, -26); c.quadraticCurveTo(10, -16, 6, -12); c.fill();
+      // Visor glowing red
+      c.fillStyle = '#ea580c'; c.shadowColor = '#ff0000'; c.shadowBlur = 10;
+      c.fillRect(-6, 2, 12, 3);
+      c.shadowBlur = 0;
+      c.restore();
+
+      c.restore(); // end body
+
+      // Magma Axe (Right hand foreground)
+      let axeAngle = state === 'attack' ? -1.3 + Math.sin(t * 18) * 1.5 : 0.4 + Math.sin(t * 2) * 0.15;
+      c.save();
+      c.translate(16, 5);
+      c.rotate(axeAngle);
+      // Rusted bronze shaft
+      c.strokeStyle = '#78350f'; c.lineWidth = 4;
+      c.beginPath(); c.moveTo(0, 28); c.lineTo(0, -32); c.stroke();
+      // Massive dual axe blade
+      c.fillStyle = '#374151';
+      c.beginPath();
+      // Left blade
+      c.moveTo(0, -28); c.quadraticCurveTo(-18, -26, -24, -14); c.quadraticCurveTo(-14, -6, 0, -8);
+      // Right blade
+      c.moveTo(0, -28); c.quadraticCurveTo(18, -26, 24, -14); c.quadraticCurveTo(14, -6, 0, -8);
+      c.closePath(); c.fill();
+      // Glowing molten edge
+      c.fillStyle = '#ea580c'; c.shadowColor = '#ff3300'; c.shadowBlur = 10;
+      c.beginPath();
+      c.moveTo(-24, -14); c.quadraticCurveTo(-26, -20, -20, -24); c.lineTo(-14, -20); c.closePath(); c.fill();
+      c.beginPath();
+      c.moveTo(24, -14); c.quadraticCurveTo(26, -20, 20, -24); c.lineTo(14, -20); c.closePath(); c.fill();
+      c.shadowBlur = 0;
+      c.restore();
+    }
+
+    function drawHumanNga(c, state, t, x, y, facing) { // Nga - Summoner
+      // Frilly lavender skirt peeking out
+      let skirtGrad = c.createLinearGradient(0, 0, 0, 22);
+      skirtGrad.addColorStop(0, '#c084fc');
+      skirtGrad.addColorStop(1, '#818cf8');
+      c.fillStyle = skirtGrad;
+      c.beginPath();
+      c.moveTo(-16, 4);
+      c.quadraticCurveTo(-22, 14, -16, 22);
+      c.lineTo(16, 22);
+      c.quadraticCurveTo(22, 14, 16, 4);
+      c.fill();
+
+      // Legs
+      let legL = 0, legR = 0;
+      if (state === 'run') {
+        legL = Math.sin(t * 10) * 0.7;
+        legR = -Math.sin(t * 10) * 0.7;
+      }
+
+      function drawCuteLeg(c, hx, hy, angle) {
+        c.save();
+        c.translate(hx, hy);
+        c.rotate(angle);
+        c.fillStyle = '#111827'; c.fillRect(-3, 0, 6, 20);
+        c.fillStyle = '#f472b6'; c.fillRect(-4.5, 18, 9, 12);
+        c.fillStyle = '#ffffff'; c.beginPath(); c.arc(-4.5, 24, 3, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+
+      drawCuteLeg(c, -6, 20, legL);
+      drawCuteLeg(c, 6, 20, legR);
+
+      // Hoodie body (white center, black shoulders)
+      c.fillStyle = '#f8fafc';
+      c.beginPath(); c.ellipse(0, 3, 14, 16, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#111827';
+      c.beginPath(); c.ellipse(-12, 0, 6, 8, 0.4, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(12, 0, 6, 8, -0.4, 0, Math.PI * 2); c.fill();
+
+      // Wavy waist pink ribbons
+      c.strokeStyle = '#f472b6'; c.lineWidth = 2.5;
+      c.beginPath();
+      c.moveTo(-10, 12);
+      for (let i = 1; i <= 5; i++) {
+        let wave = Math.sin(t * 6 - i * 0.8) * 8;
+        c.lineTo(-10 - i * 10, 12 + wave);
+      }
+      c.stroke();
+
+      // Head & Panda hood
+      c.save();
+      c.translate(0, -26);
+      let earBob = Math.sin(t * 10) * 0.15 * (state === 'run' ? 1 : 0.3);
+      // Ears
+      c.fillStyle = '#111827';
+      c.beginPath(); c.arc(-13, -11 + earBob, 6, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(13, -11 - earBob, 6, 0, Math.PI * 2); c.fill();
+
+      // White hood sphere
+      c.fillStyle = '#f8fafc';
+      c.beginPath(); c.arc(0, 0, 13.5, 0, Math.PI * 2); c.fill();
+
+      // Face cutout skin
+      c.fillStyle = '#f8d5b8';
+      c.beginPath(); c.arc(0, 2, 9, 0, Math.PI * 2); c.fill();
+
+      // Panda eye patches
+      c.fillStyle = '#111827';
+      c.beginPath(); c.ellipse(-4, 2, 3, 4, 0.3, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(4, 2, 3, 4, -0.3, 0, Math.PI * 2); c.fill();
+      // White eye sparkles
+      c.fillStyle = '#ffffff';
+      c.beginPath(); c.arc(-3.5, 1.5, 1, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(4.5, 1.5, 1, 0, Math.PI * 2); c.fill();
+
+      // Pink cheeks
+      c.fillStyle = 'rgba(244, 114, 182, 0.5)';
+      c.beginPath(); c.arc(-6, 5, 2.5, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(6, 5, 2.5, 0, Math.PI * 2); c.fill();
+      c.restore();
+
+      // Golden flute
+      let fluteAngle = state === 'attack' ? -0.8 : -0.2 + Math.sin(t * 3) * 0.1;
+      let fluteX = state === 'attack' ? 2 : 12;
+      let fluteY = state === 'attack' ? -18 : 6;
+      c.save();
+      c.translate(fluteX, fluteY);
+      c.rotate(fluteAngle);
+      // Flute body
+      let fltGrad = c.createLinearGradient(0, -18, 0, 18);
+      fltGrad.addColorStop(0, '#facc15');
+      fltGrad.addColorStop(1, '#ca8a04');
+      c.fillStyle = fltGrad;
+      c.fillRect(-2.5, -20, 5, 40);
+      // Holes
+      c.fillStyle = '#111827';
+      c.fillRect(-0.8, -12, 1.6, 2);
+      c.fillRect(-0.8, -6, 1.6, 2);
+      c.fillRect(-0.8, 0, 1.6, 2);
+      c.fillRect(-0.8, 6, 1.6, 2);
+      c.restore();
+
+      // Sparkly magic star notes during flute play
+      if (state === 'attack' && Math.random() < 0.15) {
+        if (typeof globalParticles !== 'undefined') {
+          globalParticles.push(new Particle(
+            x + facing * 20 + (Math.random() - 0.5) * 15,
+            y - 75 + (Math.random() - 0.5) * 15,
+            facing * (30 + Math.random() * 40),
+            -45 - Math.random() * 45,
+            '#facc15',
+            0.6,
+            4 + Math.random() * 4,
+            'snowflake'
+          ));
+        }
+      }
     }
 
     // ============================
@@ -2544,7 +3235,9 @@
           game.spawnEffect(effectType, spawnX, spawnY, 0, false, { color: wColor, range: this.range, facing: this.facing });
         }
         this.state = 'attack';
-        this.attackCd = this.speedBuff > 0 ? 0.35 : 0.55;
+        let baseCd = 0.55;
+        if (this.charId === 'bin') baseCd /= 1.6; // Tốc đánh +60% (cooldown chia 1.6)
+        this.attackCd = this.speedBuff > 0 ? (this.charId === 'bin' ? 0.22 : 0.35) : baseCd;
         setTimeout(() => { if (this.state === 'attack') this.state = 'idle'; }, 300);
         return hit;
       }
@@ -3209,6 +3902,8 @@
         this.effects = this.effects.filter(e => !e.done);
         this.particles.forEach(p => p.update(dt));
         this.particles = this.particles.filter(p => p.life > 0);
+        globalParticles.forEach(p => p.update(dt));
+        globalParticles = globalParticles.filter(p => p.life > 0);
 
         this.updateHUD();
       }
@@ -3236,6 +3931,7 @@
 
         // Draw particles
         this.particles.forEach(p => p.draw(ctx));
+        globalParticles.forEach(p => p.draw(ctx));
 
         // Draw player
         this.player.draw(ctx);
