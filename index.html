@@ -1057,10 +1057,12 @@
       .chars-grid::-webkit-scrollbar {
         height: 5px;
       }
+
       .chars-grid::-webkit-scrollbar-track {
         background: rgba(255, 255, 255, 0.05);
         border-radius: 3px;
       }
+
       .chars-grid::-webkit-scrollbar-thumb {
         background: rgba(255, 215, 0, 0.5);
         border-radius: 3px;
@@ -1901,13 +1903,13 @@
       if (state === 'run' && Math.random() < 0.25) {
         if (typeof globalParticles !== 'undefined') {
           globalParticles.push(new Particle(
-            x - facing * 15, 
-            y, 
-            -facing * (40 + Math.random() * 60), 
-            -10 - Math.random() * 20, 
-            'rgba(180, 160, 140, 0.6)', 
-            0.4 + Math.random() * 0.3, 
-            3 + Math.random() * 4, 
+            x - facing * 15,
+            y,
+            -facing * (40 + Math.random() * 60),
+            -10 - Math.random() * 20,
+            'rgba(180, 160, 140, 0.6)',
+            0.4 + Math.random() * 0.3,
+            3 + Math.random() * 4,
             'circle'
           ));
         }
@@ -3964,7 +3966,7 @@
       playBgMusic(force = false) {
         if (!this.running || !this.audioCtx) return;
         let ac = this.audioCtx;
-        
+
         let targetBgm = 'normal';
         if (this.isBossFloor) {
           if (this.bossIndex === 4 && this.boss && this.boss.isFurious) {
@@ -3973,7 +3975,7 @@
             targetBgm = 'boss';
           }
         }
-        
+
         if (this.currentBgmType === targetBgm && !force) {
           // Continue loop
         } else {
@@ -3983,7 +3985,7 @@
 
         let t = ac.currentTime;
         let nextLoopDelay = 8000;
-        
+
         if (this.currentBgmType === 'normal') {
           // Adventurous & Calm
           const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
@@ -3999,7 +4001,7 @@
           let melody = [0, 2, 4, 5, 4, 2, 0, 2];
           melody.forEach((n, i) => { play(notes[n], t + i * 0.8, 0.7); });
           nextLoopDelay = 7000;
-          
+
         } else if (this.currentBgmType === 'boss') {
           // Boss BGM: Tense & Battle-enthusiastic arpeggio + drum clicks + hi-hat + lead
           let playBass = (freq, time, dur) => {
@@ -4011,7 +4013,7 @@
             g.gain.linearRampToValueAtTime(0, time + dur);
             o.start(time); o.stop(time + dur + 0.1);
           };
-          
+
           let playDrum = (time) => {
             let o = ac.createOscillator(), g = ac.createGain();
             o.connect(g); g.connect(ac.destination);
@@ -4021,7 +4023,7 @@
             g.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
             o.start(time); o.stop(time + 0.1);
           };
-          
+
           let playLead = (freq, time, dur) => {
             let o = ac.createOscillator(), g = ac.createGain();
             o.connect(g); g.connect(ac.destination);
@@ -4052,14 +4054,14 @@
               o.start(noteTime); o.stop(noteTime + 0.05);
             }
           }
-          
+
           const leadFreqs = [220, 261.63, 293.66, 311.13, 293.66, 261.63, 220, 164.81];
           leadFreqs.forEach((freq, idx) => {
             playLead(freq, t + idx * 0.5, 0.45);
           });
-          
+
           nextLoopDelay = 4000;
-          
+
         } else if (this.currentBgmType === 'furious') {
           // Furious Boss BGM: Heavy doom sawtooth chords + pounding kick + screeching lead
           let playDoomBass = (freq, time, dur) => {
@@ -4072,7 +4074,7 @@
             g.gain.linearRampToValueAtTime(0, time + dur);
             o.start(time); o.stop(time + dur + 0.1);
           };
-          
+
           let playDissonantLead = (freq, time, dur) => {
             let o1 = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
             o1.connect(g); o2.connect(g); g.connect(ac.destination);
@@ -4083,7 +4085,7 @@
             g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
             o1.start(time); o2.start(time); o1.stop(time + dur + 0.1); o2.stop(time + dur + 0.1);
           };
-          
+
           let playHeavyDrum = (time) => {
             let o = ac.createOscillator(), g = ac.createGain();
             o.connect(g); g.connect(ac.destination);
@@ -4105,12 +4107,12 @@
             }
             if (step % 2 === 0) playHeavyDrum(noteTime);
           }
-          
+
           const leadFreqs = [659.25, 698.46, 932.33, 880.00, 622.25, 659.25, 622.25, 587.33];
           leadFreqs.forEach((freq, idx) => {
             playDissonantLead(freq, t + idx * 0.4, 0.35);
           });
-          
+
           nextLoopDelay = 3200;
         }
 
@@ -4218,7 +4220,7 @@
         game.running = false;
         game.stopBgMusic();
         if (game.audioCtx && game.audioCtx.state !== 'closed') {
-          game.audioCtx.close().catch(e => {});
+          game.audioCtx.close().catch(e => { });
         }
         // Hide extra skills
         for (let i = 2; i <= 5; i++) {
