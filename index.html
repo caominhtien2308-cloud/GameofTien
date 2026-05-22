@@ -2228,6 +2228,7 @@
         for (let i = 0; i < 40; i++) {
           game.particles.push(new Particle(this.x, this.y - 40, (Math.random() - 0.5) * 500, -Math.random() * 500 - 100, '#ff3300', 1.5, Math.random() * 6 + 4, 'rect'));
         }
+        game.playBgMusic(true);
       }
       update(dt, player, game) {
         this.animFrame += dt * 60;
@@ -2762,6 +2763,8 @@
         this.bossSpawnTimer = 0;
         this.lastTime = 0;
         this.audioCtx = null;
+        this.currentBgmType = null;
+        this.bgMusicTimeout = null;
         this.initAudio();
         this.setupInput();
         this.startFloor();
@@ -2806,6 +2809,7 @@
           floorDiv.textContent = `Tầng ${this.floor} | Tiêu diệt: 0/${this.waveGoal}`;
           showMsg(`🗡️ Tầng ${this.floor} - Tiêu diệt ${this.waveGoal} quái!`);
         }
+        this.playBgMusic(true);
       }
 
       setupInput() {
@@ -2926,6 +2930,7 @@
 
       playerDied() {
         this.running = false;
+        this.stopBgMusic();
         this.player.state = 'death';
         showMsg('☠️ Bạn đã thua!');
         setTimeout(() => { document.getElementById('gameOver').style.display = 'flex'; }, 2000);
@@ -2938,6 +2943,7 @@
 
       floorComplete() {
         this.paused = true;
+        this.stopBgMusic();
         if (this.isBossFloor) {
           this.bossIndex++;
           if (this.bossIndex >= 5) {
@@ -3259,22 +3265,167 @@
           this.playBgMusic();
         } catch (e) { }
       }
-      playBgMusic() {
-        if (!this.audioCtx) return;
+      playBgMusic(force = false) {
+        if (!this.running || !this.audioCtx) return;
         let ac = this.audioCtx;
-        const notes = [261, 293, 329, 349, 392, 440, 493, 523];
-        let play = (freq, time, dur) => {
-          let o = ac.createOscillator(), g = ac.createGain();
-          o.connect(g); g.connect(ac.destination);
-          o.type = 'sine'; o.frequency.value = freq * 0.5;
-          g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(0.03, time + 0.1);
-          g.gain.linearRampToValueAtTime(0, time + dur);
-          o.start(time); o.stop(time + dur + 0.1);
-        };
+        
+        let targetBgm = 'normal';
+        if (this.isBossFloor) {
+          if (this.bossIndex === 4 && this.boss && this.boss.isFurious) {
+            targetBgm = 'furious';
+          } else {
+            targetBgm = 'boss';
+          }
+        }
+        
+        if (this.currentBgmType === targetBgm && !force) {
+          // Continue loop
+        } else {
+          this.stopBgMusic();
+          this.currentBgmType = targetBgm;
+        }
+
         let t = ac.currentTime;
-        let melody = [0, 2, 4, 5, 4, 2, 0, 2];
-        melody.forEach((n, i) => { play(notes[n], t + i * 0.8, 0.7); });
-        setTimeout(() => this.playBgMusic(), 7000);
+        let nextLoopDelay = 8000;
+        
+        if (this.currentBgmType === 'normal') {
+          // Adventurous & Calm
+          const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+          let play = (freq, time, dur) => {
+            let o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'sine'; o.frequency.value = freq * 0.5;
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(0.03, time + 0.1);
+            g.gain.linearRampToValueAtTime(0, time + dur);
+            o.start(time); o.stop(time + dur + 0.1);
+          };
+          let melody = [0, 2, 4, 5, 4, 2, 0, 2];
+          melody.forEach((n, i) => { play(notes[n], t + i * 0.8, 0.7); });
+          nextLoopDelay = 7000;
+          
+        } else if (this.currentBgmType === 'boss') {
+          // Boss BGM: Tense & Battle-enthusiastic arpeggio + drum clicks + hi-hat + lead
+          let playBass = (freq, time, dur) => {
+            let o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'triangle'; o.frequency.value = freq;
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(0.04, time + 0.05);
+            g.gain.linearRampToValueAtTime(0, time + dur);
+            o.start(time); o.stop(time + dur + 0.1);
+          };
+          
+          let playDrum = (time) => {
+            let o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'square'; o.frequency.setValueAtTime(80, time);
+            o.frequency.exponentialRampToValueAtTime(10, time + 0.08);
+            g.gain.setValueAtTime(0.05, time);
+            g.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+            o.start(time); o.stop(time + 0.1);
+          };
+          
+          let playLead = (freq, time, dur) => {
+            let o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'sine'; o.frequency.value = freq;
+            let lfo = ac.createOscillator();
+            let lfoGain = ac.createGain();
+            lfo.frequency.value = 6;
+            lfoGain.gain.value = 8;
+            lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+            lfo.start(time); lfo.stop(time + dur);
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(0.02, time + 0.1);
+            g.gain.linearRampToValueAtTime(0, time + dur);
+            o.start(time); o.stop(time + dur + 0.1);
+          };
+
+          const patternFreqs = [110, 110, 130.81, 130.81, 146.83, 146.83, 164.81, 164.81, 110, 110, 98.00, 98.00, 82.41, 82.41, 73.42, 82.41];
+          for (let step = 0; step < 16; step++) {
+            let noteTime = t + step * 0.25;
+            playBass(patternFreqs[step], noteTime, 0.22);
+            if (step % 4 === 0) playDrum(noteTime);
+            if (step % 2 === 1) {
+              let o = ac.createOscillator(), g = ac.createGain();
+              o.connect(g); g.connect(ac.destination);
+              o.type = 'square'; o.frequency.setValueAtTime(3000, noteTime);
+              g.gain.setValueAtTime(0.005, noteTime);
+              g.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.04);
+              o.start(noteTime); o.stop(noteTime + 0.05);
+            }
+          }
+          
+          const leadFreqs = [220, 261.63, 293.66, 311.13, 293.66, 261.63, 220, 164.81];
+          leadFreqs.forEach((freq, idx) => {
+            playLead(freq, t + idx * 0.5, 0.45);
+          });
+          
+          nextLoopDelay = 4000;
+          
+        } else if (this.currentBgmType === 'furious') {
+          // Furious Boss BGM: Heavy doom sawtooth chords + pounding kick + screeching lead
+          let playDoomBass = (freq, time, dur) => {
+            let o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'sawtooth'; o.frequency.value = freq;
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(0.05, time + 0.05);
+            g.gain.linearRampToValueAtTime(0.02, time + dur - 0.1);
+            g.gain.linearRampToValueAtTime(0, time + dur);
+            o.start(time); o.stop(time + dur + 0.1);
+          };
+          
+          let playDissonantLead = (freq, time, dur) => {
+            let o1 = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+            o1.connect(g); o2.connect(g); g.connect(ac.destination);
+            o1.type = 'square'; o1.frequency.value = freq;
+            o2.type = 'sawtooth'; o2.frequency.value = freq + 4;
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(0.015, time + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+            o1.start(time); o2.start(time); o1.stop(time + dur + 0.1); o2.stop(time + dur + 0.1);
+          };
+          
+          let playHeavyDrum = (time) => {
+            let o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'triangle'; o.frequency.setValueAtTime(60, time);
+            o.frequency.exponentialRampToValueAtTime(10, time + 0.15);
+            g.gain.setValueAtTime(0.2, time);
+            g.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+            o.start(time); o.stop(time + 0.2);
+          };
+
+          for (let step = 0; step < 16; step++) {
+            let noteTime = t + step * 0.2;
+            if (step < 8) {
+              playDoomBass(41.20, noteTime, 0.18);
+              playDoomBass(43.65, noteTime, 0.18);
+            } else {
+              playDoomBass(38.89, noteTime, 0.18);
+              playDoomBass(41.20, noteTime, 0.18);
+            }
+            if (step % 2 === 0) playHeavyDrum(noteTime);
+          }
+          
+          const leadFreqs = [659.25, 698.46, 932.33, 880.00, 622.25, 659.25, 622.25, 587.33];
+          leadFreqs.forEach((freq, idx) => {
+            playDissonantLead(freq, t + idx * 0.4, 0.35);
+          });
+          
+          nextLoopDelay = 3200;
+        }
+
+        this.bgMusicTimeout = setTimeout(() => this.playBgMusic(), nextLoopDelay);
+      }
+      stopBgMusic() {
+        if (this.bgMusicTimeout) {
+          clearTimeout(this.bgMusicTimeout);
+          this.bgMusicTimeout = null;
+        }
+        this.currentBgmType = null;
       }
       playBossRoar() {
         if (!this.audioCtx) return;
@@ -3369,6 +3520,10 @@
       document.getElementById('victory').style.display = 'none';
       if (game) {
         game.running = false;
+        game.stopBgMusic();
+        if (game.audioCtx && game.audioCtx.state !== 'closed') {
+          game.audioCtx.close().catch(e => {});
+        }
         // Hide extra skills
         for (let i = 2; i <= 5; i++) {
           let el = document.getElementById(`sk${i}`);
