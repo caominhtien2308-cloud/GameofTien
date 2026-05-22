@@ -591,6 +591,29 @@
       border-color: #fff;
     }
 
+    .pill-choice-card {
+      max-width: 320px !important;
+      animation: pill-glow 2s infinite alternate;
+      border: 2px dashed #ffd700 !important;
+      background: linear-gradient(135deg, rgba(30, 20, 50, 0.95), rgba(15, 10, 30, 0.95)) !important;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    }
+    .pill-choice-card:hover {
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.5) !important;
+      border-style: double !important;
+      transform: translateY(-5px);
+    }
+    @keyframes pill-glow {
+      0% {
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        border-color: rgba(255, 215, 0, 0.6);
+      }
+      100% {
+        box-shadow: 0 0 22px rgba(255, 215, 0, 0.55);
+        border-color: rgba(255, 215, 0, 1);
+      }
+    }
+
     /* ==========================================================================
        MOBILE OPTIMIZATIONS & VIRTUAL CONTROLS
        ========================================================================== */
@@ -1314,7 +1337,7 @@
           {
             name: 'Dù Chậm Cũng Về Bên Nhau', key: '2', cd: 20, mpCost: 250, icon: '🌨️',
             desc: 'Đợi chờ gây 1500 sát thương, làm chậm 40% tốc độ tiếp cận.',
-            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('blizzard', p.x, p.y, 1500 * (1 + p.bonusAtk), false, { game: g }); showMsg('🌨️ MÙI HƯƠNG EM NỒNG SAYYYY'); return true; }
+            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('blizzard', p.x, p.y, (1500 + (p.thaoSkill2BonusDmg || 0)) * (1 + p.bonusAtk), false, { game: g }); showMsg('🌨️ MÙI HƯƠNG EM NỒNG SAYYYY'); return true; }
           }
         ]
       },
@@ -1407,14 +1430,20 @@
     // PARTICLE SYSTEM
     // ============================
     class Particle {
-      constructor(x, y, vx, vy, color, life, size = 4, shape = 'circle') {
+      constructor(x, y, vx, vy, color, life, size = 4, shape = 'circle', gravity = null, drag = 0) {
         this.x = x; this.y = y; this.vx = vx; this.vy = vy;
         this.color = color; this.life = life; this.maxLife = life; this.size = size;
         this.shape = shape; this.rotation = Math.random() * Math.PI * 2; this.rotSpd = (Math.random() - 0.5) * 10;
+        this.gravity = gravity !== null ? gravity : (shape === 'wind' || shape === 'spark' || shape === 'holy_feather' ? 0 : 300);
+        this.drag = drag;
       }
       update(dt) {
         this.x += this.vx * dt; this.y += this.vy * dt;
-        if (this.shape !== 'wind' && this.shape !== 'spark') this.vy += 300 * dt;
+        if (this.drag > 0) {
+          this.vx *= Math.max(0, 1 - this.drag * dt);
+          this.vy *= Math.max(0, 1 - this.drag * dt);
+        }
+        this.vy += this.gravity * dt;
         this.life -= dt;
         this.rotation += this.rotSpd * dt;
       }
@@ -1422,6 +1451,13 @@
         let alpha = Math.max(0, this.life / this.maxLife);
         c.save(); c.globalAlpha = alpha;
         c.translate(this.x, this.y); c.rotate(this.rotation);
+        
+        // Premium neon glowing effect for magical and energy particle shapes
+        if (this.shape === 'spark' || this.shape === 'star' || this.shape === 'snowflake' || 
+            this.shape === 'note' || this.shape === 'holy_feather' || this.shape === 'plus' || this.shape === 'arrow') {
+          c.shadowColor = this.color;
+          c.shadowBlur = this.size * 2;
+        }
         if (this.shape === 'circle') {
           c.fillStyle = this.color; c.beginPath(); c.arc(0, 0, this.size * alpha, 0, Math.PI * 2); c.fill();
         } else if (this.shape === 'rect') {
@@ -1439,6 +1475,42 @@
           c.fillStyle = this.color; c.fillRect(-2, -this.size, 4, this.size * 2);
           c.fillStyle = '#ffffff'; c.beginPath(); c.moveTo(-6, -this.size + 5); c.lineTo(0, -this.size - 5); c.lineTo(6, -this.size + 5); c.fill();
           c.fillStyle = '#228844'; c.beginPath(); c.moveTo(-4, this.size); c.lineTo(0, this.size - 5); c.lineTo(4, this.size); c.fill();
+        } else if (this.shape === 'note') {
+          c.fillStyle = this.color;
+          c.beginPath();
+          c.arc(-2, 2, this.size * 0.4, 0, Math.PI * 2);
+          c.fill();
+          c.fillRect(-2, -this.size + 2, 2, this.size);
+          c.fillRect(-2, -this.size + 2, this.size * 0.8, this.size * 0.3);
+        } else if (this.shape === 'star') {
+          c.fillStyle = this.color;
+          c.beginPath();
+          for (let i = 0; i < 5; i++) {
+            c.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * this.size, Math.sin((18 + i * 72) * Math.PI / 180) * this.size);
+            c.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * (this.size * 0.4), Math.sin((54 + i * 72) * Math.PI / 180) * (this.size * 0.4));
+          }
+          c.closePath(); c.fill();
+        } else if (this.shape === 'lava_rock') {
+          c.fillStyle = this.color;
+          c.beginPath();
+          c.moveTo(-this.size, 0);
+          c.lineTo(-this.size * 0.4, -this.size);
+          c.lineTo(this.size * 0.8, -this.size * 0.5);
+          c.lineTo(this.size, this.size * 0.6);
+          c.lineTo(0, this.size * 0.9);
+          c.closePath(); c.fill();
+        } else if (this.shape === 'holy_feather') {
+          c.fillStyle = this.color;
+          c.beginPath();
+          c.ellipse(0, 0, this.size * 1.5, this.size * 0.5, Math.PI / 6, 0, Math.PI * 2);
+          c.fill();
+          c.strokeStyle = '#ffffff'; c.lineWidth = 0.5;
+          c.beginPath(); c.moveTo(-this.size * 1.5, 0); c.lineTo(this.size * 1.5, 0); c.stroke();
+        } else if (this.shape === 'plus') {
+          c.fillStyle = this.color;
+          let w = this.size * 0.3;
+          c.fillRect(-w/2, -this.size/2, w, this.size);
+          c.fillRect(-this.size/2, -w/2, this.size, w);
         }
         c.restore();
       }
@@ -1455,50 +1527,185 @@
         this.init();
       }
       init() {
+        let game = this.extra ? this.extra.game : null;
         switch (this.type) {
           case 'sword_slash':
-            for (let i = 0; i < 15; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * this.extra.range, this.y + (Math.random() - 0.5) * 40,
-              this.extra.facing * (Math.random() * 200 + 100), (Math.random() - 0.5) * 100, this.extra.color, 0.3, Math.random() * 4 + 2, 'spark'));
-            this.duration = 0.2; break;
-          case 'dagger_cross': this.duration = 0.2; break;
-          case 'axe_smash': this.duration = 0.3; break;
-          case 'arrow_attack': this.duration = 0.25; break;
-          case 'magic_ice': this.duration = 0.3; break;
-          case 'magic_star': this.duration = 0.4; break;
-          case 'slash':
-            this.duration = 0.2; break;
-          case 'lightning': // Lôi long
-            this.duration = 1.5;
-            // Initial spark
-            for (let i = 0; i < 20; i++) this.particles.push(new Particle(this.x, this.y - 500, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, '#88ccff', 0.5, 3, 'spark'));
+            this.duration = 0.25;
+            // Tiến neon sword slash sparks
+            let f = this.extra ? this.extra.facing : 1;
+            let col = this.extra ? this.extra.color : '#00f3ff';
+            for (let i = 0; i < 20; i++) {
+              this.particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 60,
+                this.y + (Math.random() - 0.5) * 40,
+                f * (Math.random() * 300 + 200),
+                (Math.random() - 0.5) * 150,
+                Math.random() > 0.5 ? '#ffffff' : col,
+                0.3 + Math.random() * 0.2,
+                Math.random() * 4 + 2,
+                'spark',
+                0, // gravity
+                0.6 // drag
+              ));
+            }
+            if (game) game.shake(0.15, 8);
             break;
-          case 'blizzard': // Bão tuyết
-            this.duration = 3;
-            for (let i = 0; i < 150; i++) {
-              let isFlake = Math.random() > 0.3;
-              this.particles.push(new Particle(this.x + Math.random() * 800 - 400, this.y - 400 + Math.random() * 300,
-                (Math.random() - 0.5) * 300, Math.random() * 400 + 100, isFlake ? '#ffffff' : '#aaddff', Math.random() * 2 + 1, Math.random() * 4 + 2, isFlake ? 'snowflake' : 'wind'));
+
+          case 'dagger_cross':
+            this.duration = 0.25;
+            let bf = this.extra ? this.extra.facing : 1;
+            let bCol = this.extra ? this.extra.color : '#ff007f';
+            for (let i = 0; i < 15; i++) {
+              this.particles.push(new Particle(
+                this.x + bf * 30 + (Math.random() - 0.5) * 30,
+                this.y + (Math.random() - 0.5) * 30,
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100,
+                Math.random() > 0.5 ? '#aa00ff' : bCol,
+                0.3,
+                Math.random() * 3 + 2,
+                'spark',
+                0,
+                0.8
+              ));
+            }
+            if (game) game.shake(0.15, 6);
+            break;
+
+          case 'axe_smash':
+            this.duration = 0.35;
+            let hf = this.extra ? this.extra.facing : 1;
+            // Heavy axe impact sparks and lava rocks
+            for (let i = 0; i < 25; i++) {
+              let isRock = Math.random() > 0.4;
+              this.particles.push(new Particle(
+                this.x + hf * 40 + (Math.random() - 0.5) * 30,
+                GROUND - 5,
+                (Math.random() - 0.5) * 350 + hf * 100,
+                -Math.random() * 300 - 150,
+                isRock ? '#3c3c3c' : (Math.random() > 0.5 ? '#ff3300' : '#ff8800'),
+                0.6 + Math.random() * 0.4,
+                Math.random() * 6 + 3,
+                isRock ? 'lava_rock' : 'rect',
+                400, // custom gravity
+                0.2 // drag
+              ));
+            }
+            if (game) game.shake(0.25, 14);
+            break;
+
+          case 'arrow_attack':
+            this.duration = 0.3;
+            break;
+
+          case 'magic_ice':
+            this.duration = 0.35;
+            break;
+
+          case 'magic_star':
+            this.duration = 0.45;
+            break;
+
+          case 'lightning': // Lôi Long
+            this.duration = 1.8;
+            // Lightning cloud activation sparks
+            for (let i = 0; i < 30; i++) {
+              this.particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 200,
+                this.y - 600 + Math.random() * 100,
+                (Math.random() - 0.5) * 150,
+                Math.random() * 200 + 100,
+                '#88ccff',
+                0.6,
+                2 + Math.random() * 3,
+                'spark',
+                0,
+                0
+              ));
+            }
+            if (game) game.shake(0.2, 10);
+            break;
+
+          case 'blizzard': // Bão tuyết Thảo
+            this.duration = 3.5;
+            // Spawning heavy snowflakes and blizzard wind
+            for (let i = 0; i < 80; i++) {
+              this.particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 800,
+                this.y - 500 - Math.random() * 200,
+                -300 - Math.random() * 200, // Blow left and down
+                Math.random() * 300 + 150,
+                Math.random() > 0.5 ? '#ffffff' : '#aaddff',
+                1.5 + Math.random() * 1.5,
+                Math.random() * 4 + 2,
+                Math.random() > 0.3 ? 'snowflake' : 'wind',
+                150,
+                0.1
+              ));
             }
             break;
-          case 'multiSlash': // Tử ảnh
-            this.duration = 1.2;
+
+          case 'multiSlash': // Tử ảnh Bin
+            this.duration = 1.3;
             break;
-          case 'arrowRain': // Vạn tiễn
+
+          case 'arrowRain': // Vạn tiễn Trang
+            this.duration = 2.8;
+            // Shoot initial massive green beam up
+            for (let i = 0; i < 15; i++) {
+              this.particles.push(new Particle(
+                this.x,
+                GROUND - 50,
+                (Math.random() - 0.5) * 50,
+                -700 - Math.random() * 300,
+                '#00ff66',
+                0.5,
+                6,
+                'spark',
+                0,
+                0.2
+              ));
+            }
+            break;
+
+          case 'firewave': // Hỏa ngục Huy
+            this.duration = 2.2;
+            // Explosive volcanic rocks and flames initial blast
+            for (let i = 0; i < 80; i++) {
+              let isRock = Math.random() > 0.5;
+              this.particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 200,
+                GROUND - 10,
+                (Math.random() - 0.5) * 600,
+                -Math.random() * 700 - 150,
+                isRock ? '#222222' : (Math.random() > 0.4 ? '#ff3300' : '#ffaa00'),
+                1.0 + Math.random() * 1.0,
+                isRock ? Math.random() * 8 + 4 : Math.random() * 12 + 6,
+                isRock ? 'lava_rock' : 'rect',
+                350,
+                0.1
+              ));
+            }
+            if (game) game.shake(0.5, 25);
+            break;
+
+          case 'angelJudge': // Phán quyết Nga
             this.duration = 2.5;
-            this.particles.push(new Particle(this.x, GROUND - 50, 0, -800, '#44cc88', 0.5, 10, 'arrow')); // Initial arrow up
             break;
-          case 'firewave': // Hỏa ngục
-            this.duration = 2;
-            for (let i = 0; i < 100; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * 300, GROUND,
-              (Math.random() - 0.5) * 800, -Math.random() * 600 - 100, Math.random() > 0.5 ? '#ff3300' : '#ff8800', 1.5, Math.random() * 10 + 5, 'rect'));
-            break;
-          case 'angelJudge': // Phán quyết
-            this.duration = 2;
-            break;
+
           default:
-            for (let i = 0; i < 20; i++) this.particles.push(new Particle(this.x, GROUND - 50,
-              (Math.random() - 0.5) * 300, -Math.random() * 200, '#ffcc00', 1, 4));
-            this.duration = 1;
+            for (let i = 0; i < 20; i++) {
+              this.particles.push(new Particle(
+                this.x,
+                GROUND - 50,
+                (Math.random() - 0.5) * 300,
+                -Math.random() * 200,
+                '#ffcc00',
+                1.0,
+                4
+              ));
+            }
+            this.duration = 1.0;
         }
       }
       update(dt) {
@@ -1506,417 +1713,732 @@
         this.particles.forEach(p => p.update(dt));
         this.particles = this.particles.filter(p => p.life > 0);
 
-        // Complex timed spawns
-        if (this.type === 'lightning' && this.time > 0.3 && !this.hit) {
+        let game = this.extra ? this.extra.game : null;
+
+        // --- TIMED EVENT SPAWNING ---
+
+        // 1. Sword slash spark spawn
+        if (this.type === 'sword_slash' && !this.hit) {
           this.hit = true;
-          // Dragon impact shockwave
-          for (let i = 0; i < 80; i++) this.particles.push(new Particle(this.x, GROUND, (Math.random() - 0.5) * 1000, -Math.random() * 400, '#cc88ff', 1, Math.random() * 8 + 3, 'spark'));
         }
-        if (this.type === 'multiSlash') {
-          if (!this.hit && this.time > 0.2) { this.hit = true; }
-          if (this.time < 1 && Math.random() < 0.3) {
-            for (let i = 0; i < 10; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * 400, GROUND - Math.random() * 200,
-              (Math.random() - 0.5) * 800, (Math.random() - 0.5) * 800, '#8800cc', 0.4, Math.random() * 5 + 2, 'wind'));
-          }
-        }
-        if (this.type === 'arrowRain') {
-          if (this.time > 0.5 && !this.hit) {
+
+        // 2. Arrow hit spark spawn
+        if (this.type === 'arrow_attack' && !this.hit) {
+          let p = this.time / this.duration;
+          if (p >= 0.9) {
             this.hit = true;
-            for (let i = 0; i < 150; i++) this.particles.push(new Particle(this.x + Math.random() * 600 - 300, -100 - Math.random() * 400,
-              (Math.random() - 0.5) * 150, Math.random() * 800 + 400, '#44cc88', 1.5, Math.random() * 6 + 4, 'arrow'));
+            let f = this.extra ? this.extra.facing : 1;
+            let endX = this.x + f * (this.extra ? this.extra.range : 240);
+            for (let i = 0; i < 15; i++) {
+              this.particles.push(new Particle(
+                endX,
+                this.y,
+                (Math.random() - 0.5) * 200,
+                (Math.random() - 0.5) * 200,
+                '#00ff66',
+                0.4,
+                Math.random() * 4 + 1,
+                'leaf',
+                100,
+                0.4
+              ));
+            }
           }
         }
-        if (this.type === 'firewave' && this.time > 0.2 && !this.hit) {
-          this.hit = true;
-          if (this.extra && this.extra.game) this.extra.game.shakeTime = 0.5; // Screen shake
+
+        // 3. Ice shard trail & hit explosion
+        if (this.type === 'magic_ice') {
+          let p = this.time / this.duration;
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 360;
+          let currX = this.x + f * (p * r);
+          let currY = this.y + Math.sin(p * Math.PI * 4) * 10;
+          
+          if (Math.random() < 0.3) {
+            this.particles.push(new Particle(
+              currX,
+              currY,
+              -f * 50,
+              (Math.random() - 0.5) * 50,
+              '#aaddff',
+              0.4,
+              Math.random() * 3 + 2,
+              'snowflake',
+              0,
+              0.2
+            ));
+          }
+
+          if (p >= 0.9 && !this.hit) {
+            this.hit = true;
+            for (let i = 0; i < 20; i++) {
+              this.particles.push(new Particle(
+                currX,
+                currY,
+                (Math.random() - 0.5) * 250,
+                (Math.random() - 0.5) * 250,
+                '#ffffff',
+                0.5,
+                Math.random() * 4 + 2,
+                'snowflake',
+                150,
+                0.4
+              ));
+            }
+          }
         }
-        if (this.type === 'angelJudge' && this.time > 0.8 && !this.hit) {
-          this.hit = true;
-          for (let i = 0; i < 100; i++) this.particles.push(new Particle(this.x + (Math.random() - 0.5) * 400, GROUND,
-            (Math.random() - 0.5) * 800, -Math.random() * 500 - 100, '#ffee88', 1, Math.random() * 6 + 3, 'circle'));
+
+        // 4. Magic star notes trail & hit explosion
+        if (this.type === 'magic_star') {
+          let p = this.time / this.duration;
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 360;
+          let currX = this.x + f * (p * r);
+          
+          if (Math.random() < 0.25) {
+            this.particles.push(new Particle(
+              currX,
+              this.y + (Math.random() - 0.5) * 20,
+              -f * 30,
+              -Math.random() * 80 - 20,
+              Math.random() > 0.5 ? '#ffd700' : '#ff77aa',
+              0.6,
+              Math.random() * 5 + 3,
+              'note',
+              -50, // slowly float up
+              0.3
+            ));
+          }
+
+          if (p >= 0.9 && !this.hit) {
+            this.hit = true;
+            for (let i = 0; i < 20; i++) {
+              this.particles.push(new Particle(
+                currX,
+                this.y,
+                (Math.random() - 0.5) * 220,
+                (Math.random() - 0.5) * 220,
+                '#ffd700',
+                0.6,
+                Math.random() * 4 + 2,
+                'star',
+                0,
+                0.5
+              ));
+            }
+          }
         }
-        if (this.type === 'blizzard' && !this.hit && this.time > 0.5) this.hit = true;
+
+        // 5. Lightning Lôi Long Impact
+        if (this.type === 'lightning' && this.time >= 0.5 && !this.hit) {
+          this.hit = true;
+          if (game) {
+            game.shake(0.6, 25);
+            // Electrifying earth particles
+            for (let i = 0; i < 80; i++) {
+              this.particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 100,
+                GROUND - 5,
+                (Math.random() - 0.5) * 700,
+                -Math.random() * 500 - 100,
+                Math.random() > 0.5 ? '#00f3ff' : '#cc88ff',
+                0.8 + Math.random() * 0.4,
+                Math.random() * 5 + 3,
+                'spark',
+                100,
+                0.2
+              ));
+            }
+          }
+        }
+
+        // 6. Blizzard ongoing shake & ice pillars eruption particles
+        if (this.type === 'blizzard') {
+          if (game && Math.random() < 0.15) game.shake(0.1, 4);
+          if (Math.random() < 0.6) {
+            this.particles.push(new Particle(
+              this.x + (Math.random() - 0.5) * 700,
+              GROUND - 10,
+              (Math.random() - 0.5) * 250,
+              -Math.random() * 200 - 50,
+              '#ffffff',
+              0.6 + Math.random() * 0.6,
+              Math.random() * 4 + 2,
+              'snowflake',
+              150,
+              0.1
+            ));
+          }
+          if (this.time >= 3.0 && !this.hit) {
+            this.hit = true;
+            // Final ice pillar explosion
+            for (let i = 0; i < 60; i++) {
+              this.particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 600,
+                GROUND - 30,
+                (Math.random() - 0.5) * 600,
+                -Math.random() * 400 - 100,
+                '#e0ffff',
+                0.8,
+                Math.random() * 6 + 3,
+                'snowflake',
+                300,
+                0.3
+              ));
+            }
+            if (game) game.shake(0.3, 16);
+          }
+        }
+
+        // 7. Bin's multiSlash timed slashes
+        if (this.type === 'multiSlash') {
+          let slashProgress = this.time / this.duration;
+          let slashIndex = Math.floor(this.time / 0.15);
+          if (this.time < 1.0 && Math.random() < 0.4) {
+            let sx = this.x + (Math.random() - 0.5) * 450;
+            let sy = GROUND - 40 - Math.random() * 150;
+            if (game) game.shake(0.12, 10);
+            for (let i = 0; i < 8; i++) {
+              this.particles.push(new Particle(
+                sx,
+                sy,
+                (Math.random() - 0.5) * 400,
+                (Math.random() - 0.5) * 400,
+                Math.random() > 0.5 ? '#ff007f' : '#aa00ff',
+                0.4,
+                Math.random() * 4 + 2,
+                'spark',
+                0,
+                0.6
+              ));
+            }
+          }
+          if (this.time >= 1.0 && !this.hit) {
+            this.hit = true;
+          }
+        }
+
+        // 8. Trang's arrowRain falling arrows
+        if (this.type === 'arrowRain') {
+          if (this.time >= 0.5 && this.time < 2.5 && Math.random() < 0.6) {
+            // Spawn falling magic arrows
+            let ax = this.x + (Math.random() - 0.5) * 500;
+            let ay = -50 - Math.random() * 150;
+            this.particles.push(new Particle(
+              ax,
+              ay,
+              (Math.random() - 0.5) * 100,
+              800 + Math.random() * 300,
+              '#00ff66',
+              1.0,
+              Math.random() * 6 + 4,
+              'arrow',
+              0,
+              0
+            ));
+            // Tiny explosion when falling arrow hits ground
+            setTimeout(() => {
+              for (let i = 0; i < 5; i++) {
+                this.particles.push(new Particle(
+                  ax,
+                  GROUND - 10,
+                  (Math.random() - 0.5) * 150,
+                  -Math.random() * 100 - 50,
+                  '#00ffaa',
+                  0.3,
+                  Math.random() * 3 + 2,
+                  'leaf',
+                  150,
+                  0.3
+                ));
+              }
+              if (game) game.shake(0.05, 3);
+            }, 300);
+          }
+          if (this.time >= 2.5 && !this.hit) {
+            this.hit = true;
+          }
+        }
+
+        // 9. Huy's firewave magma columns rising
+        if (this.type === 'firewave') {
+          if (game && Math.random() < 0.25) game.shake(0.1, 10);
+          if (this.time >= 1.8 && !this.hit) {
+            this.hit = true;
+          }
+        }
+
+        // 10. Nga's angelJudge angelic cross landing
+        if (this.type === 'angelJudge') {
+          // Feather sparkles falling
+          if (this.time > 0.3 && this.time < 2.2 && Math.random() < 0.75) {
+            this.particles.push(new Particle(
+              this.x + (Math.random() - 0.5) * 600,
+              this.y - 300 - Math.random() * 100,
+              (Math.random() - 0.5) * 100,
+              Math.random() * 80 + 40,
+              '#ffffff',
+              2.0,
+              Math.random() * 8 + 4,
+              'holy_feather',
+              20, // gentle gravity
+              0.15 // high air resistance
+            ));
+          }
+
+          if (this.time >= 0.8 && !this.hit) {
+            this.hit = true;
+            if (game) {
+              game.shake(0.4, 20);
+              // Explosion of pure light
+              for (let i = 0; i < 80; i++) {
+                this.particles.push(new Particle(
+                  this.x + (Math.random() - 0.5) * 350,
+                  GROUND - 10,
+                  (Math.random() - 0.5) * 800,
+                  -Math.random() * 500 - 50,
+                  '#ffee88',
+                  1.0 + Math.random() * 0.5,
+                  Math.random() * 6 + 3,
+                  Math.random() > 0.4 ? 'plus' : 'star',
+                  100,
+                  0.3
+                ));
+              }
+            }
+          }
+        }
 
         if (this.time > this.duration) this.done = true;
       }
       draw(c) {
         c.save();
-        let alpha = 1;
+        let p = this.time / this.duration;
+        let game = this.extra ? this.extra.game : null;
 
+        // 1. SWORD SLASH (Tiến basic attack) - Neon crescent
         if (this.type === 'sword_slash') {
-          // A sweeping crescent energy slash moving forward slightly
-          let p = this.time / this.duration;
-          let f = this.extra.facing || 1;
-          let r = this.extra.range || 100;
-          let color = this.extra.color || '#fff';
-          let moveX = this.x + f * (p * r * 0.5); // Move forward
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 100;
+          let col = this.extra ? this.extra.color : '#00f3ff';
+          let moveX = this.x + f * (p * r * 0.6);
 
           c.save(); c.translate(moveX, this.y); c.scale(f, 1);
           c.globalAlpha = 1 - p;
 
+          // Drawing massive glowing crescent sword wave
           c.beginPath();
-          c.arc(0, 0, 70 * p, -Math.PI / 2, Math.PI / 2);
-          c.arc(20 * p, 0, 50 * p, Math.PI / 2, -Math.PI / 2, true);
-
-          c.fillStyle = color; c.shadowColor = color; c.shadowBlur = 20;
+          c.arc(0, 0, 80 * p, -Math.PI / 1.8, Math.PI / 1.8);
+          c.arc(25 * p, 0, 60 * p, Math.PI / 1.8, -Math.PI / 1.8, true);
+          c.closePath();
+          c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 25;
           c.fill();
 
-          // Outer energy line
-          c.strokeStyle = '#ffffff'; c.lineWidth = 3;
-          c.beginPath(); c.arc(0, 0, 75 * p, -Math.PI / 2, Math.PI / 2); c.stroke();
+          // High neon core line
+          c.strokeStyle = '#ffffff'; c.lineWidth = 4;
+          c.beginPath(); c.arc(0, 0, 82 * p, -Math.PI / 1.8, Math.PI / 1.8); c.stroke();
           c.restore();
         }
 
+        // 2. DAGGER CROSS (Bin basic attack) - Pink/purple X-slash
         if (this.type === 'dagger_cross') {
-          // Fast X-slash
-          let p = this.time / this.duration;
-          let f = this.extra.facing || 1;
-          let color = this.extra.color || '#fff';
-          let ex = this.x + f * 40;
+          let f = this.extra ? this.extra.facing : 1;
+          let col = this.extra ? this.extra.color : '#ff007f';
+          let moveX = this.x + f * 50;
 
-          c.save(); c.translate(ex, this.y);
+          c.save(); c.translate(moveX, this.y);
           c.globalAlpha = 1 - p;
-          c.strokeStyle = color; c.lineWidth = 10 * (1 - p);
-          c.shadowColor = color; c.shadowBlur = 10;
+          c.lineWidth = 14 * (1 - p);
+          c.shadowColor = col; c.shadowBlur = 18;
 
-          let size = 50 * p;
-          // Slash 1
+          let size = 60 * p;
+          // Slash 1: Diagonal \
+          c.strokeStyle = col;
           c.beginPath(); c.moveTo(-size, -size); c.lineTo(size, size); c.stroke();
-          // Slash 2
-          if (p > 0.3) {
+          // Slash 2: Diagonal /
+          if (p > 0.25) {
+            c.strokeStyle = '#aa00ff';
             c.beginPath(); c.moveTo(size, -size); c.lineTo(-size, size); c.stroke();
           }
+
+          // Center glowing core
+          c.fillStyle = '#ffffff';
+          c.beginPath(); c.arc(0, 0, 6 * (1 - p), 0, Math.PI * 2); c.fill();
           c.restore();
         }
 
+        // 3. AXE SMASH (Huy basic attack) - Volcanic slam & crack
         if (this.type === 'axe_smash') {
-          // Overhead smash that hits the ground and causes a small shockwave
-          let p = this.time / this.duration;
-          let f = this.extra.facing || 1;
-          let color = this.extra.color || '#fff';
-          let r = this.extra.range || 100;
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 100;
+          let impactX = this.x + f * (r * 0.5);
 
-          c.save(); c.translate(this.x + f * (r * 0.4), GROUND);
+          c.save(); c.translate(impactX, GROUND);
           c.globalAlpha = 1 - p;
 
-          // Slash trail coming down
-          if (p < 0.5) {
-            let sp = p * 2;
-            c.strokeStyle = color; c.lineWidth = 15 * (1 - sp);
-            c.beginPath(); c.arc(-f * 30, -50, 80, -Math.PI, 0); c.stroke();
+          // Slam heavy trail
+          if (p < 0.4) {
+            c.strokeStyle = '#ff3300'; c.lineWidth = 18 * (1 - p * 2.5); c.shadowColor = '#ff6600'; c.shadowBlur = 15;
+            c.beginPath(); c.arc(-f * 40, -50, 90, -Math.PI, 0); c.stroke();
           } else {
-            // Impact on ground
-            let ip = (p - 0.5) * 2;
-            c.fillStyle = color; c.shadowColor = color; c.shadowBlur = 20;
-            c.beginPath(); c.ellipse(0, 0, ip * 80, ip * 20, 0, 0, Math.PI * 2); c.fill();
+            // Red-hot ground impact ring
+            let ip = (p - 0.4) * 1.6;
+            c.fillStyle = 'rgba(255, 69, 0, 0.4)'; c.shadowColor = '#ff3300'; c.shadowBlur = 30;
+            c.beginPath(); c.ellipse(0, 0, ip * 110, ip * 25, 0, 0, Math.PI * 2); c.fill();
 
-            // Crack
-            c.strokeStyle = '#222'; c.lineWidth = 3;
-            c.beginPath(); c.moveTo(-30, 0); c.lineTo(-10, -10); c.lineTo(10, 5); c.lineTo(40, -5); c.stroke();
+            // Magma fissure cracks
+            c.strokeStyle = '#ff3300'; c.lineWidth = 4 * (1 - ip);
+            c.beginPath();
+            c.moveTo(-60 * ip, 0); c.lineTo(-20 * ip, -10 * ip);
+            c.lineTo(20 * ip, 8 * ip); c.lineTo(60 * ip, -5 * ip);
+            c.stroke();
           }
           c.restore();
         }
 
+        // 4. ARROW ATTACK (Trang basic attack) - Green emerald arrow trail
         if (this.type === 'arrow_attack') {
-          // Arrow projectile traveling
-          let p = this.time / this.duration;
-          let f = this.extra.facing || 1;
-          let r = this.extra.range || 240;
-          let color = this.extra.color || '#fff';
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 240;
+          let col = this.extra ? this.extra.color : '#00ff66';
+          let currX = this.x + f * (p * r);
 
-          let currentX = this.x + f * (p * r);
-
-          c.save(); c.translate(currentX, this.y);
+          c.save(); c.translate(currX, this.y);
           c.globalAlpha = 1 - p;
-          c.shadowColor = color; c.shadowBlur = 10;
+          c.shadowColor = col; c.shadowBlur = 15;
 
-          // Arrow trail
-          let grad = c.createLinearGradient(-f * 60, 0, 0, 0);
-          grad.addColorStop(0, 'transparent'); grad.addColorStop(1, color);
+          // Shimmering green trail
+          let grad = c.createLinearGradient(-f * 70, 0, 0, 0);
+          grad.addColorStop(0, 'transparent'); grad.addColorStop(0.7, col); grad.addColorStop(1, '#ffffff');
           c.fillStyle = grad;
-          c.fillRect(-f * 60, -3, 60, 6);
+          c.fillRect(-f * 70, -4, 70, 8);
 
-          // Arrow head
+          // Arrow tip
           c.fillStyle = '#ffffff';
           c.beginPath();
-          if (f > 0) { c.moveTo(10, 0); c.lineTo(-10, -8); c.lineTo(-10, 8); }
-          else { c.moveTo(-10, 0); c.lineTo(10, -8); c.lineTo(10, 8); }
-          c.fill();
-
+          if (f > 0) { c.moveTo(14, 0); c.lineTo(-12, -9); c.lineTo(-12, 9); }
+          else { c.moveTo(-14, 0); c.lineTo(12, -9); c.lineTo(12, 9); }
+          c.closePath(); c.fill();
           c.restore();
         }
 
+        // 5. MAGIC ICE (Thảo basic attack) - Hexagonal rotating 3D crystal
         if (this.type === 'magic_ice') {
-          // Ice shard traveling
-          let p = this.time / this.duration;
-          let f = this.extra.facing || 1;
-          let r = this.extra.range || 360;
-          let color = this.extra.color || '#fff';
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 360;
+          let col = this.extra ? this.extra.color : '#aaddff';
+          let currX = this.x + f * (p * r);
+          let currY = this.y + Math.sin(p * Math.PI * 4) * 10;
 
-          let currentX = this.x + f * (p * r);
+          c.save(); c.translate(currX, currY);
+          c.rotate(p * Math.PI * 6 * f);
+          c.globalAlpha = 1 - Math.pow(p, 4);
+          c.shadowColor = col; c.shadowBlur = 20;
 
-          c.save(); c.translate(currentX, this.y + Math.sin(p * Math.PI * 4) * 10);
-          c.rotate(p * Math.PI * 4 * f);
-          c.globalAlpha = 1 - Math.pow(p, 3);
-
-          c.shadowColor = color; c.shadowBlur = 15;
-          c.fillStyle = '#ffffff'; c.strokeStyle = color; c.lineWidth = 2;
-
-          // Draw an ice crystal star
+          // Drawing 3D hexagon crystal shard
+          c.lineWidth = 1.5;
+          // Left face (Dark ice)
+          c.fillStyle = '#88ccff'; c.strokeStyle = '#ffffff';
           c.beginPath();
-          for (let i = 0; i < 4; i++) {
-            c.rotate(Math.PI / 2);
-            c.lineTo(0, -25);
-            c.lineTo(5, -5);
-          }
-          c.closePath();
+          c.moveTo(0, -22); c.lineTo(-11, -8); c.lineTo(-11, 8); c.lineTo(0, 22); c.lineTo(0, -22);
           c.fill(); c.stroke();
 
-          if (Math.random() < 0.5) globalParticles.push(new Particle(currentX, this.y, 0, 0, color, 0.3, 2, 'snowflake'));
+          // Right face (Light ice)
+          c.fillStyle = '#ffffff';
+          c.beginPath();
+          c.moveTo(0, -22); c.lineTo(11, -8); c.lineTo(11, 8); c.lineTo(0, 22); c.lineTo(0, -22);
+          c.fill(); c.stroke();
+
           c.restore();
         }
 
+        // 6. MAGIC STAR (Nga basic attack) - Orbiting star orb
         if (this.type === 'magic_star') {
-          // Magic orb that spins and emits light
-          let p = this.time / this.duration;
-          let f = this.extra.facing || 1;
-          let r = this.extra.range || 360;
-          let color = this.extra.color || '#fff';
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 360;
+          let col = this.extra ? this.extra.color : '#ffd700';
+          let currX = this.x + f * (p * r);
 
-          let currentX = this.x + f * (p * r);
-
-          c.save(); c.translate(currentX, this.y);
+          c.save(); c.translate(currX, this.y);
           c.globalAlpha = 1 - p;
 
-          c.shadowColor = color; c.shadowBlur = 20;
-          c.fillStyle = color;
-
-          // Pulsing orb
-          let size = 15 + Math.sin(p * Math.PI * 10) * 5;
+          // Neon glowing gold orb
+          c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 25;
+          let size = 18 + Math.sin(p * Math.PI * 8) * 4;
           c.beginPath(); c.arc(0, 0, size, 0, Math.PI * 2); c.fill();
 
-          // Rings
-          c.strokeStyle = '#ffffff'; c.lineWidth = 2;
-          c.beginPath(); c.ellipse(0, 0, size * 1.5, size * 0.5, p * Math.PI * 4, 0, Math.PI * 2); c.stroke();
-          c.beginPath(); c.ellipse(0, 0, size * 1.5, size * 0.5, -p * Math.PI * 4, 0, Math.PI * 2); c.stroke();
+          // Shimmering orbit rings
+          c.strokeStyle = '#ffffff'; c.lineWidth = 2.5;
+          c.beginPath(); c.ellipse(0, 0, size * 1.6, size * 0.5, p * Math.PI * 5, 0, Math.PI * 2); c.stroke();
+          c.beginPath(); c.ellipse(0, 0, size * 1.6, size * 0.5, -p * Math.PI * 5, 0, Math.PI * 2); c.stroke();
 
           c.restore();
         }
 
+        // 7. LIGHTNING (Lôi Long - Tiến active skill)
         if (this.type === 'lightning') {
-          if (this.time < 0.3) {
-            let p = this.time / 0.3;
-            let dy = -200 + p * (GROUND + 200);
+          // Giai đoạn 1: Mây đen và sấm sét
+          if (p < 0.28) {
+            let op = p / 0.28;
+            c.fillStyle = `rgba(15, 10, 30, ${op * 0.65})`;
+            c.fillRect(0, 0, W, H);
+
+            // Jagged sấm sét rạch xuống
+            c.strokeStyle = '#00f3ff'; c.shadowColor = '#00f3ff'; c.shadowBlur = 20;
+            c.lineWidth = 3.5;
+            for (let j = 0; j < 3; j++) {
+              let lx = this.x + (j - 1) * 80 + (Math.random() - 0.5) * 40;
+              c.beginPath();
+              c.moveTo(lx, 0);
+              let cy = 0;
+              while (cy < GROUND) {
+                let nextY = cy + Math.random() * 100 + 40;
+                let nextX = lx + (Math.random() - 0.5) * 60;
+                c.lineTo(nextX, nextY);
+                lx = nextX; cy = nextY;
+              }
+              c.stroke();
+            }
+          }
+          // Giai đoạn 2: Đầu Rồng sấm sét khổng lồ lao xuống
+          else if (p >= 0.28 && p < 0.45) {
+            let rp = (p - 0.28) / 0.17;
+            let dy = -300 + rp * (GROUND + 250);
+
+            c.fillStyle = 'rgba(15, 10, 30, 0.65)';
+            c.fillRect(0, 0, W, H);
+
             c.save(); c.translate(this.x, dy);
-            // Lightning branches
-            c.strokeStyle = '#88ccff'; c.lineWidth = 3;
-            for (let i = 0; i < 5; i++) {
-              c.beginPath(); c.moveTo(0, -100);
-              c.lineTo((Math.random() - 0.5) * 100, -50);
-              c.lineTo((Math.random() - 0.5) * 150, 0); c.stroke();
-            }
-            // Dragon Head
-            c.fillStyle = '#cc88ff';
-            c.beginPath(); c.moveTo(0, 40); // Snout
-            c.lineTo(30, 0); c.lineTo(20, -40); // Right side
-            c.lineTo(40, -60); c.lineTo(10, -50); // Right horn
-            c.lineTo(-10, -50); c.lineTo(-40, -60); // Left horn
-            c.lineTo(-20, -40); c.lineTo(-30, 0); // Left side
-            c.fill();
-            // Eyes
-            c.fillStyle = '#ffffff'; c.shadowColor = '#fff'; c.shadowBlur = 10;
-            c.beginPath(); c.ellipse(-15, -10, 5, 10, -0.5, 0, Math.PI * 2); c.fill();
-            c.beginPath(); c.ellipse(15, -10, 5, 10, 0.5, 0, Math.PI * 2); c.fill();
-            c.restore();
-          } else {
-            // Shockwave with crack
-            let p = (this.time - 0.3) / 1.2;
-            c.globalAlpha = 1 - p; c.strokeStyle = '#88ccff'; c.lineWidth = 15 * (1 - p);
-            c.beginPath(); c.ellipse(this.x, GROUND, p * 400, p * 100, 0, 0, Math.PI * 2); c.stroke();
-            // Jagged crater
-            c.strokeStyle = '#5522aa'; c.lineWidth = 5;
-            c.beginPath(); c.moveTo(this.x - 100, GROUND);
-            c.lineTo(this.x - 50, GROUND + 20); c.lineTo(this.x + 20, GROUND - 10); c.lineTo(this.x + 80, GROUND + 15); c.stroke();
-          }
-        }
+            c.shadowColor = '#00f3ff'; c.shadowBlur = 35;
 
-        if (this.type === 'blizzard') {
-          let p = this.time / this.duration;
-          c.globalAlpha = Math.sin(p * Math.PI) * 0.4;
-          c.fillStyle = '#000033'; c.fillRect(0, 0, W, H);
-          c.globalAlpha = 1;
+            // Rồng Sét Neon khổng lồ
+            let dragonGrad = c.createLinearGradient(0, -90, 0, 60);
+            dragonGrad.addColorStop(0, '#cc88ff');
+            dragonGrad.addColorStop(0.5, '#00f3ff');
+            dragonGrad.addColorStop(1, '#ffffff');
+            c.fillStyle = dragonGrad;
 
-          c.save(); c.translate(this.x, GROUND);
-          let tAlpha = Math.sin(p * Math.PI);
-
-          // Magic Snow Circle on Ground (Vòng phép ma thuật băng)
-          c.save();
-          c.scale(1, 0.3);
-          c.rotate(Date.now() / 1000);
-          c.strokeStyle = '#00ffff'; c.lineWidth = 4;
-          c.globalAlpha = tAlpha * 0.8;
-          c.beginPath(); c.arc(0, 0, 300, 0, Math.PI * 2); c.stroke();
-          for (let i = 0; i < 6; i++) {
-            c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(i * Math.PI / 3) * 300, Math.sin(i * Math.PI / 3) * 300); c.stroke();
-          }
-          c.restore();
-
-          // Swirling 3D Blizzard Vortex (Bão lốc xoáy 3D)
-          c.globalAlpha = tAlpha * 0.7;
-          for (let i = 0; i < 15; i++) {
-            let radius = 50 + i * 15;
-            let angle = (Date.now() / 200 + i * 0.5);
-            let px = Math.cos(angle) * radius;
-            let py = Math.sin(angle) * radius * 0.2 - i * 25;
-            let size = 20 + i * 4;
-
-            let grad = c.createRadialGradient(px, py, 0, px, py, size);
-            grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, 'transparent');
-            c.fillStyle = grad;
-            c.beginPath(); c.arc(px, py, size, 0, Math.PI * 2); c.fill();
-          }
-
-          // Jagged 3D Ice Pillars Erupting (Cột băng 3D đâm lên)
-          c.globalAlpha = tAlpha;
-          c.strokeStyle = '#ffffff'; c.lineWidth = 2;
-          for (let i = 0; i < 8; i++) {
-            let sx = (i - 4) * 70 + Math.sin(i * 11) * 40;
-            let sh = -150 - Math.abs(Math.sin(i * 33)) * 200 * p; // Erupt up over time
-
-            // Mặt trái của tinh thể băng
-            c.fillStyle = '#ccffff';
-            c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx - 25, sh * 0.8); c.lineTo(sx, sh); c.fill(); c.stroke();
-            // Mặt phải của tinh thể băng (tạo khối 3D)
-            c.fillStyle = '#88ccff';
-            c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx, sh); c.lineTo(sx + 25, sh * 0.8); c.fill(); c.stroke();
-          }
-          c.restore();
-
-          // Bắn ra các hạt tuyết
-          if (Math.random() < 0.7) {
-            globalParticles.push(new Particle(this.x + (Math.random() - 0.5) * 600, GROUND - Math.random() * 400, (Math.random() - 0.5) * 200, Math.random() * 200, '#ffffff', 1.0, 4, 'snowflake'));
-          }
-        }
-
-        if (this.type === 'arrowRain') {
-          // Magic Circle
-          if (this.time < 0.5) {
-            let cp = this.time / 0.5;
-            c.save(); c.translate(this.x, 100);
-            c.scale(1, 0.3); c.rotate(Date.now() / 500);
-            c.strokeStyle = '#44ff88'; c.lineWidth = 5 * cp;
-            c.beginPath(); c.arc(0, 0, 200, 0, Math.PI * 2); c.stroke();
             c.beginPath();
-            for (let i = 0; i < 6; i++) {
-              c.lineTo(Math.cos(i * Math.PI * 2 / 3) * 200, Math.sin(i * Math.PI * 2 / 3) * 200);
-            }
+            c.moveTo(0, 70); // Mouth snout
+            c.lineTo(55, 0); c.lineTo(35, -70); // Right head contour
+            c.lineTo(75, -110); c.lineTo(15, -90); // Right horn
+            c.lineTo(-15, -90); c.lineTo(-75, -110); // Left horn
+            c.lineTo(-35, -70); c.lineTo(-55, 0); // Left head contour
+            c.closePath(); c.fill();
+
+            // Sấm sét giật ra từ mắt rồng
+            c.fillStyle = '#ffffff'; c.shadowColor = '#ffffff'; c.shadowBlur = 15;
+            c.beginPath(); c.arc(-22, -20, 10, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(22, -20, 10, 0, Math.PI * 2); c.fill();
+            c.restore();
+          }
+          // Giai đoạn 3: Vụ nổ sóng điện từ
+          else {
+            let ep = (p - 0.45) / 0.55;
+            c.save();
+            c.globalAlpha = 1 - ep;
+            c.shadowColor = '#00f3ff'; c.shadowBlur = 40;
+
+            // Sóng xung kích lôi điện hình ellipse nở rộng 3D
+            c.strokeStyle = '#00f3ff'; c.lineWidth = 18 * (1 - ep);
+            c.beginPath(); c.ellipse(this.x, GROUND, ep * 500, ep * 120, 0, 0, Math.PI * 2); c.stroke();
+
+            c.strokeStyle = '#cc88ff'; c.lineWidth = 8 * (1 - ep);
+            c.beginPath(); c.ellipse(this.x, GROUND, ep * 350, ep * 80, 0, 0, Math.PI * 2); c.stroke();
+
+            // Hố sấm sét nứt rách sâu hoắm
+            c.strokeStyle = '#5522aa'; c.lineWidth = 6 * (1 - ep);
+            c.beginPath();
+            c.moveTo(this.x - 120 * ep, GROUND);
+            c.lineTo(this.x - 60 * ep, GROUND + 30);
+            c.lineTo(this.x + 30 * ep, GROUND - 15);
+            c.lineTo(this.x + 110 * ep, GROUND + 20);
             c.stroke();
             c.restore();
-          } else {
-            // Raining magic circle
-            c.save(); c.translate(this.x, 100);
-            c.scale(1, 0.3); c.rotate(Date.now() / 200);
-            c.globalAlpha = 1 - ((this.time - 0.5) / 2.0);
-            c.strokeStyle = '#44ff88'; c.lineWidth = 10;
-            c.beginPath(); c.arc(0, 0, 200, 0, Math.PI * 2); c.stroke();
-            c.restore();
           }
         }
 
-        if (this.type === 'firewave') {
-          let p = this.time / this.duration;
-          let a = Math.sin(p * Math.PI);
+        // 8. BLIZZARD (Bão Tuyết - Thảo active skill)
+        if (this.type === 'blizzard') {
+          // Bầu trời tối sầm bão tuyết cuồng phong
+          c.fillStyle = `rgba(5, 5, 25, ${Math.sin(p * Math.PI) * 0.55})`;
+          c.fillRect(0, 0, W, H);
+
           c.save(); c.translate(this.x, GROUND);
+          let sa = Math.sin(p * Math.PI);
 
-          // Magma cracks
-          c.strokeStyle = '#ff3300'; c.lineWidth = 5 * a; c.shadowColor = '#ff8800'; c.shadowBlur = 15;
-          c.beginPath();
-          c.moveTo(-200, 0); c.lineTo(-100, 20); c.lineTo(0, -10); c.lineTo(100, 15); c.lineTo(200, 0);
-          c.moveTo(-150, 10); c.lineTo(-80, 40); c.moveTo(50, -5); c.lineTo(120, -30);
-          c.stroke(); c.shadowBlur = 0;
+          // Magic Snowflake circle on the ground
+          c.save();
+          c.scale(1, 0.28);
+          c.rotate(Date.now() / 240);
+          c.strokeStyle = '#00ffff'; c.lineWidth = 5; c.shadowColor = '#00ffff'; c.shadowBlur = 20;
+          c.globalAlpha = sa * 0.8;
+          c.beginPath(); c.arc(0, 0, 320, 0, Math.PI * 2); c.stroke();
 
-          // Big flames using bezier curves
-          c.globalAlpha = a * 0.9;
-          for (let i = 0; i < 5; i++) {
-            c.fillStyle = (i % 2 === 0) ? '#ff3300' : '#ffaa00';
-            let fx = (i - 2) * 60;
-            let fh = -200 - Math.random() * 200 * a;
-            let cp1x = fx - 50 + Math.sin(Date.now() / 100 + i) * 50;
-            let cp1y = fh / 2;
-            c.beginPath();
-            c.moveTo(fx - 40, 0);
-            c.quadraticCurveTo(cp1x, cp1y, fx, fh);
-            c.quadraticCurveTo(fx + 50, cp1y, fx + 40, 0);
-            c.fill();
+          // Hexagonal star patterns inside magic circle
+          for (let i = 0; i < 6; i++) {
+            c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(i * Math.PI / 3) * 320, Math.sin(i * Math.PI / 3) * 320); c.stroke();
+          }
+          c.restore();
+
+          // 3D Ice crystal pillars erupting & shattering
+          c.globalAlpha = sa;
+          c.strokeStyle = '#ffffff'; c.lineWidth = 2.5; c.shadowColor = '#88ccff'; c.shadowBlur = 15;
+          for (let i = 0; i < 8; i++) {
+            let sx = (i - 3.5) * 85 + Math.sin(i * 17) * 35;
+            let sh = -220 - Math.abs(Math.cos(i * 29)) * 180 * sa; // Rise up and then shrink
+
+            // Left face of 3D pillar (Dark ice cyan)
+            c.fillStyle = '#66ccff';
+            c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx - 28, sh * 0.8); c.lineTo(sx, sh); c.closePath(); c.fill(); c.stroke();
+            // Right face of 3D pillar (Light white blue)
+            c.fillStyle = '#e0ffff';
+            c.beginPath(); c.moveTo(sx, 0); c.lineTo(sx, sh); c.lineTo(sx + 28, sh * 0.8); c.closePath(); c.fill(); c.stroke();
           }
           c.restore();
         }
 
-        if (this.type === 'angelJudge') {
-          c.save(); c.translate(this.x, GROUND - 300);
-          if (this.time < 0.8) {
-            let p = this.time / 0.8;
-            c.globalAlpha = p; c.fillStyle = '#ffeeaa';
-            // Sky crack
-            c.beginPath(); c.moveTo(-150, -200); c.lineTo(150, -200); c.lineTo(0, 300 * p - 200); c.fill();
-          } else {
-            let p = (this.time - 0.8) / 1.2;
-            let a = 1 - p;
-            c.globalAlpha = a;
-
-            // Giant Cross
-            c.fillStyle = 'rgba(255,255,150,0.4)';
-            c.fillRect(-40, -200, 80, 500);
-            c.fillRect(-200, -50, 400, 60);
-
-            // Angel Silhouette
-            c.fillStyle = '#ffffff'; c.shadowColor = '#ffee88'; c.shadowBlur = 30;
-            // Body
-            c.beginPath(); c.ellipse(0, 50, 20, 80, 0, 0, Math.PI * 2); c.fill();
-            // Head
-            c.beginPath(); c.arc(0, -50, 15, 0, Math.PI * 2); c.fill();
-            // Halo
-            c.strokeStyle = '#ffee00'; c.lineWidth = 4;
-            c.beginPath(); c.ellipse(0, -80, 30, 10, 0, 0, Math.PI * 2); c.stroke();
-            // Wings
-            c.beginPath();
-            c.moveTo(0, 0);
-            c.quadraticCurveTo(150, -150, 250, -50);
-            c.quadraticCurveTo(100, 50, 0, 50);
-            c.fill();
-            c.beginPath();
-            c.moveTo(0, 0);
-            c.quadraticCurveTo(-150, -150, -250, -50);
-            c.quadraticCurveTo(-100, 50, 0, 50);
-            c.fill();
-          }
-          c.restore();
-        }
-
+        // 9. MULTI SLASH (Tử Ảnh - Bin active skill)
         if (this.type === 'multiSlash') {
-          // Crescent slashes
-          c.save(); c.translate(this.x, GROUND - 100);
-          let p = this.time / this.duration;
-          let a = Math.sin(p * Math.PI);
-          c.globalAlpha = a;
+          // Dark vignetting overlay
+          c.fillStyle = `rgba(10, 0, 20, ${Math.sin(p * Math.PI) * 0.6})`;
+          c.fillRect(0, 0, W, H);
 
-          for (let i = 0; i < 4; i++) {
-            let tOffset = (this.time * 10 + i * 2) % 4;
-            if (tOffset < 1) {
+          c.save(); c.translate(this.x, GROUND - 120);
+          c.globalAlpha = Math.sin(p * Math.PI);
+
+          // Render fast-paced multiple shadow crescents
+          for (let i = 0; i < 5; i++) {
+            let tOffset = (this.time * 8.5 + i * 1.8) % 4.0;
+            if (tOffset < 1.0) {
               c.save();
-              c.rotate(i * Math.PI / 3 + Date.now() / 200);
-              let scale = 1 + tOffset * 2;
+              c.rotate(i * Math.PI / 2.5 + Date.now() / 150);
+              let scale = 1.0 + tOffset * 2.4;
               c.scale(scale, scale);
-              c.globalAlpha = 1 - tOffset;
+              c.globalAlpha = (1.0 - tOffset) * Math.sin(p * Math.PI);
 
-              // Crescent
-              c.fillStyle = '#aa22cc'; c.shadowColor = '#ff44ff'; c.shadowBlur = 10;
+              // Crescent outline
+              c.fillStyle = '#aa00ff'; c.strokeStyle = '#ff007f'; c.lineWidth = 2.5;
+              c.shadowColor = '#ff00ff'; c.shadowBlur = 18;
               c.beginPath();
-              c.arc(0, 0, 60, -Math.PI / 2, Math.PI / 2);
-              c.arc(10, 0, 50, Math.PI / 2, -Math.PI / 2, true);
-              c.fill();
+              c.arc(0, 0, 75, -Math.PI / 1.8, Math.PI / 1.8);
+              c.arc(15, 0, 60, Math.PI / 1.8, -Math.PI / 1.8, true);
+              c.closePath();
+              c.fill(); c.stroke();
               c.restore();
             }
+          }
+          c.restore();
+        }
+
+        // 10. ARROW RAIN (Vạn tiễn - Trang active skill)
+        if (this.type === 'arrowRain') {
+          let sa = Math.sin(p * Math.PI);
+          c.save(); c.translate(this.x, 80);
+          c.globalAlpha = sa;
+
+          // Sky magic array
+          c.save();
+          c.scale(1, 0.28);
+          c.rotate(-Date.now() / 350);
+          c.strokeStyle = '#00ff66'; c.lineWidth = 6; c.shadowColor = '#00ffaa'; c.shadowBlur = 25;
+          c.beginPath(); c.arc(0, 0, 240, 0, Math.PI * 2); c.stroke();
+          
+          // Inside runic glyph star
+          c.beginPath();
+          for (let i = 0; i < 8; i++) {
+            c.lineTo(Math.cos(i * Math.PI * 2 / 4) * 240, Math.sin(i * Math.PI * 2 / 4) * 240);
+          }
+          c.stroke();
+          c.restore();
+          c.restore();
+        }
+
+        // 11. FIREWAVE (Hỏa ngục - Huy active skill)
+        if (this.type === 'firewave') {
+          let sa = Math.sin(p * Math.PI);
+          c.save(); c.translate(this.x, GROUND);
+
+          // Magma crack lines glowing
+          c.strokeStyle = '#ff3300'; c.lineWidth = 6 * sa; c.shadowColor = '#ff6600'; c.shadowBlur = 25;
+          c.beginPath();
+          c.moveTo(-250, 0); c.lineTo(-120, 25 * sa); c.lineTo(0, -15 * sa); c.lineTo(130, 20 * sa); c.lineTo(250, 0);
+          c.stroke();
+
+          // 3 Giant lava pillars erupting
+          c.globalAlpha = sa * 0.95;
+          c.shadowBlur = 0;
+          for (let i = 0; i < 3; i++) {
+            let px = (i - 1) * 110;
+            let ph = -250 - Math.random() * 200 * sa;
+            
+            // Bezier fluid fire columns
+            let cpX1 = px - 60 + Math.sin(Date.now() / 80 + i) * 60;
+            let cpY1 = ph / 2;
+            c.fillStyle = (i % 2 === 0) ? '#ff2200' : '#ffaa00';
+            c.beginPath();
+            c.moveTo(px - 50, 0);
+            c.quadraticCurveTo(cpX1, cpY1, px, ph);
+            c.quadraticCurveTo(px + 60, cpY1, px + 50, 0);
+            c.closePath(); c.fill();
+
+            // Inner hot core
+            c.fillStyle = '#ffffff'; c.shadowColor = '#ffffaa'; c.shadowBlur = 15;
+            c.beginPath();
+            c.moveTo(px - 15, 0);
+            c.quadraticCurveTo(cpX1 * 0.5 + px * 0.5, cpY1, px, ph * 0.85);
+            c.quadraticCurveTo(px + 15, cpY1, px + 15, 0);
+            c.closePath(); c.fill();
+            c.shadowBlur = 0;
+          }
+          c.restore();
+        }
+
+        // 12. ANGEL JUDGE (Phán quyết - Nga active skill)
+        if (this.type === 'angelJudge') {
+          let sa = Math.sin(p * Math.PI);
+          c.save(); c.translate(this.x, GROUND - 320);
+
+          if (p < 0.32) {
+            let op = p / 0.32;
+            c.globalAlpha = op;
+            // Sky nứt ánh sáng vàng
+            c.fillStyle = '#fff5cc'; c.shadowColor = '#ffd700'; c.shadowBlur = 30;
+            c.beginPath();
+            c.moveTo(-180, -220); c.lineTo(180, -220); c.lineTo(0, 350 * op - 220);
+            c.closePath(); c.fill();
+          } else {
+            let ep = (p - 0.32) / 0.68;
+            c.globalAlpha = 1.0 - ep;
+
+            // Giant Neon Holy Cross
+            c.fillStyle = 'rgba(255, 235, 170, 0.45)'; c.shadowColor = '#ffd700'; c.shadowBlur = 35;
+            c.fillRect(-45, -230, 90, 560);
+            c.fillRect(-220, -70, 440, 75);
+
+            // Angel Silhouette 3D-feeling
+            c.fillStyle = '#ffffff'; c.shadowBlur = 40;
+            // Body
+            c.beginPath(); c.ellipse(0, 60, 24, 90, 0, 0, Math.PI * 2); c.fill();
+            // Head
+            c.beginPath(); c.arc(0, -60, 18, 0, Math.PI * 2); c.fill();
+            // Halo ring
+            c.strokeStyle = '#ffee00'; c.lineWidth = 5;
+            c.beginPath(); c.ellipse(0, -95, 36, 12, 0, 0, Math.PI * 2); c.stroke();
+
+            // Wing contours expanding
+            let wingStretch = Math.sin(ep * Math.PI);
+            c.beginPath();
+            c.moveTo(0, 0);
+            c.quadraticCurveTo(180, -180, 280, -70 - wingStretch * 40);
+            c.quadraticCurveTo(120, 60, 0, 60);
+            c.closePath(); c.fill();
+
+            c.beginPath();
+            c.moveTo(0, 0);
+            c.quadraticCurveTo(-180, -180, -280, -70 - wingStretch * 40);
+            c.quadraticCurveTo(-120, 60, 0, 60);
+            c.closePath(); c.fill();
           }
           c.restore();
         }
@@ -2899,7 +3421,7 @@
         this.spawnTime = 0;
         this.facing = 1;
         this.state = 'idle';
-        this.lifeTime = 25; // Tồn tại 25s
+        this.lifeTime = 25 + (owner.petLifeTimeBonus || 0); // Tồn tại 25s + bonus từ thuốc lắc
       }
       update(dt, game) {
         this.animFrame += dt * 60;
@@ -3341,6 +3863,13 @@
         this.pet = null;
         this.binCritBuff = false;
         this.binAtkSpeedBuffTime = 0;
+        
+        // Character-specific permanent stacking stats
+        this.baseArmor = (charId === 'huy') ? 50 : 0;
+        this.atkSpeedMultiplier = 1.0;
+        this.trangSpeedBuffVal = 1.6;
+        this.thaoSkill2BonusDmg = 0;
+        this.petLifeTimeBonus = 0;
       }
       update(dt, keys) {
         this.animFrame += dt * 60;
@@ -3372,7 +3901,9 @@
 
         // Movement
         let spd = 200;
-        if (this.speedBuff > 0) spd *= 1.6;
+        if (this.speedBuff > 0) {
+          spd *= (this.charId === 'trang' ? this.trangSpeedBuffVal : 1.6);
+        }
         if (this.invisible > 0 && this.charId === 'bin') spd *= 1.5; // +50% movement speed during stealth
         let moving = false;
         if ((keys['KeyA'] || keys['ArrowLeft']) && this.x > 30) { this.x -= spd * dt; this.facing = -1; moving = true; }
@@ -3394,6 +3925,9 @@
       }
       takeDamage(dmg) {
         if (this.invincible > 0) return 0;
+        if (this.baseArmor > 0) {
+          dmg = Math.max(1, dmg - this.baseArmor);
+        }
         if (this.damageReductionTime > 0) dmg = Math.floor(dmg * (1 - this.damageReduction));
         if (this.shield > 0) {
           let absorbed = Math.min(this.shield, dmg);
@@ -3428,16 +3962,25 @@
         }
 
         if (this.nextHitBonus > 0) { dmg += this.nextHitBonus; this.nextHitBonus = 0; }
+        let pColor = '#ffaa00';
+        let pShape = 'circle';
+        if (this.charId === 'tien') { pColor = '#00f3ff'; pShape = 'spark'; }
+        else if (this.charId === 'thao') { pColor = '#aaddff'; pShape = 'snowflake'; }
+        else if (this.charId === 'bin') { pColor = '#ff007f'; pShape = 'star'; }
+        else if (this.charId === 'trang') { pColor = '#00ff66'; pShape = 'leaf'; }
+        else if (this.charId === 'huy') { pColor = '#ff5500'; pShape = 'lava_rock'; }
+        else if (this.charId === 'nga') { pColor = '#ffd700'; pShape = 'star'; }
+
         let hit = false;
         targets.forEach(t => {
           if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
             t.takeDamage(Math.floor(dmg));
             hit = true;
             if (isCrit) {
-              spawnHitParticles(t.x, t.y - 50, '#ff0055'); // nice pinkish red critical hit particles
+              spawnHitParticles(t.x, t.y - 50, '#ff0055', 'star'); // nice pinkish red critical hit particles
               showMsg('💥 CHÍ MẠNG x2 SÁT THƯƠNG!');
             } else {
-              spawnHitParticles(t.x, t.y - 50);
+              spawnHitParticles(t.x, t.y - 50, pColor, pShape);
             }
           }
         });
@@ -3454,7 +3997,8 @@
           // Tạo một khoảng cách nhỏ phía trước để vung vũ khí đẹp hơn
           let spawnX = this.x + this.facing * 20;
           let spawnY = this.y - 30;
-          game.spawnEffect(effectType, spawnX, spawnY, 0, false, { color: wColor, range: this.range, facing: this.facing });
+          game.spawnEffect(effectType, spawnX, spawnY, 0, false, { color: wColor, range: this.range, facing: this.facing, game: game, isCrit: isCrit });
+          if (isCrit) game.shake(0.25, 18);
         }
         this.state = 'attack';
         let baseCd = 0.55;
@@ -3471,6 +4015,10 @@
             cd /= 1.5; // stack if both active
           }
         }
+        
+        // Apply permanent attack speed multiplier
+        cd /= (this.atkSpeedMultiplier || 1.0);
+        
         this.attackCd = cd;
         setTimeout(() => { if (this.state === 'attack') this.state = 'idle'; }, 300);
         return hit;
@@ -3691,6 +4239,10 @@
         this.lastTime = 0;
         this.pillSlamTimer = 0;
         this.pillSlamBlasted = false;
+        this.pillCount = 0;
+        this.pillSlamText = "BÚ THUỐC LẮC QUÁ ĐÃ AAAAAAA";
+        this.superPillTimer = 0;
+        this.superPillActive = false;
         this.audioCtx = null;
         this.currentBgmType = null;
         this.bgMusicTimeout = null;
@@ -3714,7 +4266,49 @@
         return others.slice(0, 5);
       }
 
+      shake(duration, intensity = 20) {
+        this.shakeTime = duration;
+        this.shakeIntensity = intensity;
+      }
+
+      activateSuperPill() {
+        if (this.superPillActive) return;
+        this.superPillActive = true;
+        this.superPillTimer = 10.0;
+        let p = this.player;
+        p.maxHp *= 2;
+        p.maxMp *= 2;
+        p.hp *= 2;
+        p.mp *= 2;
+        p.baseAtk *= 2;
+        p.atk *= 2;
+        p.bonusAtk = (p.bonusAtk + 1) * 2 - 1;
+        showMsg("🔥 PHÊ CON TÊ TÊ! X2 TOÀN BỘ CHỈ SỐ TRONG 10S!");
+      }
+
+      deactivateSuperPill() {
+        if (!this.superPillActive) return;
+        this.superPillActive = false;
+        this.superPillTimer = 0;
+        let p = this.player;
+        p.maxHp = Math.round(p.maxHp / 2);
+        p.maxMp = Math.round(p.maxMp / 2);
+        p.hp = Math.min(Math.round(p.hp / 2), p.maxHp);
+        p.mp = Math.min(Math.round(p.mp / 2), p.maxMp);
+        p.baseAtk = Math.round(p.baseAtk / 2);
+        p.atk = Math.round(p.atk / 2);
+        p.bonusAtk = (p.bonusAtk + 1) / 2 - 1;
+        showMsg("⚠️ Hết tác dụng Thuốc Lắc Siêu Cấp!");
+      }
+
       startFloor() {
+        if (this.superPillActive) {
+          this.deactivateSuperPill();
+        }
+        if (this.pillCount >= 4) {
+          this.activateSuperPill();
+        }
+
         this.minions = []; this.effects = []; this.particles = [];
         this.minionSpawnCd = 2; this.waveKills = 0;
         this.isBossFloor = (this.floor % 2 === 0);
@@ -3911,12 +4505,41 @@
         });
 
         // Add "Thuốc Lắc Chỉ Số" option card
+        let charId = this.player.charId;
+        let bonusTable = `
+        <div class="pill-bonus-table" style="margin-top: 10px; text-align: left; background: rgba(10, 10, 25, 0.85); border-radius: 8px; padding: 8px; font-size: 11px; border: 1px solid rgba(255, 215, 0, 0.25); line-height: 1.45;">
+          <div style="font-weight: bold; color: #ffd700; border-bottom: 1px solid rgba(255, 215, 0, 0.3); padding-bottom: 4px; margin-bottom: 4px; text-align: center;">💊 Chỉ số cộng riêng nhân vật:</div>
+        `;
+
+        const bonusList = [
+          { id: 'tien', icon: '⚡', name: 'Tiến', desc: 'Giảm 2s hồi Chiêu 1' },
+          { id: 'thao', icon: '❄️', name: 'Thảo', desc: '+100 Sát thương Chiêu 2' },
+          { id: 'bin', icon: '🗡️', name: 'Bin', desc: '+3% Tốc đánh' },
+          { id: 'trang', icon: '🏹', name: 'Trang', desc: '+5% Tốc chạy khi bật Chiêu 1' },
+          { id: 'huy', icon: '🪓', name: 'Huy', desc: '+20 Giáp gốc & +20 ATK' },
+          { id: 'nga', icon: '🐼', name: 'Nga', desc: 'Gấu Trúc sống lâu thêm 3s' }
+        ];
+
+        bonusList.forEach(item => {
+          let isCurrent = (item.id === charId);
+          let rowStyle = isCurrent 
+            ? `display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; background: rgba(0, 255, 204, 0.15); border: 1px solid #00ffcc; color: #00ffcc; font-weight: bold; box-shadow: 0 0 8px rgba(0, 255, 204, 0.3); margin-bottom: 2px;`
+            : `display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; margin-bottom: 2px; color: #ccc; opacity: 0.75;`;
+          
+          bonusTable += `
+          <div style="${rowStyle}">
+            <span>${item.icon} ${item.name}:</span>
+            <span>${item.desc}</span>
+          </div>`;
+        });
+        bonusTable += `</div>`;
+
         let pillCard = document.createElement('div');
-        pillCard.className = 'skill-choice-card';
-        pillCard.style.border = '2px dashed #ffd700'; // stand out nicely
+        pillCard.className = 'skill-choice-card pill-choice-card';
         pillCard.innerHTML = `<div class="skill-icon">💊</div>
-      <div class="skill-name" style="color: #ffd700; font-weight: bold;">Thuốc Lắc Chỉ Số</div>
-      <div class="skill-desc">Tăng vĩnh viễn 10% HP, MP và Sát thương (ATK) cơ bản. Hồi phục toàn bộ sinh lực!</div>`;
+        <div class="skill-name" style="color: #ffd700; font-weight: bold;">Thuốc Lắc Chỉ Số</div>
+        <div class="skill-desc" style="color: #eee;">Tăng vĩnh viễn 10% HP, MP và Sát thương (ATK) cơ bản. Hồi phục toàn bộ sinh lực!
+        ${bonusTable}</div>`;
         pillCard.onclick = () => { this.applyStatBooster(); };
         choicesEl.appendChild(pillCard);
 
@@ -3943,7 +4566,40 @@
         p.atk = Math.round(p.atk * 1.1);
         p.hp = p.maxHp;
         p.mp = p.maxMp;
-        showMsg(`✨ Đã cắn Thuốc Lắc! HP, MP & ATK tăng 10%!`);
+        
+        let customMsg = `✨ Đã cắn Thuốc Lắc! HP, MP & ATK tăng 10%!`;
+        
+        if (p.charId === 'tien') {
+          p.skills[0].cd = Math.max(2, p.skills[0].cd - 2);
+          customMsg += `\n⚡ Tiến: Giảm 2s hồi chiêu 1! (Hồi chiêu hiện tại: ${p.skills[0].cd}s)`;
+        } else if (p.charId === 'huy') {
+          p.baseArmor = (p.baseArmor || 0) + 20;
+          p.baseAtk += 20;
+          p.atk += 20;
+          customMsg += `\n🛡️ Huy: +20 Giáp gốc & +20 ATK! (Giáp hiện tại: ${p.baseArmor})`;
+        } else if (p.charId === 'bin') {
+          p.atkSpeedMultiplier = (p.atkSpeedMultiplier || 1.0) + 0.03;
+          customMsg += `\n🗡️ Bin: +3% Tốc đánh! (Tốc đánh tăng: +${Math.round((p.atkSpeedMultiplier - 1.0) * 100)}%)`;
+        } else if (p.charId === 'trang') {
+          p.trangSpeedBuffVal = (p.trangSpeedBuffVal || 1.6) + 0.05;
+          customMsg += `\n🏹 Trang: +5% Tốc chạy khi dùng Chiêu 1! (Tốc chạy buff: x${p.trangSpeedBuffVal.toFixed(2)})`;
+        } else if (p.charId === 'thao') {
+          p.thaoSkill2BonusDmg = (p.thaoSkill2BonusDmg || 0) + 100;
+          customMsg += `\n❄️ Thảo: +100 Sát thương Chiêu 2! (Sát thương cộng thêm: +${p.thaoSkill2BonusDmg})`;
+        } else if (p.charId === 'nga') {
+          p.petLifeTimeBonus = (p.petLifeTimeBonus || 0) + 3;
+          customMsg += `\n🐼 Nga: Tăng thời gian Gấu Trúc tồn tại thêm 3s! (Thời gian tồn tại: ${25 + p.petLifeTimeBonus}s)`;
+        }
+        
+        showMsg(customMsg);
+        
+        this.pillCount = (this.pillCount || 0) + 1;
+        if (this.pillCount === 4) {
+          this.pillSlamText = "BÚ QUÁ ĐỈNH, PHÊ HƠN CON TÊ TÊ";
+        } else {
+          this.pillSlamText = "BÚ THUỐC LẮC QUÁ ĐÃ AAAAAAA";
+        }
+
         this.pillSlamTimer = 2.0;
         this.pillSlamBlasted = false;
         this.paused = false;
@@ -4124,6 +4780,12 @@
         if (this.pillSlamTimer > 0) {
           this.pillSlamTimer = Math.max(0, this.pillSlamTimer - dt);
         }
+        if (this.superPillActive && this.superPillTimer > 0) {
+          this.superPillTimer = Math.max(0, this.superPillTimer - dt);
+          if (this.superPillTimer <= 0) {
+            this.deactivateSuperPill();
+          }
+        }
         this.player.update(dt, this.keys);
         if (this.player.pet) this.player.pet.update(dt, this);
 
@@ -4181,10 +4843,13 @@
         ctx.clearRect(0, 0, W, H);
         ctx.save();
         if (this.shakeTime > 0) {
-          let mag = this.shakeTime * 20;
+          let mag = this.shakeTime * (this.shakeIntensity || 20);
           ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
         }
         this.drawBackground();
+
+        // Draw player
+        this.player.draw(ctx);
 
         // Draw pets
         if (this.player.pet) this.player.pet.draw(ctx);
@@ -4195,15 +4860,18 @@
         // Draw boss
         if (this.boss) this.boss.draw(ctx);
 
+        // Draw effects & particles (layered on top, using screen blending for neon glow)
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        
         // Draw effects
         this.effects.forEach(e => e.draw(ctx));
 
         // Draw particles
         this.particles.forEach(p => p.draw(ctx));
         globalParticles.forEach(p => p.draw(ctx));
-
-        // Draw player
-        this.player.draw(ctx);
+        
+        ctx.restore();
 
         // Draw boss countdown
         if (this.isBossFloor && this.bossSpawnTimer > 0) {
@@ -4236,20 +4904,25 @@
             }
           }
 
+          let isTeTe = this.pillSlamText.includes("TÊ TÊ");
+
           if (elapsed >= 0.25 && !this.pillSlamBlasted) {
-            this.shakeTime = 0.6;
+            this.shakeTime = isTeTe ? 0.9 : 0.6;
             this.pillSlamBlasted = true;
             let cx = W / 2;
             let cy = H / 2 - 50;
-            let colors = ['#ffd700', '#ff3388', '#00ffff', '#ffffff'];
-            for (let i = 0; i < 40; i++) {
+            let colors = isTeTe 
+              ? ['#00ffcc', '#ff007f', '#ffd700', '#00ffff', '#ff00ff', '#ffffff'] 
+              : ['#ffd700', '#ff3388', '#00ffff', '#ffffff'];
+            let count = isTeTe ? 70 : 40;
+            for (let i = 0; i < count; i++) {
               let angle = Math.random() * Math.PI * 2;
-              let speed = 200 + Math.random() * 400;
+              let speed = isTeTe ? (300 + Math.random() * 500) : (200 + Math.random() * 400);
               let vx = Math.cos(angle) * speed;
               let vy = Math.sin(angle) * speed;
               let color = colors[Math.floor(Math.random() * colors.length)];
-              let size = Math.random() * 8 + 4;
-              let life = 0.8 + Math.random() * 0.6;
+              let size = isTeTe ? (Math.random() * 10 + 5) : (Math.random() * 8 + 4);
+              let life = isTeTe ? (1.0 + Math.random() * 0.8) : (0.8 + Math.random() * 0.6);
               this.particles.push(new Particle(cx, cy, vx, vy, color, life, size, 'snowflake'));
             }
             if (this.audioCtx) {
@@ -4265,16 +4938,25 @@
           ctx.font = `italic bold ${fontSize}px "Impact", "Segoe UI", Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.shadowColor = '#ff3388';
-          ctx.shadowBlur = 25;
+          ctx.shadowColor = isTeTe ? '#00ffcc' : '#ff3388';
+          ctx.shadowBlur = isTeTe ? 35 : 25;
 
-          let text = "BÚ THUỐC LẮC QUÁ ĐÃ AAAAAAA";
+          let text = this.pillSlamText || "BÚ THUỐC LẮC QUÁ ĐÃ AAAAAAA";
           let textWidth = ctx.measureText(text).width;
           let grad = ctx.createLinearGradient(-textWidth / 2, 0, textWidth / 2, 0);
-          grad.addColorStop(0, '#ffd700');
-          grad.addColorStop(0.3, '#ff3388');
-          grad.addColorStop(0.7, '#00ffff');
-          grad.addColorStop(1, '#ffd700');
+          if (isTeTe) {
+            grad.addColorStop(0, '#00ffcc');
+            grad.addColorStop(0.2, '#ff007f');
+            grad.addColorStop(0.4, '#ffd700');
+            grad.addColorStop(0.6, '#00ffff');
+            grad.addColorStop(0.8, '#ff00ff');
+            grad.addColorStop(1, '#00ffcc');
+          } else {
+            grad.addColorStop(0, '#ffd700');
+            grad.addColorStop(0.3, '#ff3388');
+            grad.addColorStop(0.7, '#00ffff');
+            grad.addColorStop(1, '#ffd700');
+          }
 
           // Draw outer thick white stroke
           ctx.strokeStyle = '#ffffff';
@@ -4282,8 +4964,8 @@
           ctx.lineJoin = 'round';
           ctx.strokeText(text, 0, 0);
 
-          // Draw middle neon pink stroke
-          ctx.strokeStyle = '#ff3388';
+          // Draw middle neon pink/cyan stroke
+          ctx.strokeStyle = isTeTe ? '#00ffcc' : '#ff3388';
           ctx.lineWidth = 5;
           ctx.strokeText(text, 0, 0);
 
@@ -4525,9 +5207,9 @@
     // GLOBAL HELPERS
     // ============================
     let globalParticles = [];
-    function spawnHitParticles(x, y, color = '#ffaa00') {
+    function spawnHitParticles(x, y, color = '#ffaa00', shape = 'circle') {
       for (let i = 0; i < 15; i++) {
-        globalParticles.push(new Particle(x, y, (Math.random() - 0.5) * 300, -Math.random() * 300, color, 0.6, Math.random() * 4 + 2));
+        globalParticles.push(new Particle(x, y, (Math.random() - 0.5) * 300, -Math.random() * 300, color, 0.6, Math.random() * 4 + 2, shape));
       }
     }
 
