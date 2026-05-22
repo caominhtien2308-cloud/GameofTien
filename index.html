@@ -983,6 +983,131 @@
         grid-template-columns: repeat(2, 1fr);
       }
     }
+
+    /* Override touch-action: none for UI controls to allow clicks, swipes, and scrolls on mobile */
+    #overlay,
+    #char-select,
+    .chars-grid,
+    .char-card,
+    #start-btn,
+    #settings-btn,
+    #settings-menu,
+    #settings-menu button,
+    #skill-pick,
+    .skill-choices,
+    .skill-choice-card,
+    #gameOver,
+    #gameOver button,
+    #victory,
+    #victory button,
+    #skills-bar,
+    .skill-slot,
+    .mobile-dir-pad,
+    .mobile-action-pad,
+    .touch-btn {
+      touch-action: manipulation !important;
+    }
+
+    /* Mobile Landscape & Short Viewports optimization */
+    @media (max-height: 550px) {
+      #overlay {
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+      }
+
+      #char-select {
+        max-height: 98vh;
+        width: 95%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #char-select h1 {
+        font-size: 20px !important;
+        margin-bottom: 2px !important;
+        text-shadow: 0 0 10px #ffa500;
+      }
+
+      #char-select h2 {
+        font-size: 11px !important;
+        margin-bottom: 6px !important;
+      }
+
+      .chars-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        width: 100% !important;
+        max-width: 900px !important;
+        gap: 10px !important;
+        padding: 5px 15px 12px 15px !important;
+        margin-bottom: 8px !important;
+        justify-content: flex-start !important;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x !important;
+      }
+
+      .chars-grid::-webkit-scrollbar {
+        height: 5px;
+      }
+      .chars-grid::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+      }
+      .chars-grid::-webkit-scrollbar-thumb {
+        background: rgba(255, 215, 0, 0.5);
+        border-radius: 3px;
+      }
+
+      .char-card {
+        flex: 0 0 135px !important;
+        scroll-snap-align: center;
+        padding: 8px !important;
+        border-width: 1.5px !important;
+        height: auto !important;
+      }
+
+      .char-card .card-icon {
+        font-size: 20px !important;
+        margin-bottom: 2px !important;
+      }
+
+      .char-card .card-name {
+        font-size: 11px !important;
+      }
+
+      .char-card .card-class {
+        font-size: 9px !important;
+        margin-bottom: 4px !important;
+      }
+
+      .char-card .card-stats {
+        font-size: 8px !important;
+      }
+
+      .char-card .card-stat {
+        margin-bottom: 1px !important;
+      }
+
+      .char-card .card-skills {
+        font-size: 8px !important;
+        margin-top: 3px !important;
+        padding-top: 3px !important;
+      }
+
+      #start-btn {
+        padding: 8px 30px !important;
+        font-size: 13px !important;
+        margin-top: 2px !important;
+      }
+    }
   </style>
 </head>
 
@@ -1179,8 +1304,8 @@
         skills: [
           {
             name: 'Độ nhục = 0', key: '1', cd: 0, mpCost: 0, icon: '🩸',
-            desc: 'Hy sinh 20% HP tối đa, trở nên bất tử 5s. Không biết nhục là gì',
-            use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.2); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 5; showMsg('🩸 ẲNG ẲNG ẲNGGGGG HÚUUUUUUU!'); return true; }
+            desc: 'Hy sinh 15% HP tối đa, trở nên bất tử 7s. Không biết nhục là gì',
+            use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.15); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 7; showMsg('🩸 ẲNG ẲNG ẲNGGGGG HÚUUUUUUU!'); return true; }
           },
           {
             name: 'Ỉa sập bồn cầu', key: '2', cd: 25, mpCost: 220, icon: '🔥',
