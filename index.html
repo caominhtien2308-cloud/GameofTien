@@ -1287,7 +1287,7 @@
     const CHARS = {
       tien: {
         id: 'tien', name: 'Tiến Đẹp Zai', class: 'Chiến Binh Farm Tiền', icon: '⚔️',
-        hp: 2100, mp: 1100, atk: 170, color: '#4488ff', weaponColor: '#88ccff',
+        hp: 2500, mp: 1100, atk: 170, color: '#4488ff', weaponColor: '#88ccff',
         skills: [
           {
             name: 'Sống dai như trân châu', key: '1', cd: 40, mpCost: 0, icon: '💚',
@@ -1295,7 +1295,7 @@
             use: (g, p) => { let cost = Math.floor(p.mp / 2); if (p.mp < 1) return false; p.mp -= cost; p.regenActive = 11; showMsg('💚 OLONG NHO TĂNG LỰCCCC'); return true; }
           },
           {
-            name: 'Cục cứt gầm thét', key: '2', cd: 30, mpCost: 200, icon: '🐉',
+            name: 'Cục cứt gầm thét', key: '2', cd: 20, mpCost: 200, icon: '🐉',
             desc: 'Triệu hồi cục cứt khổng lồ tấn công gây 800 sát thương.',
             use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnEffect('lightning', p.x, p.y, 800 * (1 + p.bonusAtk), false, { game: g }); showMsg('🐉 PHẸTTTTTTTT!'); return true; }
           }
@@ -1307,11 +1307,11 @@
         skills: [
           {
             name: 'Người Yêu Cũ Là Người Yêu Mới', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
-            desc: 'Lá chắn băng hấp thụ 700 sát thương trong 8s. Nếu là anh yêu thì ôm trong 8s',
-            use: (g, p) => { if (p.mp < 180) return false; p.mp -= 180; p.shield = 700; p.shieldTime = 8; showMsg('🛡️ ANH TÚ ĐI RA ĐIIII'); return true; }
+            desc: 'Lá chắn băng hấp thụ 800 sát thương trong 8s. Nếu là anh yêu thì ôm trong 8s',
+            use: (g, p) => { if (p.mp < 180) return false; p.mp -= 180; p.shield = 800; p.shieldTime = 8; showMsg('🛡️ ANH TÚ ĐI RA ĐIIII'); return true; }
           },
           {
-            name: 'Dù Chậm Cũng Về Bên Nhau', key: '2', cd: 30, mpCost: 250, icon: '🌨️',
+            name: 'Dù Chậm Cũng Về Bên Nhau', key: '2', cd: 20, mpCost: 250, icon: '🌨️',
             desc: 'Đợi chờ gây 1500 sát thương, làm chậm 40% tốc độ tiếp cận.',
             use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('blizzard', p.x, p.y, 1500 * (1 + p.bonusAtk), false, { game: g }); showMsg('🌨️ MÙI HƯƠNG EM NỒNG SAYYYY'); return true; }
           }
@@ -1344,8 +1344,8 @@
           },
           {
             name: 'Sao anh dám phản bội em?', key: '2', cd: 30, mpCost: 250, icon: '🌪️',
-            desc: 'Mưa tên gây 550 sát thương diện rộng, +50% tốc độ bắn 5s. Bắn thấy mọe mấy thằng phản bội',
-            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('arrowRain', p.x, p.y, 550 * (1 + p.bonusAtk), false, { game: g }); p.speedBuff = Math.max(p.speedBuff || 0, 5); showMsg('🌪️ CHỤC LY BÍ ĐAO CHANH ĐÊ'); return true; }
+            desc: 'Mưa tên gây 750 sát thương diện rộng, +50% tốc độ bắn 5s. Bắn thấy mọe mấy thằng phản bội',
+            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('arrowRain', p.x, p.y, 750 * (1 + p.bonusAtk), false, { game: g }); p.speedBuff = Math.max(p.speedBuff || 0, 5); showMsg('🌪️ CHỤC LY BÍ ĐAO CHANH ĐÊ'); return true; }
           }
         ]
       },
@@ -1359,9 +1359,9 @@
             use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.15); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 7; showMsg('🩸 ẲNG ẲNG ẲNGGGGG HÚUUUUUUU!'); return true; }
           },
           {
-            name: 'Ỉa sập bồn cầu', key: '2', cd: 25, mpCost: 220, icon: '🔥',
-            desc: 'Dồn hơi làm cú địch gây 400 sát thương, giảm 50% sát thương nhận 5s.',
-            use: (g, p) => { if (p.mp < 220) return false; p.mp -= 220; g.spawnEffect('firewave', p.x, p.y, 400 * (1 + p.bonusAtk), false, { game: g }); p.damageReduction = 0.5; p.damageReductionTime = 5; showMsg('🔥 EM ĐỊCH NÈ CHỊ NGAAAAA  AAAAAAAA!'); return true; }
+            name: 'Ỉa sập bồn cầu', key: '2', cd: 20, mpCost: 150, icon: '🔥',
+            desc: 'Dồn hơi làm cú địch gây 600 sát thương, giảm 50% sát thương nhận 5s.',
+            use: (g, p) => { if (p.mp < 150) return false; p.mp -= 150; g.spawnEffect('firewave', p.x, p.y, 600 * (1 + p.bonusAtk), false, { game: g }); p.damageReduction = 0.5; p.damageReductionTime = 5; showMsg('🔥 EM ĐỊCH NÈ CHỊ NGAAAAA  AAAAAAAA!'); return true; }
           }
         ]
       },
