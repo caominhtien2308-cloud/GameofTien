@@ -2304,9 +2304,9 @@
         if (this.charId === 'tien') {
           if (idx === 0) {
             this.hp = Math.min(this.maxHp, this.hp + 300);
-            game.spawnEffect('lightning', player.x, player.y, dmg, true, { game: game });
+            game.spawnEffect('lightning', this.x, this.y, dmg, true, { game: game });
           } else {
-            game.spawnEffect('lightning', player.x, player.y, dmg, true, { game: game });
+            game.spawnEffect('lightning', this.x, this.y, dmg, true, { game: game });
           }
         }
         else if (this.charId === 'thao') {
@@ -2315,11 +2315,11 @@
             this.shieldTime = 8;
             showMsg('🛡️ Boss kích hoạt Lá Chắn Băng!', false);
           } else {
-            game.spawnEffect('blizzard', player.x, player.y, dmg, true, { game: game });
+            game.spawnEffect('blizzard', this.x, this.y, dmg, true, { game: game });
           }
         }
         else if (this.charId === 'bin') {
-          game.spawnEffect('multiSlash', player.x, player.y, dmg, true, { game: game });
+          game.spawnEffect('multiSlash', this.x, this.y, dmg, true, { game: game });
         }
         else if (this.charId === 'trang') {
           if (idx === 0) {
@@ -2328,7 +2328,7 @@
             this.slowTime = 5;
             showMsg('💨 Boss tăng tốc độ di chuyển!', false);
           } else {
-            game.spawnEffect('arrowRain', player.x, player.y, dmg, true, { game: game });
+            game.spawnEffect('arrowRain', this.x, this.y, dmg, true, { game: game });
           }
         }
         else if (this.charId === 'huy') {
@@ -2337,7 +2337,7 @@
             this.shieldTime = 3;
             showMsg('🩸 Boss kích hoạt Bất Tử Lá Chắn!', false);
           } else {
-            game.spawnEffect('firewave', player.x, player.y, dmg, true, { game: game });
+            game.spawnEffect('firewave', this.x, this.y, dmg, true, { game: game });
           }
         }
         else if (this.charId === 'nga') {
@@ -2346,7 +2346,7 @@
             game.minions.push(new Minion(mx, this.floor));
             showMsg('🐼 Boss triệu hồi quái vật trợ chiến!', false);
           } else {
-            game.spawnEffect('angelJudge', player.x, player.y, dmg, true, { game: game });
+            game.spawnEffect('angelJudge', this.x, this.y, dmg, true, { game: game });
           }
         }
       }
@@ -2875,15 +2875,16 @@
         if (this.audioCtx) this.playSkillSound(type);
 
         let radius = 300;
-        if (fromBoss) {
-          radius = 240;   // ← Tầm đánh của Boss 
-        }
         if (type === 'blizzard') radius = 600; // Bão tuyết rộng hơn
         if (type === 'arrowRain') radius = 400;
         if (type === 'firewave') radius = 350;
         if (type === 'lightning') radius = 250;
         if (type === 'multiSlash') radius = 200;
         if (type === 'angelJudge') radius = 350;
+
+        if (fromBoss) {
+          radius = 300;   // Tầm đánh tối đa của Boss được tối ưu lên 300px để cân bằng game
+        }
 
         // Apply damage after short delay
         setTimeout(() => {
