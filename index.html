@@ -270,10 +270,10 @@
 
     #message {
       position: fixed;
-      top: 50%;
+      top: 90px;
       left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 28px;
+      transform: translateX(-50%);
+      font-size: 26px;
       font-weight: bold;
       color: #ffd700;
       text-shadow: 0 0 20px #ffa500;
@@ -282,6 +282,8 @@
       opacity: 0;
       transition: opacity 0.5s;
       text-align: center;
+      width: 90%;
+      max-width: 600px;
     }
 
     #skill-pick {
@@ -458,6 +460,12 @@
       z-index: 20;
       text-align: right;
       display: none;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 215, 0, 0.25);
+      padding: 6px 12px;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
 
     #boss-hud {
@@ -511,6 +519,10 @@
 
     .skill-slot:hover .tooltip {
       display: block;
+    }
+
+    .skill-slot.show-tooltip .tooltip {
+      display: block !important;
     }
 
     #settings-btn {
@@ -772,14 +784,14 @@
         margin-bottom: 2px;
       }
 
-      /* Relocate Boss HUD to top center */
+      /* Relocate Boss HUD to bottom center above virtual controls to prevent overlapping top row */
       #boss-hud {
-        top: 8px;
-        bottom: auto !important;
+        bottom: 95px !important;
+        top: auto !important;
         left: 50%;
         transform: translateX(-50%);
-        width: 40%;
-        max-width: 350px;
+        width: 60%;
+        max-width: 300px;
       }
 
       #boss-hud .boss-name {
@@ -796,9 +808,18 @@
         top: 8px;
         right: 8px;
         font-size: 11px;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.65);
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        border-radius: 6px;
       }
 
-      /* Character Selection Mobile Layout */
+      #message {
+        font-size: 18px !important;
+        top: 85px !important;
+      }
+
+      /* Character Selection Mobile Layout - Swipeable Horizontal List */
       #char-select {
         max-height: 95vh;
         overflow-y: auto;
@@ -816,14 +837,40 @@
       }
 
       .chars-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin-bottom: 12px;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        width: 100% !important;
+        max-width: 900px !important;
+        gap: 12px !important;
+        padding: 5px 10px 15px 10px !important;
+        margin-bottom: 12px !important;
+        justify-content: flex-start !important;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x !important;
+      }
+
+      .chars-grid::-webkit-scrollbar {
+        height: 6px;
+      }
+      .chars-grid::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+      }
+      .chars-grid::-webkit-scrollbar-thumb {
+        background: rgba(255, 215, 0, 0.5);
+        border-radius: 3px;
       }
 
       .char-card {
+        flex: 0 0 160px !important;
+        scroll-snap-align: center;
         padding: 8px;
         border-width: 1.5px;
+        height: auto !important;
       }
 
       .char-card .card-icon {
@@ -929,7 +976,7 @@
         left: 8px;
         transform: none;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
       }
 
       body.mobile-device #skills-bar {
@@ -938,15 +985,15 @@
       }
 
       .skill-slot {
-        width: 44px;
-        height: 44px;
+        width: 36px !important;
+        height: 36px !important;
         border-radius: 50%;
         background: rgba(10, 10, 20, 0.85);
         border: 1.5px solid rgba(255, 255, 255, 0.35);
       }
 
       .skill-slot .key {
-        font-size: 11px;
+        font-size: 9px !important;
         color: #ffd700;
       }
 
@@ -956,11 +1003,11 @@
       }
 
       .skill-slot .cooldown-overlay {
-        font-size: 11px;
+        font-size: 9px !important;
       }
 
       .skill-slot .tooltip {
-        left: 60px;
+        left: 50px !important;
         bottom: 50%;
         transform: translateY(50%);
         width: 150px;
@@ -1057,12 +1104,10 @@
       .chars-grid::-webkit-scrollbar {
         height: 5px;
       }
-
       .chars-grid::-webkit-scrollbar-track {
         background: rgba(255, 255, 255, 0.05);
         border-radius: 3px;
       }
-
       .chars-grid::-webkit-scrollbar-thumb {
         background: rgba(255, 215, 0, 0.5);
         border-radius: 3px;
@@ -1270,12 +1315,12 @@
       },
       bin: {
         id: 'bin', name: 'Bin Chubby', class: 'Sát Thủ Lỗ Ass Bự', icon: '🗡️',
-        hp: 1500, mp: 1000, atk: 380, color: '#884488', weaponColor: '#cc44cc',
+        hp: 2000, mp: 1000, atk: 380, color: '#884488', weaponColor: '#cc44cc',
         skills: [
           {
-            name: 'Cứt tới cửa đít', key: '1', cd: 30, mpCost: 0, icon: '👥',
-            desc: 'Tàng hình 5s, chạy đi tìm cầu tiêu. Đòn đầu tiên sau khi ỉa +200 chí mạng.',
-            use: (g, p) => { p.invisible = 5; p.nextHitBonus = 200; showMsg('👥 MÌNH XIN CON NUÔI ĐIIIII'); return true; }
+            name: 'Cứt tới cửa đít', key: '1', cd: 20, mpCost: 0, icon: '👥',
+            desc: 'Tàng hình 4s tìm cầu tiêu, +50% tốc chạy. Hết tàng hình đòn đầu x2 dame chí mạng & +50% tốc đánh trong 2s.',
+            use: (g, p) => { p.invisible = 4; showMsg('👥 CHẠY MAUUUU HẾT CHỊU NỔI RỒI!'); return true; }
           },
           {
             name: 'Rửa đít thần tốc', key: '2', cd: 35, mpCost: 250, icon: '⚡',
@@ -1903,13 +1948,13 @@
       if (state === 'run' && Math.random() < 0.25) {
         if (typeof globalParticles !== 'undefined') {
           globalParticles.push(new Particle(
-            x - facing * 15,
-            y,
-            -facing * (40 + Math.random() * 60),
-            -10 - Math.random() * 20,
-            'rgba(180, 160, 140, 0.6)',
-            0.4 + Math.random() * 0.3,
-            3 + Math.random() * 4,
+            x - facing * 15, 
+            y, 
+            -facing * (40 + Math.random() * 60), 
+            -10 - Math.random() * 20, 
+            'rgba(180, 160, 140, 0.6)', 
+            0.4 + Math.random() * 0.3, 
+            3 + Math.random() * 4, 
             'circle'
           ));
         }
@@ -2940,42 +2985,53 @@
         if (this.isFurious) spd *= 2.0; // Tăng gấp đôi tốc độ di chuyển
 
         // AI behavior - target player or player's pet
-        let targetX = player.x;
-        if (player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < Math.abs(player.x - this.x)) {
+        let target = null;
+        let targetX = null;
+        if (player.invisible <= 0) {
+          target = player;
+          targetX = player.x;
+          if (player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < Math.abs(player.x - this.x)) {
+            target = player.pet;
+            targetX = player.pet.x;
+          }
+        } else if (player.pet && player.pet.active) {
+          target = player.pet;
           targetX = player.pet.x;
         }
 
-        let dx = targetX - this.x;
-        this.facing = dx < 0 ? -1 : 1;
+        let tdx = 0;
+        if (targetX !== null) {
+          let dx = targetX - this.x;
+          this.facing = dx < 0 ? -1 : 1;
 
-        if (this.moveCd <= 0) {
-          let dist = Math.abs(dx);
-          if (dist > 200) { this.moveTarget = targetX - this.facing * 80; }
-          else if (dist < 60) { this.moveTarget = this.x - this.facing * 100; }
-          this.moveCd = 0.5 + Math.random() * 1;
-        }
-
-        let tdx = this.moveTarget - this.x;
-        if (Math.abs(tdx) > 5) this.x += Math.sign(tdx) * spd * dt;
-        this.x = Math.max(30, Math.min(W - 60, this.x));
-
-        // Attack
-        if (this.attackCd <= 0 && Math.abs(dx) < 120) {
-          this.state = 'attack';
-          let dmg = this.atk;
-
-          let petNearby = player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < 120;
-          let playerNearby = Math.abs(player.x - this.x) < 120;
-
-          if (petNearby && Math.abs(player.pet.x - this.x) <= Math.abs(player.x - this.x)) {
-            player.pet.takeDamage(dmg);
-          } else if (playerNearby) {
-            game.damagePlayer(dmg);
+          if (this.moveCd <= 0) {
+            let dist = Math.abs(dx);
+            if (dist > 200) { this.moveTarget = targetX - this.facing * 80; }
+            else if (dist < 60) { this.moveTarget = this.x - this.facing * 100; }
+            this.moveCd = 0.5 + Math.random() * 1;
           }
 
-          this.attackCd = 1.5 + Math.random() * 1;
-        }
+          tdx = this.moveTarget - this.x;
+          if (Math.abs(tdx) > 5) this.x += Math.sign(tdx) * spd * dt;
+          this.x = Math.max(30, Math.min(W - 60, this.x));
 
+          // Attack
+          if (this.attackCd <= 0 && Math.abs(dx) < 120) {
+            this.state = 'attack';
+            let dmg = this.atk;
+
+            let petNearby = player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < 120;
+            let playerNearby = Math.abs(player.x - this.x) < 120;
+
+            if (petNearby && Math.abs(player.pet.x - this.x) <= Math.abs(player.x - this.x)) {
+              player.pet.takeDamage(dmg);
+            } else if (playerNearby) {
+              game.damagePlayer(dmg);
+            }
+
+            this.attackCd = 1.5 + Math.random() * 1;
+          }
+        }
 
         // Skill - không xài chiêu nếu Cuồng nộ
         if (this.skillCd <= 0 && !this.isFurious) {
@@ -2983,7 +3039,7 @@
           this.skillCd = 6 + Math.random() * 4;
         }
 
-        if (this.state !== 'attack') this.state = Math.abs(tdx) > 10 ? 'run' : 'idle';
+        if (this.state !== 'attack') this.state = (targetX !== null && Math.abs(tdx) > 10) ? 'run' : 'idle';
         if (this.hurtTime > 0) this.state = 'hurt';
       }
       useRandomSkill(game, player) {
@@ -3092,24 +3148,33 @@
         this.attackCd -= dt;
 
         // Target nearest between player and pet Panda
-        let target = player;
-        if (player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < Math.abs(player.x - this.x)) {
+        let target = null;
+        if (player.invisible <= 0) {
+          target = player;
+          if (player.pet && player.pet.active && Math.abs(player.pet.x - this.x) < Math.abs(player.x - this.x)) {
+            target = player.pet;
+          }
+        } else if (player.pet && player.pet.active) {
           target = player.pet;
         }
 
-        let dx = target.x - this.x;
-        this.facing = dx < 0 ? -1 : 1;
-        if (Math.abs(dx) > 80) this.x += Math.sign(dx) * 80 * dt;
+        if (target) {
+          let dx = target.x - this.x;
+          this.facing = dx < 0 ? -1 : 1;
+          if (Math.abs(dx) > 80) this.x += Math.sign(dx) * 80 * dt;
 
-        if (this.attackCd <= 0 && Math.abs(dx) < 100) {
-          if (target === player) {
-            game.damagePlayer(this.atk);
-          } else {
-            target.takeDamage(this.atk);
-            spawnHitParticles(target.x, target.y - 50, '#ffaaaa');
-            if (game.audioCtx) game.playHitSound();
+          if (this.attackCd <= 0 && Math.abs(dx) < 100) {
+            if (target === player) {
+              game.damagePlayer(this.atk);
+            } else {
+              target.takeDamage(this.atk);
+              spawnHitParticles(target.x, target.y - 50, '#ffaaaa');
+              if (game.audioCtx) game.playHitSound();
+            }
+            this.attackCd = 1.5;
           }
-          this.attackCd = 1.5;
+        } else {
+          this.state = 'idle';
         }
       }
       takeDamage(dmg) { this.hp -= dmg; this.hurtTime = 0.15; }
@@ -3155,12 +3220,21 @@
         this.damageReduction = 0; this.damageReductionTime = 0;
         this.bonusAtk = 0;
         this.pet = null;
+        this.binCritBuff = false;
+        this.binAtkSpeedBuffTime = 0;
       }
       update(dt, keys) {
         this.animFrame += dt * 60;
         this.hurtTime = Math.max(0, this.hurtTime - dt);
         this.invincible = Math.max(0, this.invincible - dt);
+        this.binAtkSpeedBuffTime = Math.max(0, this.binAtkSpeedBuffTime - dt);
+
+        let wasInvisible = this.invisible > 0;
         this.invisible = Math.max(0, this.invisible - dt);
+        if (wasInvisible && this.invisible <= 0) {
+          this.triggerStealthEndBuffs();
+        }
+
         this.speedBuff = Math.max(0, this.speedBuff - dt);
         if (this.speedBuff <= 0) this.atkBuff = 0;
         this.attackCd = Math.max(0, this.attackCd - dt);
@@ -3180,6 +3254,7 @@
         // Movement
         let spd = 200;
         if (this.speedBuff > 0) spd *= 1.6;
+        if (this.invisible > 0 && this.charId === 'bin') spd *= 1.5; // +50% movement speed during stealth
         let moving = false;
         if ((keys['KeyA'] || keys['ArrowLeft']) && this.x > 30) { this.x -= spd * dt; this.facing = -1; moving = true; }
         if ((keys['KeyD'] || keys['ArrowRight']) && this.x < W - 30) { this.x += spd * dt; this.facing = 1; moving = true; }
@@ -3196,10 +3271,10 @@
         if (this.hurtTime > 0) this.state = 'hurt';
         else if (this.y < GROUND) this.state = 'jump';
         else if (this.state !== 'attack' && this.state !== 'skill') this.state = moving ? 'run' : 'idle';
-        if (this.invisible > 0) this.state = 'idle';
+        if (this.invisible > 0 && this.charId !== 'bin') this.state = 'idle';
       }
       takeDamage(dmg) {
-        if (this.invincible > 0 || this.invisible > 0) return 0;
+        if (this.invincible > 0) return 0;
         if (this.damageReductionTime > 0) dmg = Math.floor(dmg * (1 - this.damageReduction));
         if (this.shield > 0) {
           let absorbed = Math.min(this.shield, dmg);
@@ -3209,16 +3284,42 @@
         this.state = 'hurt';
         return dmg;
       }
+      triggerStealthEndBuffs() {
+        if (this.charId === 'bin') {
+          this.binCritBuff = true;
+          this.binAtkSpeedBuffTime = 2; // 2 seconds
+          showMsg('💥 CHÍ MẠNG & TĂNG TỐC ĐÁNH!');
+        }
+      }
       attack(targets, game) {
         if (this.attackCd > 0) return;
+        
+        let wasStealthed = this.invisible > 0;
+        if (wasStealthed) {
+          this.invisible = 0;
+          this.triggerStealthEndBuffs();
+        }
+
         let dmg = this.baseAtk * (1 + this.atkBuff);
+        let isCrit = false;
+        if (this.binCritBuff) {
+          dmg *= 2; // guaranteed double damage critical hit
+          isCrit = true;
+          this.binCritBuff = false; // consume the buff
+        }
+
         if (this.nextHitBonus > 0) { dmg += this.nextHitBonus; this.nextHitBonus = 0; }
         let hit = false;
         targets.forEach(t => {
           if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
             t.takeDamage(Math.floor(dmg));
             hit = true;
-            spawnHitParticles(t.x, t.y - 50);
+            if (isCrit) {
+              spawnHitParticles(t.x, t.y - 50, '#ff0055'); // nice pinkish red critical hit particles
+              showMsg('💥 CHÍ MẠNG x2 SÁT THƯƠNG!');
+            } else {
+              spawnHitParticles(t.x, t.y - 50);
+            }
           }
         });
         // Hiệu ứng tấn công cơ bản tuỳ biến theo nhân vật
@@ -3238,8 +3339,20 @@
         }
         this.state = 'attack';
         let baseCd = 0.55;
-        if (this.charId === 'bin') baseCd /= 1.6; // Tốc đánh +60% (cooldown chia 1.6)
-        this.attackCd = this.speedBuff > 0 ? (this.charId === 'bin' ? 0.22 : 0.35) : baseCd;
+        if (this.charId === 'bin') {
+          baseCd /= 1.6; // Base attack speed for Bin is +60% faster (0.34s)
+          if (this.binAtkSpeedBuffTime > 0) {
+            baseCd /= 1.5; // +50% attack speed during buff (0.229s)
+          }
+        }
+        let cd = baseCd;
+        if (this.speedBuff > 0) {
+          cd = this.charId === 'bin' ? 0.22 : 0.35;
+          if (this.charId === 'bin' && this.binAtkSpeedBuffTime > 0) {
+            cd /= 1.5; // stack if both active
+          }
+        }
+        this.attackCd = cd;
         setTimeout(() => { if (this.state === 'attack') this.state = 'idle'; }, 300);
         return hit;
       }
@@ -3966,7 +4079,7 @@
       playBgMusic(force = false) {
         if (!this.running || !this.audioCtx) return;
         let ac = this.audioCtx;
-
+        
         let targetBgm = 'normal';
         if (this.isBossFloor) {
           if (this.bossIndex === 4 && this.boss && this.boss.isFurious) {
@@ -3975,7 +4088,7 @@
             targetBgm = 'boss';
           }
         }
-
+        
         if (this.currentBgmType === targetBgm && !force) {
           // Continue loop
         } else {
@@ -3985,7 +4098,7 @@
 
         let t = ac.currentTime;
         let nextLoopDelay = 8000;
-
+        
         if (this.currentBgmType === 'normal') {
           // Adventurous & Calm
           const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
@@ -4001,7 +4114,7 @@
           let melody = [0, 2, 4, 5, 4, 2, 0, 2];
           melody.forEach((n, i) => { play(notes[n], t + i * 0.8, 0.7); });
           nextLoopDelay = 7000;
-
+          
         } else if (this.currentBgmType === 'boss') {
           // Boss BGM: Tense & Battle-enthusiastic arpeggio + drum clicks + hi-hat + lead
           let playBass = (freq, time, dur) => {
@@ -4013,7 +4126,7 @@
             g.gain.linearRampToValueAtTime(0, time + dur);
             o.start(time); o.stop(time + dur + 0.1);
           };
-
+          
           let playDrum = (time) => {
             let o = ac.createOscillator(), g = ac.createGain();
             o.connect(g); g.connect(ac.destination);
@@ -4023,7 +4136,7 @@
             g.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
             o.start(time); o.stop(time + 0.1);
           };
-
+          
           let playLead = (freq, time, dur) => {
             let o = ac.createOscillator(), g = ac.createGain();
             o.connect(g); g.connect(ac.destination);
@@ -4054,14 +4167,14 @@
               o.start(noteTime); o.stop(noteTime + 0.05);
             }
           }
-
+          
           const leadFreqs = [220, 261.63, 293.66, 311.13, 293.66, 261.63, 220, 164.81];
           leadFreqs.forEach((freq, idx) => {
             playLead(freq, t + idx * 0.5, 0.45);
           });
-
+          
           nextLoopDelay = 4000;
-
+          
         } else if (this.currentBgmType === 'furious') {
           // Furious Boss BGM: Heavy doom sawtooth chords + pounding kick + screeching lead
           let playDoomBass = (freq, time, dur) => {
@@ -4074,7 +4187,7 @@
             g.gain.linearRampToValueAtTime(0, time + dur);
             o.start(time); o.stop(time + dur + 0.1);
           };
-
+          
           let playDissonantLead = (freq, time, dur) => {
             let o1 = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
             o1.connect(g); o2.connect(g); g.connect(ac.destination);
@@ -4085,7 +4198,7 @@
             g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
             o1.start(time); o2.start(time); o1.stop(time + dur + 0.1); o2.stop(time + dur + 0.1);
           };
-
+          
           let playHeavyDrum = (time) => {
             let o = ac.createOscillator(), g = ac.createGain();
             o.connect(g); g.connect(ac.destination);
@@ -4107,12 +4220,12 @@
             }
             if (step % 2 === 0) playHeavyDrum(noteTime);
           }
-
+          
           const leadFreqs = [659.25, 698.46, 932.33, 880.00, 622.25, 659.25, 622.25, 587.33];
           leadFreqs.forEach((freq, idx) => {
             playDissonantLead(freq, t + idx * 0.4, 0.35);
           });
-
+          
           nextLoopDelay = 3200;
         }
 
@@ -4220,7 +4333,7 @@
         game.running = false;
         game.stopBgMusic();
         if (game.audioCtx && game.audioCtx.state !== 'closed') {
-          game.audioCtx.close().catch(e => { });
+          game.audioCtx.close().catch(e => {});
         }
         // Hide extra skills
         for (let i = 2; i <= 5; i++) {
@@ -4347,23 +4460,71 @@
         });
       }
 
-      // Đăng ký sự kiện touch cho thanh Kỹ năng (Skills) trên điện thoại để phản hồi lập tức (không bị trễ)
+      // Đăng ký sự kiện touch cho thanh Kỹ năng (Skills) trên điện thoại
       for (let i = 0; i <= 5; i++) {
         const skEl = document.getElementById(`sk${i}`);
         if (skEl) {
+          let touchTimer = null;
+          let hasHeld = false;
+
           skEl.addEventListener('touchstart', e => {
             e.preventDefault();
             e.stopPropagation();
-            if (game && game.running && !game.paused) {
-              if (i < 2) {
-                game.useSkill(i);
-              } else {
-                game.useExtraSkill(i - 2);
+
+            // Ẩn toàn bộ tooltips của các ô kỹ năng khác
+            document.querySelectorAll('.skill-slot').forEach(slot => {
+              if (slot !== skEl) slot.classList.remove('show-tooltip');
+            });
+
+            hasHeld = false;
+            touchTimer = setTimeout(() => {
+              hasHeld = true;
+              skEl.classList.add('show-tooltip');
+            }, 250); // Nhấn giữ 250ms để đọc thông tin skill
+          });
+
+          skEl.addEventListener('touchend', e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (touchTimer) {
+              clearTimeout(touchTimer);
+              touchTimer = null;
+            }
+
+            if (hasHeld) {
+              // Đã kích hoạt trạng thái hiển thị mô tả, giữ lại để người chơi đọc
+            } else {
+              // Chạm nhanh -> Triển khai chiêu thức ngay lập tức!
+              skEl.classList.remove('show-tooltip');
+              if (game && game.running && !game.paused) {
+                if (i < 2) {
+                  game.useSkill(i);
+                } else {
+                  game.useExtraSkill(i - 2);
+                }
               }
             }
           });
+
+          skEl.addEventListener('touchcancel', e => {
+            if (touchTimer) {
+              clearTimeout(touchTimer);
+              touchTimer = null;
+            }
+            skEl.classList.remove('show-tooltip');
+          });
         }
       }
+
+      // Nhấn chạm bất kỳ vị trí nào khác ngoài ô kỹ năng để đóng toàn bộ bảng mô tả đang mở
+      document.addEventListener('touchstart', e => {
+        if (!e.target.closest('.skill-slot')) {
+          document.querySelectorAll('.skill-slot').forEach(slot => {
+            slot.classList.remove('show-tooltip');
+          });
+        }
+      });
     }
 
     // Khởi tạo bộ phím ảo
@@ -4380,7 +4541,7 @@
       canvas.height = window.innerHeight;
       W = canvas.width;
       H = canvas.height;
-      GROUND = H - 100;
+      GROUND = H - (isMobile ? 55 : 80);
     }
 
     window.addEventListener('resize', resizeCanvas);
