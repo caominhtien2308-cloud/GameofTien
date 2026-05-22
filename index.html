@@ -270,20 +270,20 @@
 
     #message {
       position: fixed;
-      top: 90px;
+      top: 110px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 26px;
+      font-size: 46px;
       font-weight: bold;
       color: #ffd700;
-      text-shadow: 0 0 20px #ffa500;
+      text-shadow: 0 0 10px #ffaa00, 0 0 20px #ffa500, 0 0 35px #ff5500;
       z-index: 50;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.5s;
       text-align: center;
       width: 90%;
-      max-width: 600px;
+      max-width: 800px;
     }
 
     #skill-pick {
@@ -314,6 +314,8 @@
     .skill-choices {
       display: flex;
       gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .skill-choice-card {
@@ -527,7 +529,7 @@
 
     #settings-btn {
       position: absolute;
-      top: 15px;
+      top: 60px;
       right: 15px;
       background: rgba(0, 0, 0, 0.7);
       color: #ffd700;
@@ -1017,9 +1019,8 @@
       }
 
       #settings-btn {
-        top: 8px;
-        right: 40px;
-        /* shift left of floor display */
+        top: 45px;
+        right: 8px;
         width: 32px;
         height: 32px;
         font-size: 14px;
@@ -2156,17 +2157,17 @@
 
     function drawHumanThao(c, state, t, x, y, facing) { // Thảo - Pháp sư nữ
       // Shoe swing
-      c.fillStyle = '#4c1d95';
+      c.fillStyle = '#0f766e';
       let lSwing = state === 'run' ? Math.sin(t * 8) * 8 : 0;
       c.fillRect(-8 + lSwing, 28, 6, 8);
       c.fillRect(2 - lSwing, 28, 6, 8);
 
-      // Starry Cloak (Behind body)
+      // Starry Cloak (Behind body) - Translucent Mint Silk Cape
       c.save();
       let capeGrad = c.createLinearGradient(0, -5, -45, 35);
-      capeGrad.addColorStop(0, '#1e1b4b');
-      capeGrad.addColorStop(0.5, '#312e81');
-      capeGrad.addColorStop(1, '#4c1d95');
+      capeGrad.addColorStop(0, 'rgba(13, 148, 136, 0.7)');
+      capeGrad.addColorStop(0.5, 'rgba(45, 212, 191, 0.5)');
+      capeGrad.addColorStop(1, 'rgba(15, 118, 110, 0.3)');
       c.fillStyle = capeGrad;
       c.beginPath();
       c.moveTo(-12, -5);
@@ -2175,30 +2176,49 @@
       c.fill();
       // Glow stars on cape
       c.fillStyle = '#ffffff';
+      c.shadowColor = '#00ffcc';
+      c.shadowBlur = 4;
       for (let i = 0; i < 5; i++) {
         let sx = -18 - (i * 4.5) + Math.cos(t + i) * 2;
         let sy = 5 + (i * 5);
-        c.beginPath(); c.arc(sx, sy, 0.9, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.arc(sx, sy, 1.2, 0, Math.PI * 2); c.fill();
       }
+      c.shadowBlur = 0;
       c.restore();
 
-      // Robe Gown
+      // Robe Gown -> Fairytale Jade Green Ball Gown (Puffy)
+      c.save();
       let robeGrad = c.createLinearGradient(0, -5, 0, 30);
-      robeGrad.addColorStop(0, '#311042');
-      robeGrad.addColorStop(0.6, '#4c1d95');
-      robeGrad.addColorStop(1, '#6d28d9');
+      robeGrad.addColorStop(0, '#0f766e'); // deep jade waist
+      robeGrad.addColorStop(0.5, '#14b8a6'); // beautiful jade body
+      robeGrad.addColorStop(1, '#2dd4bf'); // minty light jade hem
       c.fillStyle = robeGrad;
       c.beginPath();
-      c.moveTo(-16, -5);
-      c.quadraticCurveTo(-22, 12, -18, 30);
-      c.lineTo(18, 30);
-      c.quadraticCurveTo(22, 12, 16, -5);
+      c.moveTo(-12, -5); // waist left
+      c.bezierCurveTo(-28, 8, -34, 20, -30, 30); // flared out left
+      c.lineTo(30, 30); // flat bottom hem
+      c.bezierCurveTo(34, 20, 28, 8, 12, -5); // flared out right
+      c.closePath();
       c.fill();
-      // Gold trim
-      c.strokeStyle = '#eab308'; c.lineWidth = 2.5;
-      c.beginPath(); c.moveTo(-18, 30); c.lineTo(18, 30); c.stroke();
 
-      // Head & giant pointed witch hat
+      // Premium layered frills/folds
+      c.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.moveTo(-12, -5); c.quadraticCurveTo(-6, 12, -18, 30);
+      c.moveTo(12, -5); c.quadraticCurveTo(6, 12, 18, 30);
+      c.stroke();
+
+      // Mint shiny trim
+      c.strokeStyle = '#2dd4bf'; c.lineWidth = 2.5;
+      c.beginPath(); c.moveTo(-30, 30); c.lineTo(30, 30); c.stroke();
+      
+      // Elegant gold sash belt
+      c.fillStyle = '#facc15';
+      c.fillRect(-10, -5, 20, 3.5);
+      c.restore();
+
+      // Head & giant pointed witch hat (Jade color theme)
       c.save();
       c.translate(0, -28);
       c.rotate(-0.06 + Math.sin(t * 4) * 0.05);
@@ -2212,34 +2232,38 @@
       c.fillStyle = '#06b6d4';
       c.beginPath(); c.arc(-4, 0, 2.5, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(4, 0, 2.5, 0, Math.PI * 2); c.fill();
-      // Hat brim
-      c.fillStyle = '#311042';
+      // Hat brim (Jade green)
+      c.fillStyle = '#0f766e';
       c.beginPath(); c.ellipse(0, -8, 24, 6, 0.08, 0, Math.PI * 2); c.fill();
-      // Hat cone
+      // Hat cone (Jade green)
+      let hatGrad = c.createLinearGradient(0, -10, 0, -38);
+      hatGrad.addColorStop(0, '#0d9488');
+      hatGrad.addColorStop(1, '#14b8a6');
+      c.fillStyle = hatGrad;
       c.beginPath();
       c.moveTo(-12, -10);
       c.quadraticCurveTo(-14, -32, -26 + Math.sin(t * 3) * 3, -38);
       c.quadraticCurveTo(0, -28, 12, -10);
       c.fill();
       // Golden hat band
-      c.fillStyle = '#eab308';
+      c.fillStyle = '#facc15';
       c.fillRect(-10, -12, 20, 3);
-      // Jewel on hat tip
-      c.fillStyle = '#06b6d4'; c.shadowColor = '#00ffff'; c.shadowBlur = 6;
-      c.beginPath(); c.arc(-26 + Math.sin(t * 3) * 3, -38, 3, 0, Math.PI * 2); c.fill();
+      // Jewel on hat tip (Glowing Jade/Mint)
+      c.fillStyle = '#2dd4bf'; c.shadowColor = '#00ffcc'; c.shadowBlur = 8;
+      c.beginPath(); c.arc(-26 + Math.sin(t * 3) * 3, -38, 3.5, 0, Math.PI * 2); c.fill();
       c.shadowBlur = 0;
       c.restore();
 
-      // Floating Spellbook (Left Side)
+      // Floating Spellbook (Left Side) - Jade Emerald style
       c.save();
       let bBob = Math.sin(t * 4) * 8;
       c.translate(-32, -30 + bBob);
       c.rotate(0.1 + Math.sin(t * 3) * 0.1);
-      // Leather cover
-      c.fillStyle = '#7f1d1d';
+      // Leather cover (Deep Teal)
+      c.fillStyle = '#0f766e';
       c.fillRect(-12, -8, 24, 16);
-      // Pages flapping
-      c.fillStyle = '#fef08a';
+      // Pages flapping (Minty paper)
+      c.fillStyle = '#ccfbf1';
       let flap = Math.abs(Math.sin(t * 10)) * 10;
       c.beginPath();
       c.moveTo(0, -6);
@@ -2250,9 +2274,9 @@
       c.lineTo(8, -6 + flap * 0.5);
       c.closePath(); c.fill();
       // Spine
-      c.fillStyle = '#3f0712';
+      c.fillStyle = '#115e59';
       c.fillRect(-2, -7, 4, 14);
-      // Tiny magic star sparks
+      // Tiny magic star sparks (Jade green sparks)
       if (Math.random() < 0.1) {
         if (typeof globalParticles !== 'undefined') {
           globalParticles.push(new Particle(
@@ -2260,7 +2284,7 @@
             y - 95 + bBob,
             (Math.random() - 0.5) * 30,
             -25 - Math.random() * 25,
-            '#a7f3d0',
+            '#2dd4bf',
             0.5,
             3,
             'snowflake'
@@ -2269,13 +2293,13 @@
       }
       c.restore();
 
-      // Pha lê Trượng (Crystal Staff in right hand)
+      // Pha lê Trượng (Crystal Staff in right hand) - Jade style
       let staffAngle = state === 'attack' ? -1.0 + Math.sin(t * 15) * 0.8 : -0.2 + Math.sin(t * 2) * 0.15;
       c.save();
       c.translate(14, 5);
       c.rotate(staffAngle);
       // Gold staff rod
-      c.strokeStyle = '#eab308'; c.lineWidth = 3.5;
+      c.strokeStyle = '#facc15'; c.lineWidth = 3.5;
       c.beginPath(); c.moveTo(0, 25); c.lineTo(0, -35); c.stroke();
       // Staff head rotating crystal
       c.save();
@@ -2283,7 +2307,7 @@
       c.rotate(t * 3.5);
       let cryGrad = c.createRadialGradient(0, 0, 0, 0, 0, 11);
       cryGrad.addColorStop(0, '#ffffff');
-      cryGrad.addColorStop(1, '#06b6d4');
+      cryGrad.addColorStop(1, '#14b8a6');
       c.fillStyle = cryGrad;
       c.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -2292,7 +2316,7 @@
       }
       c.closePath(); c.fill();
       // Glow ring
-      c.strokeStyle = 'rgba(6, 182, 212, 0.4)'; c.lineWidth = 1.5;
+      c.strokeStyle = 'rgba(45, 212, 191, 0.45)'; c.lineWidth = 1.5;
       c.beginPath(); c.arc(0, 0, 12 + Math.sin(t * 5) * 3, 0, Math.PI * 2); c.stroke();
       c.restore();
       c.restore();
@@ -2437,8 +2461,8 @@
         c.rotate(angle);
         // Skin
         c.fillStyle = '#f8d5b8'; c.fillRect(-3, 0, 6, 18);
-        // Leaf boot
-        c.fillStyle = '#166534'; c.fillRect(-3.5, 12, 7, 16);
+        // Sky Blue & Gold boot
+        c.fillStyle = '#3b82f6'; c.fillRect(-3.5, 12, 7, 16);
         c.fillStyle = '#facc15'; c.fillRect(-4, 28, 9, 3);
         c.restore();
       }
@@ -2451,24 +2475,41 @@
       c.translate(-10, -2);
       c.rotate(-0.4);
       c.fillStyle = '#78350f'; c.fillRect(-4, -14, 8, 22);
-      c.fillStyle = '#10b981';
+      c.fillStyle = '#3b82f6'; // Match blue arrows
       c.fillRect(-3, -18, 2, 4); c.fillRect(1, -18, 2, 4);
       c.restore();
 
-      // Gown Body & Leaf Skirt
+      // Gown Body & Leaf Skirt -> Royal Sky Blue Gown (Puffy)
+      c.save();
       let skirtGrad = c.createLinearGradient(0, -6, 0, 24);
-      skirtGrad.addColorStop(0, '#10b981');
-      skirtGrad.addColorStop(1, '#064e3b');
+      skirtGrad.addColorStop(0, '#1d4ed8'); // royal blue waist
+      skirtGrad.addColorStop(0.5, '#3b82f6'); // bright sky blue
+      skirtGrad.addColorStop(1, '#93c5fd'); // soft pale blue hem
       c.fillStyle = skirtGrad;
       c.beginPath();
-      c.moveTo(-14, -6);
-      c.quadraticCurveTo(-24, 10, -16, 24);
-      c.lineTo(16, 24);
-      c.quadraticCurveTo(24, 10, 14, -6);
+      c.moveTo(-12, -6); // waist left
+      c.bezierCurveTo(-26, 6, -32, 18, -28, 24); // flared out left
+      c.lineTo(28, 24); // flat bottom hem
+      c.bezierCurveTo(32, 18, 26, 6, 12, -6); // flared out right
+      c.closePath();
       c.fill();
+      
+      // Silk layered frills/folds
+      c.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.moveTo(-12, -6); c.quadraticCurveTo(-6, 8, -16, 24);
+      c.moveTo(12, -6); c.quadraticCurveTo(6, 8, 18, 24);
+      c.stroke();
+
+      // Shiny silver trim
+      c.strokeStyle = '#e2e8f0'; c.lineWidth = 2.5;
+      c.beginPath(); c.moveTo(-28, 24); c.lineTo(28, 24); c.stroke();
+
       // Gold sash belt
       c.fillStyle = '#facc15';
-      c.fillRect(-10, 0, 20, 3.5);
+      c.fillRect(-10, -2, 20, 3.5);
+      c.restore();
 
       // Head & Long Blonde Hair & Crown
       c.save();
@@ -2486,15 +2527,46 @@
       c.fillStyle = '#f8d5b8';
       c.beginPath(); c.arc(0, 0, 11.5, 0, Math.PI * 2); c.fill();
 
-      // Emerald eyes
-      c.fillStyle = '#10b981';
+      // Deep sapphire/blue eyes
+      c.fillStyle = '#1e3a8a';
       c.beginPath(); c.arc(-3.5, 0, 2.2, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(3.5, 0, 2.2, 0, Math.PI * 2); c.fill();
 
-      // Tiara gold crown
-      c.strokeStyle = '#facc15'; c.lineWidth = 2;
-      c.beginPath(); c.moveTo(-10, -6); c.lineTo(0, -12); c.lineTo(10, -6); c.stroke();
-      c.fillStyle = '#10b981'; c.beginPath(); c.arc(0, -12, 3, 0, Math.PI * 2); c.fill();
+      // Gorgeous Golden Crown with sparkling diamonds (Vương miện vàng đính kim cương xung quanh)
+      c.save();
+      c.translate(0, -11);
+      // Crown body (solid gold)
+      c.fillStyle = '#eab308';
+      c.strokeStyle = '#facc15';
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.moveTo(-9, 2);
+      c.quadraticCurveTo(0, 4, 9, 2);
+      c.lineTo(11, -3);
+      c.lineTo(5, 0);
+      c.lineTo(0, -7); // center peak
+      c.lineTo(-5, 0);
+      c.lineTo(-11, -3);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      
+      // Diamonds glowing around the crown
+      c.fillStyle = '#ffffff';
+      c.shadowColor = '#00ffff'; // cyan-white diamond glow
+      c.shadowBlur = 5 + Math.sin(t * 8) * 3;
+      
+      // 3 peaks diamond gems
+      c.beginPath(); c.arc(-11, -3, 2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(0, -7, 2.5, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(11, -3, 2, 0, Math.PI * 2); c.fill();
+      
+      // 3 studs along the base
+      c.shadowBlur = 3;
+      c.beginPath(); c.arc(-5, 2, 1.2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(0, 3, 1.2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(5, 2, 1.2, 0, Math.PI * 2); c.fill();
+      c.restore();
       c.restore();
 
       // Emerald Bow (Left hand front)
@@ -2654,18 +2726,6 @@
     }
 
     function drawHumanNga(c, state, t, x, y, facing) { // Nga - Summoner
-      // Frilly lavender skirt peeking out
-      let skirtGrad = c.createLinearGradient(0, 0, 0, 22);
-      skirtGrad.addColorStop(0, '#c084fc');
-      skirtGrad.addColorStop(1, '#818cf8');
-      c.fillStyle = skirtGrad;
-      c.beginPath();
-      c.moveTo(-16, 4);
-      c.quadraticCurveTo(-22, 14, -16, 22);
-      c.lineTo(16, 22);
-      c.quadraticCurveTo(22, 14, 16, 4);
-      c.fill();
-
       // Legs
       let legL = 0, legR = 0;
       if (state === 'run') {
@@ -2677,8 +2737,10 @@
         c.save();
         c.translate(hx, hy);
         c.rotate(angle);
-        c.fillStyle = '#111827'; c.fillRect(-3, 0, 6, 20);
-        c.fillStyle = '#f472b6'; c.fillRect(-4.5, 18, 9, 12);
+        c.fillStyle = '#b45309'; // dark brown leg/shoe stocking
+        c.fillRect(-3, 0, 6, 20);
+        c.fillStyle = '#facc15'; // yellow shoe
+        c.fillRect(-4.5, 18, 9, 12);
         c.fillStyle = '#ffffff'; c.beginPath(); c.arc(-4.5, 24, 3, 0, Math.PI * 2); c.fill();
         c.restore();
       }
@@ -2686,53 +2748,106 @@
       drawCuteLeg(c, -6, 20, legL);
       drawCuteLeg(c, 6, 20, legR);
 
-      // Hoodie body (white center, black shoulders)
-      c.fillStyle = '#f8fafc';
-      c.beginPath(); c.ellipse(0, 3, 14, 16, 0, 0, Math.PI * 2); c.fill();
-      c.fillStyle = '#111827';
-      c.beginPath(); c.ellipse(-12, 0, 6, 8, 0.4, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.ellipse(12, 0, 6, 8, -0.4, 0, Math.PI * 2); c.fill();
+      // Yellow Evening Gown (Puffy & Sparkly)
+      c.save();
+      let skirtGrad = c.createLinearGradient(0, -5, 0, 22);
+      skirtGrad.addColorStop(0, '#d97706'); // golden orange waist
+      skirtGrad.addColorStop(0.5, '#facc15'); // rich gold body
+      skirtGrad.addColorStop(1, '#fef08a'); // soft cream yellow hem
+      c.fillStyle = skirtGrad;
+      c.beginPath();
+      c.moveTo(-12, -5); // waist left
+      c.bezierCurveTo(-28, 8, -34, 18, -30, 22); // flared out left
+      c.lineTo(30, 22); // bottom hem
+      c.bezierCurveTo(34, 18, 28, 8, 12, -5); // flared out right
+      c.closePath();
+      c.fill();
+      
+      // Silk layered frills/folds
+      c.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.moveTo(-12, -5); c.quadraticCurveTo(-6, 8, -16, 22);
+      c.moveTo(12, -5); c.quadraticCurveTo(6, 8, 18, 22);
+      c.stroke();
 
-      // Wavy waist pink ribbons
+      // Shiny silver trim
+      c.strokeStyle = '#ffffff'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(-30, 22); c.lineTo(30, 22); c.stroke();
+
+      // Pink satin bow belt at waist
+      c.fillStyle = '#f472b6';
+      c.fillRect(-10, -5, 20, 3.5);
+      c.restore();
+
+      // Wavy waist pink ribbons waving elegantly
       c.strokeStyle = '#f472b6'; c.lineWidth = 2.5;
       c.beginPath();
-      c.moveTo(-10, 12);
+      c.moveTo(-10, 10);
       for (let i = 1; i <= 5; i++) {
         let wave = Math.sin(t * 6 - i * 0.8) * 8;
-        c.lineTo(-10 - i * 10, 12 + wave);
+        c.lineTo(-10 - i * 10, 10 + wave);
       }
       c.stroke();
 
-      // Head & Panda hood
+      // Head & Beautiful styled hair with 2 sparkling flowers
       c.save();
       c.translate(0, -26);
       let earBob = Math.sin(t * 10) * 0.15 * (state === 'run' ? 1 : 0.3);
-      // Ears
-      c.fillStyle = '#111827';
-      c.beginPath(); c.arc(-13, -11 + earBob, 6, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.arc(13, -11 - earBob, 6, 0, Math.PI * 2); c.fill();
-
-      // White hood sphere
-      c.fillStyle = '#f8fafc';
-      c.beginPath(); c.arc(0, 0, 13.5, 0, Math.PI * 2); c.fill();
+      
+      // Mái tóc nâu hạt dẻ tết búi hai bên
+      c.fillStyle = '#451a03'; // warm chocolate brown hair
+      
+      // Long hair back sphere
+      c.beginPath(); c.ellipse(0, 0, 13.5, 14.5, 0, 0, Math.PI * 2); c.fill();
+      
+      // Twin tết buns on side
+      c.beginPath(); c.arc(-13, -8 + earBob, 6, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(13, -8 - earBob, 6, 0, Math.PI * 2); c.fill();
 
       // Face cutout skin
       c.fillStyle = '#f8d5b8';
       c.beginPath(); c.arc(0, 2, 9, 0, Math.PI * 2); c.fill();
 
-      // Panda eye patches
-      c.fillStyle = '#111827';
-      c.beginPath(); c.ellipse(-4, 2, 3, 4, 0.3, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.ellipse(4, 2, 3, 4, -0.3, 0, Math.PI * 2); c.fill();
-      // White eye sparkles
+      // Beautiful big brown eyes with cute sparkles
+      c.fillStyle = '#3f1a04';
+      c.beginPath(); c.ellipse(-4, 2, 2.5, 3.5, 0.2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(4, 2, 2.5, 3.5, -0.2, 0, Math.PI * 2); c.fill();
+      
       c.fillStyle = '#ffffff';
-      c.beginPath(); c.arc(-3.5, 1.5, 1, 0, Math.PI * 2); c.fill();
-      c.beginPath(); c.arc(4.5, 1.5, 1, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(-3.5, 1.5, 0.9, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(4.5, 1.5, 0.9, 0, Math.PI * 2); c.fill();
 
       // Pink cheeks
       c.fillStyle = 'rgba(244, 114, 182, 0.5)';
       c.beginPath(); c.arc(-6, 5, 2.5, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(6, 5, 2.5, 0, Math.PI * 2); c.fill();
+
+      // 2 Sparkling Flowers (2 bông hoa sáng lấp lánh cài hai bên tóc)
+      function drawSparklingFlower(fx, fy) {
+        c.save();
+        c.translate(fx, fy);
+        c.shadowColor = '#ffffff';
+        c.shadowBlur = 10 + Math.sin(t * 8) * 4; // pulsating glow
+        c.fillStyle = '#fffbeb'; // sparkling warm white
+        
+        // 5 petals
+        for (let i = 0; i < 5; i++) {
+          let px = Math.cos(i * Math.PI * 2 / 5) * 4.5;
+          let py = Math.sin(i * Math.PI * 2 / 5) * 4.5;
+          c.beginPath(); c.arc(px, py, 3.2, 0, Math.PI * 2); c.fill();
+        }
+        
+        // center
+        c.fillStyle = '#facc15'; // gold core
+        c.shadowBlur = 0;
+        c.beginPath(); c.arc(0, 0, 2.2, 0, Math.PI * 2); c.fill();
+        c.restore();
+      }
+
+      drawSparklingFlower(-13, -8 + earBob);
+      drawSparklingFlower(13, -8 - earBob);
+
       c.restore();
 
       // Golden flute
@@ -3781,6 +3896,8 @@
         let bossData = CHARS[boss];
         let choicesEl = document.getElementById('skill-choices');
         choicesEl.innerHTML = '';
+        
+        // Render boss's skills
         bossData.skills.forEach((sk, i) => {
           let card = document.createElement('div');
           card.className = 'skill-choice-card';
@@ -3790,6 +3907,17 @@
           card.onclick = () => { this.learnSkill(sk); };
           choicesEl.appendChild(card);
         });
+
+        // Add "Thuốc Lắc Chỉ Số" option card
+        let pillCard = document.createElement('div');
+        pillCard.className = 'skill-choice-card';
+        pillCard.style.border = '2px dashed #ffd700'; // stand out nicely
+        pillCard.innerHTML = `<div class="skill-icon">💊</div>
+      <div class="skill-name" style="color: #ffd700; font-weight: bold;">Thuốc Lắc Chỉ Số</div>
+      <div class="skill-desc">Tăng vĩnh viễn 10% HP, MP và Sát thương (ATK) cơ bản. Hồi phục toàn bộ sinh lực!</div>`;
+        pillCard.onclick = () => { this.applyStatBooster(); };
+        choicesEl.appendChild(pillCard);
+
         document.getElementById('skill-pick').style.display = 'flex';
       }
 
@@ -3799,6 +3927,21 @@
         this.player.extraSkillCooldowns.push(0);
         this.updateExtraSkillSlots();
         showMsg(`✨ Đã học: ${sk.name}!`);
+        this.paused = false;
+        this.floor++;
+        this.startFloor();
+      }
+
+      applyStatBooster() {
+        document.getElementById('skill-pick').style.display = 'none';
+        let p = this.player;
+        p.maxHp = Math.round(p.maxHp * 1.1);
+        p.maxMp = Math.round(p.maxMp * 1.1);
+        p.baseAtk = Math.round(p.baseAtk * 1.1);
+        p.atk = Math.round(p.atk * 1.1);
+        p.hp = p.maxHp;
+        p.mp = p.maxMp;
+        showMsg(`✨ Đã cắn Thuốc Lắc! HP, MP & ATK tăng 10%!`);
         this.paused = false;
         this.floor++;
         this.startFloor();
