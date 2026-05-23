@@ -1404,6 +1404,24 @@
       border: 1px solid #ff6666;
       z-index: 10;
     }
+
+    .heaven-message {
+      color: #ff3333 !important;
+      /* Striking warning red */
+      text-shadow:
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        0 0 15px rgba(0, 0, 0, 0.9) !important;
+      /* Thick black outline and shadow for contrast */
+      background: rgba(0, 0, 0, 0.8) !important;
+      /* Translucent black background */
+      padding: 15px 30px !important;
+      border-radius: 12px !important;
+      border: 1.5px solid rgba(255, 215, 0, 0.4) !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65) !important;
+    }
   </style>
 </head>
 
@@ -5080,14 +5098,14 @@
         // 2. Refresh Summon Skill Cooldown (if player has it)
         this.refreshSummonSkill();
 
-        // 3. Set Suicide Countdown (12 seconds)
-        this.heavenSuicideTimer = 12.0;
+        // 3. Set Suicide Countdown (15 seconds)
+        this.heavenSuicideTimer = 15.0;
         this.tanSkeletonExploding = false;
         this.heavenCutsceneStep = 0;
         this.heavenCutsceneTimer = 0;
 
         // 4. Show warnings
-        showMsg("Tân Skeleton chuẩn bị thiến chim tự sát trong 12s! Bạn sẽ chết nếu hứng trọn vụ nổ!", false);
+        showMsg("Tân Skeleton chuẩn bị thiến chim tự sát trong 15s! Bạn sẽ chết nếu hứng trọn vụ nổ!", false);
         this.heavenWarnTimer = 4.0; // Show secondary message after 4s
 
         // Play epic music if available
@@ -6414,6 +6432,11 @@
     function showMsg(text, auto = true) {
       let el = document.getElementById('message');
       el.textContent = text; el.style.opacity = '1';
+      if (typeof game !== 'undefined' && game && game.isHeavenStage) {
+        el.classList.add('heaven-message');
+      } else {
+        el.classList.remove('heaven-message');
+      }
       if (msgTimeout) clearTimeout(msgTimeout);
       if (auto) msgTimeout = setTimeout(() => { el.style.opacity = '0'; }, 2500);
     }
