@@ -1019,29 +1019,37 @@
       /* Skills bar re-styling for Touch Interface */
       #skills-bar {
         bottom: auto;
-        top: 50px;
-        left: 8px;
+        top: 110px; /* Tránh đè lên HUD nhân vật */
+        left: 10px;
         transform: none;
-        flex-direction: column;
+        display: grid !important;
+        grid-template-columns: repeat(1, 32px); /* Kích thước nhỏ gọn 32px */
+        grid-auto-flow: row;
         gap: 4px;
+        z-index: 2000;
+      }
+
+      #skills-bar.two-columns {
+        grid-template-columns: repeat(2, 32px); /* 2 cột khi > 4 kỹ năng */
       }
 
       body.mobile-device #skills-bar {
-        display: flex !important;
-        /* Force show */
+        display: grid !important;
+        /* Force show in mobile */
       }
 
       .skill-slot {
-        width: 36px !important;
-        height: 36px !important;
+        width: 32px !important;
+        height: 32px !important;
         border-radius: 50%;
-        background: rgba(10, 10, 20, 0.85);
-        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        background: rgba(10, 10, 20, 0.9);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
       }
 
       .skill-slot .key {
-        font-size: 9px !important;
+        font-size: 8px !important;
         color: #ffd700;
+        line-height: 1.1;
       }
 
       .skill-slot .name {
@@ -1050,11 +1058,11 @@
       }
 
       .skill-slot .cooldown-overlay {
-        font-size: 9px !important;
+        font-size: 8px !important;
       }
 
       .skill-slot .tooltip {
-        left: 50px !important;
+        left: 80px !important; /* Đẩy sang phải để không bị che khuất */
         bottom: 50%;
         transform: translateY(50%);
         width: 150px;
@@ -1388,8 +1396,8 @@
           },
           {
             name: 'Sao anh dám phản bội em?', key: '2', cd: 30, mpCost: 250, icon: '🌪️',
-            desc: 'Mưa tên gây 750 sát thương diện rộng, +50% tốc độ bắn 5s. Bắn thấy mọe mấy thằng phản bội',
-            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('arrowRain', p.x, p.y, 750 * (1 + p.bonusAtk), false, { game: g }); p.speedBuff = Math.max(p.speedBuff || 0, 5); showMsg('🌪️ CHỤC LY BÍ ĐAO CHANH ĐÊ'); return true; }
+            desc: 'Mưa tên gây 750 sát thương diện rộng, +50% tốc độ bắn & X2 TẦM ĐÁNH trong 5s. Bắn thấy mọe mấy thằng phản bội',
+            use: (g, p) => { if (p.mp < 250) return false; p.mp -= 250; g.spawnEffect('arrowRain', p.x, p.y, 750 * (1 + p.bonusAtk), false, { game: g }); p.speedBuff = Math.max(p.speedBuff || 0, 5); p.trangRangeBuffTimer = 5.0; showMsg('🌪️ CHỤC LY BÍ ĐAO CHANH ĐÊ! GẤP ĐÔI TẦM BẮN!'); return true; }
           }
         ]
       },
@@ -3888,6 +3896,8 @@
         this.baseArmor = (charId === 'huy') ? 50 : 0;
         this.atkSpeedMultiplier = 1.0;
         this.trangSpeedBuffVal = 1.6;
+        this.trangCritDmgBonus = 0;
+        this.trangRangeBuffTimer = 0;
         this.thaoSkill2BonusDmg = 0;
         this.petLifeTimeBonus = 0;
       }
@@ -3896,6 +3906,10 @@
         this.hurtTime = Math.max(0, this.hurtTime - dt);
         this.invincible = Math.max(0, this.invincible - dt);
         this.binAtkSpeedBuffTime = Math.max(0, this.binAtkSpeedBuffTime - dt);
+        this.trangRangeBuffTimer = Math.max(0, this.trangRangeBuffTimer - dt);
+        if (this.charId === 'trang') {
+          this.range = this.trangRangeBuffTimer > 0 ? (CHARS['trang'].range * 2) : CHARS['trang'].range;
+        }
 
         let wasInvisible = this.invisible > 0;
         this.invisible = Math.max(0, this.invisible - dt);
@@ -3979,6 +3993,13 @@
           dmg *= 2; // guaranteed double damage critical hit
           isCrit = true;
           this.binCritBuff = false; // consume the buff
+        } else if (this.charId === 'trang') {
+          let critChance = 0.25; // 25% base critical hit rate for Trang
+          if (Math.random() < critChance) {
+            let critDmgMultiplier = 2.0 + (this.trangCritDmgBonus || 0);
+            dmg *= critDmgMultiplier;
+            isCrit = true;
+          }
         }
 
         if (this.nextHitBonus > 0) { dmg += this.nextHitBonus; this.nextHitBonus = 0; }
@@ -3998,7 +4019,12 @@
             hit = true;
             if (isCrit) {
               spawnHitParticles(t.x, t.y - 50, '#ff0055', 'star'); // nice pinkish red critical hit particles
-              showMsg('💥 CHÍ MẠNG x2 SÁT THƯƠNG!');
+              if (this.charId === 'trang') {
+                let multiplierStr = (2.0 + (this.trangCritDmgBonus || 0)).toFixed(2);
+                showMsg(`💥 CHÍ MẠNG x${multiplierStr} SÁT THƯƠNG!`);
+              } else {
+                showMsg('💥 CHÍ MẠNG x2 SÁT THƯƠNG!');
+              }
             } else {
               spawnHitParticles(t.x, t.y - 50, pColor, pShape);
             }
@@ -4079,6 +4105,50 @@
             c.arc(0, 0, 50, Math.PI, Math.PI * 2);
             c.stroke();
             c.restore();
+          }
+        }
+
+        // Attack Range indicator for Trang Giấy Trắng - Mặt sau (Ground Circle)
+        if (this.charId === 'trang' && this.trangRangeBuffTimer > 0) {
+          c.save();
+          c.translate(this.x, GROUND);
+          c.scale(1, 0.25); // 3D tilt perspective for the ground ring
+          c.rotate(t * 0.8);
+          c.strokeStyle = 'rgba(0, 255, 102, 0.7)';
+          c.shadowColor = '#00ff66';
+          c.shadowBlur = 15;
+          c.lineWidth = 3;
+          c.setLineDash([12, 18]);
+          
+          c.beginPath();
+          c.arc(0, 0, this.range, 0, Math.PI * 2);
+          c.stroke();
+          
+          // Draw a smaller inner pulsing ring
+          c.rotate(-t * 1.6);
+          c.strokeStyle = 'rgba(0, 255, 170, 0.4)';
+          c.lineWidth = 1.5;
+          c.setLineDash([6, 12]);
+          let pulseRadius = this.range * 0.7 + Math.sin(t * 8) * 15;
+          c.beginPath();
+          c.arc(0, 0, pulseRadius, 0, Math.PI * 2);
+          c.stroke();
+          c.restore();
+
+          // Spawn floating emerald leaves rising up to signal range enhancement
+          if (Math.random() < 0.25) {
+            globalParticles.push(new Particle(
+              this.x + (Math.random() - 0.5) * 80,
+              this.y - Math.random() * 50,
+              (Math.random() - 0.5) * 40,
+              -60 - Math.random() * 40,
+              '#00ff66',
+              0.8,
+              3 + Math.random() * 3,
+              'leaf',
+              -20, // gently float up
+              0.15
+            ));
           }
         }
 
@@ -4535,7 +4605,7 @@
           { id: 'tien', icon: '⚡', name: 'Tiến', desc: 'Giảm 2s hồi Chiêu 1' },
           { id: 'thao', icon: '❄️', name: 'Thảo', desc: '+100 Sát thương Chiêu 2' },
           { id: 'bin', icon: '🗡️', name: 'Bin', desc: '+3% Tốc đánh' },
-          { id: 'trang', icon: '🏹', name: 'Trang', desc: '+5% Tốc chạy khi bật Chiêu 1' },
+          { id: 'trang', icon: '🏹', name: 'Trang', desc: '+5% Sát thương chí mạng ở đòn đánh chí mạng' },
           { id: 'huy', icon: '🪓', name: 'Huy', desc: '+20 Giáp gốc & +20 ATK' },
           { id: 'nga', icon: '🐼', name: 'Nga', desc: 'Gấu Trúc sống lâu thêm 3s' }
         ];
@@ -4601,8 +4671,8 @@
           p.atkSpeedMultiplier = (p.atkSpeedMultiplier || 1.0) + 0.03;
           customMsg += `\n🗡️ Bin: +3% Tốc đánh! (Tốc đánh tăng: +${Math.round((p.atkSpeedMultiplier - 1.0) * 100)}%)`;
         } else if (p.charId === 'trang') {
-          p.trangSpeedBuffVal = (p.trangSpeedBuffVal || 1.6) + 0.05;
-          customMsg += `\n🏹 Trang: +5% Tốc chạy khi dùng Chiêu 1! (Tốc chạy buff: x${p.trangSpeedBuffVal.toFixed(2)})`;
+          p.trangCritDmgBonus = (p.trangCritDmgBonus || 0) + 0.05;
+          customMsg += `\n🏹 Trang: +5% Sát thương chí mạng! (Sát thương chí mạng: +${Math.round(p.trangCritDmgBonus * 100)}%)`;
         } else if (p.charId === 'thao') {
           p.thaoSkill2BonusDmg = (p.thaoSkill2BonusDmg || 0) + 100;
           customMsg += `\n❄️ Thảo: +100 Sát thương Chiêu 2! (Sát thương cộng thêm: +${p.thaoSkill2BonusDmg})`;
@@ -4628,16 +4698,27 @@
       }
 
       updateExtraSkillSlots() {
+        let totalSkills = 2;
         for (let i = 0; i < 4; i++) {
           let el = document.getElementById(`sk${i + 2}`);
           if (!el) continue;
           if (i < this.player.extraSkills.length) {
             el.style.display = 'flex';
+            totalSkills++;
             let sk = this.player.extraSkills[i];
             el.querySelector('.name').textContent = sk.name.substring(0, 10);
             el.querySelector('.tooltip').innerHTML = `<strong>${sk.name}</strong><br>Hồi chiêu: ${sk.cd}s<br>MP: ${sk.mpCost}<br><span style="color:#aaa">${sk.desc}</span>`;
           } else {
             el.style.display = 'none';
+          }
+        }
+
+        let bar = document.getElementById('skills-bar');
+        if (bar) {
+          if (totalSkills > 4) {
+            bar.classList.add('two-columns');
+          } else {
+            bar.classList.remove('two-columns');
           }
         }
       }
