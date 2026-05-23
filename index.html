@@ -1078,56 +1078,61 @@
       }
 
       /* Skill Pick Screen mobile adjustments */
+      #skill-pick {
+        padding: 15px 10px !important;
+        overflow-y: auto !important;
+      }
+
       #skill-pick h2 {
-        font-size: 18px;
+        font-size: 16px;
         margin-bottom: 4px;
       }
 
       #skill-pick p {
-        font-size: 11px;
-        margin-bottom: 12px;
+        font-size: 10px;
+        margin-bottom: 8px;
       }
 
       .skill-choices {
-        gap: 8px;
+        gap: 6px;
       }
 
       .skill-choice-card {
-        padding: 10px;
-        max-width: 140px;
-        border-radius: 8px;
+        padding: 6px 8px;
+        max-width: 115px;
+        border-radius: 6px;
       }
 
       .pill-choice-card {
-        max-width: 230px !important;
-        padding: 10px !important;
-        border-radius: 8px !important;
+        max-width: 190px !important;
+        padding: 6px 8px !important;
+        border-radius: 6px !important;
       }
 
       .pill-bonus-table {
-        margin-top: 5px !important;
-        padding: 4px !important;
-        font-size: 9px !important;
-        line-height: 1.3 !important;
+        margin-top: 4px !important;
+        padding: 3px !important;
+        font-size: 8px !important;
+        line-height: 1.25 !important;
       }
 
       .pill-bonus-table div {
-        padding: 2px 4px !important;
+        padding: 1px 3px !important;
       }
 
       .skill-choice-card .skill-icon {
-        font-size: 24px;
-        margin-bottom: 6px;
+        font-size: 18px;
+        margin-bottom: 4px;
       }
 
       .skill-choice-card .skill-name {
-        font-size: 11px;
-        margin-bottom: 3px;
+        font-size: 9.5px;
+        margin-bottom: 2px;
       }
 
       .skill-choice-card .skill-desc {
-        font-size: 9px;
-        line-height: 1.3;
+        font-size: 8px;
+        line-height: 1.2;
       }
 
       /* Game settings, Overlays */
@@ -1227,6 +1232,90 @@
         width: 32px;
         height: 32px;
         font-size: 14px;
+      }
+
+      /* Quiz Modal Mobile Optimization */
+      #quiz-modal {
+        padding: 8px !important;
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+      }
+
+      #quiz-modal,
+      #quiz-modal * {
+        touch-action: auto !important;
+      }
+
+      .quiz-container {
+        padding: 12px 15px !important;
+        max-width: 380px !important;
+        max-height: 98vh !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border-width: 1.5px !important;
+      }
+
+      .quiz-title {
+        font-size: 16px !important;
+        margin-bottom: 4px !important;
+      }
+
+      .quiz-subtitle {
+        font-size: 10px !important;
+        margin-bottom: 8px !important;
+      }
+
+      .quiz-question-box {
+        padding: 10px !important;
+        margin-bottom: 10px !important;
+        max-height: 55vh !important;
+        overflow-y: auto !important;
+        border-radius: 8px !important;
+        text-align: left !important;
+      }
+
+      .quiz-question-text {
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+      }
+
+      .quiz-inputs-grid {
+        gap: 6px !important;
+        margin-bottom: 6px !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+
+      .quiz-input-row {
+        padding: 4px 6px !important;
+        border-radius: 4px !important;
+      }
+
+      .quiz-input-row span {
+        font-size: 9.5px !important;
+      }
+
+      .quiz-input-row input {
+        width: 45px !important;
+        padding: 2px 3px !important;
+        font-size: 9.5px !important;
+      }
+
+      .quiz-radio-group {
+        gap: 6px !important;
+      }
+
+      .quiz-radio-option {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+        gap: 6px !important;
+      }
+
+      .quiz-submit-btn {
+        padding: 8px 20px !important;
+        font-size: 13px !important;
+        border-radius: 6px !important;
       }
     }
 
@@ -4888,6 +4977,9 @@
           'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6']);
 
         window.addEventListener('keydown', e => {
+          if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            return;
+          }
           this.keys[e.code] = true;
           if (SKILL_KEYS.has(e.code)) e.preventDefault();
           if (e.code === 'KeyJ') this.handleAttack();
@@ -4898,7 +4990,12 @@
           if (e.code === 'Digit5' || e.key === '5') this.useExtraSkill(2);
           if (e.code === 'Digit6' || e.key === '6') this.useExtraSkill(3);
         });
-        window.addEventListener('keyup', e => { this.keys[e.code] = false; });
+        window.addEventListener('keyup', e => {
+          if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+            return;
+          }
+          this.keys[e.code] = false;
+        });
 
         // Clickable skill buttons
         document.getElementById('sk0').addEventListener('mousedown', e => { e.stopPropagation(); this.useSkill(0); });
