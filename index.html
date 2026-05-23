@@ -1671,7 +1671,7 @@
         <span style="color:#ff3333; font-weight:bold;">Trạng thái Sát Ý:</span><br>
         • Nhận <span style="color:#fff; font-weight:bold;">BẤT TỬ trong 2 giây đầu tiên</span>.<br>
         • Tầm đánh thường <span style="color:#00ffcc; font-weight:bold;">tăng lên 600px (GẤP 5 LẦN)</span>, không thể Nhảy.<br>
-        • Sức tấn công bắn pháo cố định <span style="color:#ffd700; font-weight:bold;">900 HP + 10% HP tối đa</span> của kẻ địch.<br>
+        • Sức tấn công bắn pháo cố định <span style="color:#ffd700; font-weight:bold;">900 HP + 5% HP tối đa</span> của kẻ địch.<br>
         • Bắn đạn pháo phát nổ tạo pháo bông 7 màu tuyệt đẹp.<br>
         • <span style="color:#ff3333; font-weight:bold;">Tạm khóa tất cả chiêu thức</span> (kể cả chiêu phụ).<br>
         • Tốc độ tấn công <span style="color:#ff8800; font-weight:bold;">giảm 50%</span>.<br>
@@ -4843,7 +4843,7 @@
           if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
             let dealDmg = dmg;
             if (this.satyMode) {
-              dealDmg = Math.floor(900 + t.maxHp * 0.1);
+              dealDmg = Math.floor(900 + t.maxHp * 0.05);
             }
             t.takeDamage(dealDmg);
 
