@@ -1521,8 +1521,16 @@
         skills: [
           {
             name: 'Người Yêu Cũ Là Người Yêu Mới', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
-            desc: 'Lá chắn băng hấp thụ 800 sát thương trong 8s. Nếu là anh yêu thì ôm trong 8s',
-            use: (g, p) => { if (p.mp < 180) return false; p.mp -= 180; p.shield = 800; p.shieldTime = 8; showMsg('🛡️ ANH TÚ ĐI RA ĐIIII'); return true; }
+            desc: 'Lá chắn băng hấp thụ 800 sát thương trong 8s. Tung chiêu lập tức hồi ngay Chiêu 2!',
+            use: (g, p) => {
+              if (p.mp < 180) return false;
+              p.mp -= 180;
+              p.shield = 800;
+              p.shieldTime = 8;
+              p.skillCooldowns[1] = 0;
+              showMsg('🛡️ ANH TÚ ĐI RA ĐIIII! ĐÃ LÀM MỚI CHIÊU 2!');
+              return true;
+            }
           },
           {
             name: 'Dù Chậm Cũng Về Bên Nhau', key: '2', cd: 20, mpCost: 250, icon: '🌨️',
@@ -1569,8 +1577,23 @@
         skills: [
           {
             name: 'Độ nhục = 0', key: '1', cd: 0, mpCost: 0, icon: '🩸',
-            desc: 'Hy sinh 15% HP tối đa, trở nên bất tử 7s. Không biết nhục là gì',
-            use: (g, p) => { let sacrifice = Math.floor(p.maxHp * 0.15); p.maxHp -= sacrifice; p.hp = Math.min(p.hp, p.maxHp); p.invincible = 7; showMsg('🩸 ẲNG ẲNG ẲNGGGGG HÚUUUUUUU!'); return true; }
+            desc: 'Hy sinh 15% HP tối đa, trở nên bất tử 5s và HÚT MÁU 100%. Dùng quá 3 lần/màn sẽ ĐỘT TỬ CHẾT!',
+            use: (g, p) => {
+              p.huySkill1Uses = (p.huySkill1Uses || 0) + 1;
+              if (p.huySkill1Uses > 3) {
+                p.hp = 0;
+                p.state = 'death';
+                g.playerDied();
+                showMsg('💀 ĐỘT TỬ! LẠM DỤNG ĐỘ NHỤC QUÁ 3 LẦN TRONG MỘT MAP!');
+                return true;
+              }
+              let sacrifice = Math.floor(p.maxHp * 0.15);
+              p.maxHp -= sacrifice;
+              p.hp = Math.min(p.hp, p.maxHp);
+              p.invincible = 5;
+              showMsg(`🩸 ẲNG ẲNG ẲNGGGGG HÚUUUUUUU! (Đã dùng ${p.huySkill1Uses}/3 lần)`);
+              return true;
+            }
           },
           {
             name: 'Ỉa sập bồn cầu', key: '2', cd: 20, mpCost: 150, icon: '🔥',
@@ -1585,8 +1608,17 @@
         skills: [
           {
             name: 'Triệu Hồi Súc Vật BIN', key: '1', cd: 30, mpCost: 200, icon: '🐼',
-            desc: 'Triệu hồi 1 con súc vật học với thông số x3.',
-            use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnPet(p); showMsg('🐼 THẰNG CHIM CỦA BÀ ĐÂU!'); return true; }
+            desc: 'Triệu hồi 1 con súc vật học với thông số x3. Nhận khiên 500HP tồn tại đến khi Gấu Trúc oẹo hoặc hết màn (không cộng dồn) & +50% tốc chạy trong 10s.',
+            use: (g, p) => {
+              if (p.mp < 200) return false;
+              p.mp -= 200;
+              g.spawnPet(p);
+              p.shield = 500;
+              p.shieldTime = 999999;
+              p.speedBuff = 10;
+              showMsg('🐼 THẰNG CHIM CỦA BÀ ĐÂU! +500 KHIÊN & +50% TỐC CHẠY!');
+              return true;
+            }
           },
           {
             name: 'Phán HUY luôn có tội', key: '2', cd: 60, mpCost: 300, icon: '👼',
@@ -4063,6 +4095,7 @@
         this.tienSkill2BuffTimer = 0;
         this.thaoSkill2BonusDmg = 0;
         this.petLifeTimeBonus = 0;
+        this.huySkill1Uses = 0;
       }
       update(dt, keys) {
         this.animFrame += dt * 60;
@@ -4085,6 +4118,13 @@
         if (this.speedBuff <= 0) this.atkBuff = 0;
         this.attackCd = Math.max(0, this.attackCd - dt);
         if (this.shieldTime > 0) { this.shieldTime -= dt; if (this.shieldTime <= 0) this.shield = 0; }
+        if (this.charId === 'nga' && this.shield > 0) {
+          if (!this.pet || !this.pet.active) {
+            this.shield = 0;
+            this.shieldTime = 0;
+            showMsg('🛡️ Khiên vỡ do Gấu Trúc đã oẹo!');
+          }
+        }
         if (this.damageReductionTime > 0) this.damageReductionTime -= dt;
         if (this.regenActive > 0) {
           this.regenActive -= dt;
@@ -4100,7 +4140,9 @@
         // Movement
         let spd = 200;
         if (this.speedBuff > 0) {
-          spd *= (this.charId === 'trang' ? this.trangSpeedBuffVal : 1.6);
+          if (this.charId === 'trang') spd *= this.trangSpeedBuffVal;
+          else if (this.charId === 'nga') spd *= 1.5; // +50% speed buff for Nga
+          else spd *= 1.6;
         }
         if (this.invisible > 0 && this.charId === 'bin') spd *= 1.5; // +50% movement speed during stealth
         let moving = false;
@@ -4145,6 +4187,10 @@
       attack(targets, game) {
         if (this.attackCd > 0) return;
 
+        if (this.charId === 'thao') {
+          this.skillCooldowns[0] = Math.max(0, this.skillCooldowns[0] - 0.5);
+        }
+
         let wasStealthed = this.invisible > 0;
         if (wasStealthed) {
           this.invisible = 0;
@@ -4186,6 +4232,13 @@
               let bonusDmg = Math.floor(this.maxHp * 0.05);
               t.takeDamage(bonusDmg);
               spawnHitParticles(t.x, t.y - 30, '#ffd700', 'plus'); // beautiful golden healing/divine plus sparks for HP-based damage
+            }
+
+            // Huy Skill 1 lifesteal: 100% basic attack damage
+            if (this.charId === 'huy' && this.invincible > 0) {
+              let healAmount = Math.floor(dmg);
+              this.hp = Math.min(this.maxHp, this.hp + healAmount);
+              spawnHitParticles(this.x, this.y - 45, '#00ff66', 'plus'); // green plus sparks for healing
             }
 
             hit = true;
@@ -4612,6 +4665,9 @@
         }
 
         this.minions = []; this.effects = []; this.particles = [];
+        this.player.huySkill1Uses = 0;
+        this.player.shield = 0;
+        this.player.shieldTime = 0;
         this.minionSpawnCd = 2; this.waveKills = 0;
         this.isBossFloor = (this.floor % 2 === 0);
 
@@ -4853,7 +4909,7 @@
         const bonusList = [
           { id: 'tien', icon: '⚡', name: 'Tiến', desc: 'Giảm 2s hồi Chiêu 1' },
           { id: 'thao', icon: '❄️', name: 'Thảo', desc: '+100 Sát thương Chiêu 2' },
-          { id: 'bin', icon: '🗡️', name: 'Bin', desc: '+3% Tốc đánh' },
+          { id: 'bin', icon: '🗡️', name: 'Bin', desc: '+5% Tốc đánh' },
           { id: 'trang', icon: '🏹', name: 'Trang', desc: '+5% Sát thương chí mạng ở đòn đánh chí mạng' },
           { id: 'huy', icon: '🪓', name: 'Huy', desc: '+20 Giáp gốc & +20 ATK' },
           { id: 'nga', icon: '🐼', name: 'Nga', desc: 'Gấu Trúc sống lâu thêm 3s' }
@@ -4917,8 +4973,8 @@
           p.atk += 20;
           customMsg += `\n🛡️ Huy: +20 Giáp gốc & +20 ATK! (Giáp hiện tại: ${p.baseArmor})`;
         } else if (p.charId === 'bin') {
-          p.atkSpeedMultiplier = (p.atkSpeedMultiplier || 1.0) + 0.03;
-          customMsg += `\n🗡️ Bin: +3% Tốc đánh! (Tốc đánh tăng: +${Math.round((p.atkSpeedMultiplier - 1.0) * 100)}%)`;
+          p.atkSpeedMultiplier = (p.atkSpeedMultiplier || 1.0) + 0.05;
+          customMsg += `\n🗡️ Bin: +5% Tốc đánh! (Tốc đánh tăng: +${Math.round((p.atkSpeedMultiplier - 1.0) * 100)}%)`;
         } else if (p.charId === 'trang') {
           p.trangCritDmgBonus = (p.trangCritDmgBonus || 0) + 0.05;
           customMsg += `\n🏹 Trang: +5% Sát thương chí mạng! (Sát thương chí mạng: +${Math.round(p.trangCritDmgBonus * 100)}%)`;
