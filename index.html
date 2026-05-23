@@ -598,20 +598,168 @@
       background: linear-gradient(135deg, rgba(30, 20, 50, 0.95), rgba(15, 10, 30, 0.95)) !important;
       box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
     }
+
     .pill-choice-card:hover {
       box-shadow: 0 0 25px rgba(255, 215, 0, 0.5) !important;
       border-style: double !important;
       transform: translateY(-5px);
     }
+
     @keyframes pill-glow {
       0% {
         box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
         border-color: rgba(255, 215, 0, 0.6);
       }
+
       100% {
         box-shadow: 0 0 22px rgba(255, 215, 0, 0.55);
         border-color: rgba(255, 215, 0, 1);
       }
+    }
+
+    /* Quiz Modal styling */
+    #quiz-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 5, 15, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .quiz-container {
+      background: linear-gradient(135deg, rgba(25, 20, 50, 0.9), rgba(10, 5, 25, 0.9));
+      border: 2px solid #ffd700;
+      box-shadow: 0 0 35px rgba(255, 215, 0, 0.35);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 25px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .quiz-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      margin-bottom: 12px;
+    }
+
+    .quiz-subtitle {
+      font-size: 13px;
+      color: #bbb;
+      margin-bottom: 25px;
+      line-height: 1.45;
+    }
+
+    .quiz-question-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .quiz-question-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #00ffcc;
+      margin-bottom: 15px;
+      line-height: 1.45;
+    }
+
+    .quiz-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .quiz-input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .quiz-input-row span {
+      font-size: 11px;
+      color: #ddd;
+    }
+
+    .quiz-input-row input {
+      width: 55px;
+      background: #000;
+      border: 1px solid #ffd700;
+      border-radius: 4px;
+      color: #fff;
+      padding: 3px 5px;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .quiz-radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-radio-option {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    .quiz-radio-option:hover {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.5);
+    }
+
+    .quiz-radio-option.selected {
+      background: rgba(0, 255, 204, 0.15) !important;
+      border-color: #00ffcc !important;
+      color: #00ffcc;
+      font-weight: bold;
+    }
+
+    .quiz-submit-btn {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #000;
+      border: none;
+      padding: 12px 35px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .quiz-submit-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
     }
 
     /* ==========================================================================
@@ -1019,18 +1167,21 @@
       /* Skills bar re-styling for Touch Interface */
       #skills-bar {
         bottom: auto;
-        top: 110px; /* Tránh đè lên HUD nhân vật */
+        top: 110px;
+        /* Tránh đè lên HUD nhân vật */
         left: 10px;
         transform: none;
         display: grid !important;
-        grid-template-columns: repeat(1, 32px); /* Kích thước nhỏ gọn 32px */
+        grid-template-columns: repeat(1, 32px);
+        /* Kích thước nhỏ gọn 32px */
         grid-auto-flow: row;
         gap: 4px;
         z-index: 2000;
       }
 
       #skills-bar.two-columns {
-        grid-template-columns: repeat(2, 32px); /* 2 cột khi > 4 kỹ năng */
+        grid-template-columns: repeat(2, 32px);
+        /* 2 cột khi > 4 kỹ năng */
       }
 
       body.mobile-device #skills-bar {
@@ -1062,7 +1213,8 @@
       }
 
       .skill-slot .tooltip {
-        left: 80px !important; /* Đẩy sang phải để không bị che khuất */
+        left: 80px !important;
+        /* Đẩy sang phải để không bị che khuất */
         bottom: 50%;
         transform: translateY(50%);
         width: 150px;
@@ -1328,8 +1480,18 @@
 
   <div id="victory" style="display:none;flex-direction:column;align-items:center">
     <h1>🏆 CHIẾN THẮNG! 🏆</h1>
-    <p>Bạn đã may mắn vượt qua tất cả 5 màn boss và trở thành huyền thoại!<br>Chó ngáp phải ruồi thôi</p>
+    <p>Bạn đã may mắn vượt qua tất cả 5 màn boss và trở thành KẺ ĐỨNG ĐẦU trong chuồng!<br>Chó ngáp phải ruồi thôi</p>
     <button onclick="location.reload()">Bảnh thì thử lại</button>
+  </div>
+
+  <!-- Special Quiz Revival Modal for Floor 10 -->
+  <div id="quiz-modal" style="display:none;">
+    <div class="quiz-container">
+      <div class="quiz-title">🔮 THỬ THÁCH SINH TỬ 🔮</div>
+      <div class="quiz-subtitle">Trả lời đúng liên tiếp để nhận hồi sinh thần kỳ từ Linh Hồn Pha Chế!</div>
+      <div id="quiz-question-container"></div>
+      <button class="quiz-submit-btn" onclick="game.submitQuizAnswer()">NỘP ĐÁP ÁN</button>
+    </div>
   </div>
 
   <script>
@@ -1348,7 +1510,7 @@
           },
           {
             name: 'Cục cứt gầm thét', key: '2', cd: 20, mpCost: 200, icon: '🐉',
-            desc: 'Triệu hồi cục cứt khổng lồ tấn công gây 800 sát thương.',
+            desc: 'Thả cục cứt gây 800 sát thương diện rộng. Nếu trúng địch, Tiến nhận x1.3 tốc đánh & đánh thường kèm sát thương bằng 5% HP tối đa trong 10s.',
             use: (g, p) => { if (p.mp < 200) return false; p.mp -= 200; g.spawnEffect('lightning', p.x, p.y, 800 * (1 + p.bonusAtk), false, { game: g }); showMsg('🐉 PHẸTTTTTTTT!'); return true; }
           }
         ]
@@ -1479,10 +1641,10 @@
         let alpha = Math.max(0, this.life / this.maxLife);
         c.save(); c.globalAlpha = alpha;
         c.translate(this.x, this.y); c.rotate(this.rotation);
-        
+
         // Premium neon glowing effect for magical and energy particle shapes
-        if (this.shape === 'spark' || this.shape === 'star' || this.shape === 'snowflake' || 
-            this.shape === 'note' || this.shape === 'holy_feather' || this.shape === 'plus' || this.shape === 'arrow') {
+        if (this.shape === 'spark' || this.shape === 'star' || this.shape === 'snowflake' ||
+          this.shape === 'note' || this.shape === 'holy_feather' || this.shape === 'plus' || this.shape === 'arrow') {
           c.shadowColor = this.color;
           c.shadowBlur = this.size * 2;
         }
@@ -1537,8 +1699,8 @@
         } else if (this.shape === 'plus') {
           c.fillStyle = this.color;
           let w = this.size * 0.3;
-          c.fillRect(-w/2, -this.size/2, w, this.size);
-          c.fillRect(-this.size/2, -w/2, this.size, w);
+          c.fillRect(-w / 2, -this.size / 2, w, this.size);
+          c.fillRect(-this.size / 2, -w / 2, this.size, w);
         }
         c.restore();
       }
@@ -1781,7 +1943,7 @@
           let r = this.extra ? this.extra.range : 360;
           let currX = this.x + f * (p * r);
           let currY = this.y + Math.sin(p * Math.PI * 4) * 10;
-          
+
           if (Math.random() < 0.3) {
             this.particles.push(new Particle(
               currX,
@@ -1822,7 +1984,7 @@
           let f = this.extra ? this.extra.facing : 1;
           let r = this.extra ? this.extra.range : 360;
           let currX = this.x + f * (p * r);
-          
+
           if (Math.random() < 0.25) {
             this.particles.push(new Particle(
               currX,
@@ -2371,7 +2533,7 @@
           c.rotate(-Date.now() / 350);
           c.strokeStyle = '#00ff66'; c.lineWidth = 6; c.shadowColor = '#00ffaa'; c.shadowBlur = 25;
           c.beginPath(); c.arc(0, 0, 240, 0, Math.PI * 2); c.stroke();
-          
+
           // Inside runic glyph star
           c.beginPath();
           for (let i = 0; i < 8; i++) {
@@ -2399,7 +2561,7 @@
           for (let i = 0; i < 3; i++) {
             let px = (i - 1) * 110;
             let ph = -250 - Math.random() * 200 * sa;
-            
+
             // Bezier fluid fire columns
             let cpX1 = px - 60 + Math.sin(Date.now() / 80 + i) * 60;
             let cpY1 = ph / 2;
@@ -2762,7 +2924,7 @@
       // Mint shiny trim
       c.strokeStyle = '#2dd4bf'; c.lineWidth = 2.5;
       c.beginPath(); c.moveTo(-30, 30); c.lineTo(30, 30); c.stroke();
-      
+
       // Elegant gold sash belt
       c.fillStyle = '#facc15';
       c.fillRect(-10, -5, 20, 3.5);
@@ -3043,7 +3205,7 @@
       c.bezierCurveTo(32, 18, 26, 6, 12, -6); // flared out right
       c.closePath();
       c.fill();
-      
+
       // Silk layered frills/folds
       c.strokeStyle = 'rgba(255, 255, 255, 0.4)';
       c.lineWidth = 1.2;
@@ -3100,17 +3262,17 @@
       c.closePath();
       c.fill();
       c.stroke();
-      
+
       // Diamonds glowing around the crown
       c.fillStyle = '#ffffff';
       c.shadowColor = '#00ffff'; // cyan-white diamond glow
       c.shadowBlur = 5 + Math.sin(t * 8) * 3;
-      
+
       // 3 peaks diamond gems
       c.beginPath(); c.arc(-11, -3, 2, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(0, -7, 2.5, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(11, -3, 2, 0, Math.PI * 2); c.fill();
-      
+
       // 3 studs along the base
       c.shadowBlur = 3;
       c.beginPath(); c.arc(-5, 2, 1.2, 0, Math.PI * 2); c.fill();
@@ -3312,7 +3474,7 @@
       c.bezierCurveTo(34, 18, 28, 8, 12, -5); // flared out right
       c.closePath();
       c.fill();
-      
+
       // Silk layered frills/folds
       c.strokeStyle = 'rgba(255, 255, 255, 0.45)';
       c.lineWidth = 1.2;
@@ -3344,13 +3506,13 @@
       c.save();
       c.translate(0, -26);
       let earBob = Math.sin(t * 10) * 0.15 * (state === 'run' ? 1 : 0.3);
-      
+
       // Mái tóc nâu hạt dẻ tết búi hai bên
       c.fillStyle = '#451a03'; // warm chocolate brown hair
-      
+
       // Long hair back sphere
       c.beginPath(); c.ellipse(0, 0, 13.5, 14.5, 0, 0, Math.PI * 2); c.fill();
-      
+
       // Twin tết buns on side
       c.beginPath(); c.arc(-13, -8 + earBob, 6, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(13, -8 - earBob, 6, 0, Math.PI * 2); c.fill();
@@ -3363,7 +3525,7 @@
       c.fillStyle = '#3f1a04';
       c.beginPath(); c.ellipse(-4, 2, 2.5, 3.5, 0.2, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.ellipse(4, 2, 2.5, 3.5, -0.2, 0, Math.PI * 2); c.fill();
-      
+
       c.fillStyle = '#ffffff';
       c.beginPath(); c.arc(-3.5, 1.5, 0.9, 0, Math.PI * 2); c.fill();
       c.beginPath(); c.arc(4.5, 1.5, 0.9, 0, Math.PI * 2); c.fill();
@@ -3380,14 +3542,14 @@
         c.shadowColor = '#ffffff';
         c.shadowBlur = 10 + Math.sin(t * 8) * 4; // pulsating glow
         c.fillStyle = '#fffbeb'; // sparkling warm white
-        
+
         // 5 petals
         for (let i = 0; i < 5; i++) {
           let px = Math.cos(i * Math.PI * 2 / 5) * 4.5;
           let py = Math.sin(i * Math.PI * 2 / 5) * 4.5;
           c.beginPath(); c.arc(px, py, 3.2, 0, Math.PI * 2); c.fill();
         }
-        
+
         // center
         c.fillStyle = '#facc15'; // gold core
         c.shadowBlur = 0;
@@ -3891,13 +4053,14 @@
         this.pet = null;
         this.binCritBuff = false;
         this.binAtkSpeedBuffTime = 0;
-        
+
         // Character-specific permanent stacking stats
         this.baseArmor = (charId === 'huy') ? 50 : 0;
         this.atkSpeedMultiplier = 1.0;
         this.trangSpeedBuffVal = 1.6;
         this.trangCritDmgBonus = 0;
         this.trangRangeBuffTimer = 0;
+        this.tienSkill2BuffTimer = 0;
         this.thaoSkill2BonusDmg = 0;
         this.petLifeTimeBonus = 0;
       }
@@ -3907,6 +4070,7 @@
         this.invincible = Math.max(0, this.invincible - dt);
         this.binAtkSpeedBuffTime = Math.max(0, this.binAtkSpeedBuffTime - dt);
         this.trangRangeBuffTimer = Math.max(0, this.trangRangeBuffTimer - dt);
+        this.tienSkill2BuffTimer = Math.max(0, this.tienSkill2BuffTimer - dt);
         if (this.charId === 'trang') {
           this.range = this.trangRangeBuffTimer > 0 ? (CHARS['trang'].range * 2) : CHARS['trang'].range;
         }
@@ -4016,6 +4180,14 @@
         targets.forEach(t => {
           if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
             t.takeDamage(Math.floor(dmg));
+
+            // Additional source of damage for Tien during skill 2 buff (5% of max HP)
+            if (this.charId === 'tien' && this.tienSkill2BuffTimer > 0) {
+              let bonusDmg = Math.floor(this.maxHp * 0.05);
+              t.takeDamage(bonusDmg);
+              spawnHitParticles(t.x, t.y - 30, '#ffd700', 'plus'); // beautiful golden healing/divine plus sparks for HP-based damage
+            }
+
             hit = true;
             if (isCrit) {
               spawnHitParticles(t.x, t.y - 50, '#ff0055', 'star'); // nice pinkish red critical hit particles
@@ -4061,10 +4233,15 @@
             cd /= 1.5; // stack if both active
           }
         }
-        
+
+        // Tien skill 2 buff gives +30% attack speed
+        if (this.charId === 'tien' && this.tienSkill2BuffTimer > 0) {
+          cd /= 1.3;
+        }
+
         // Apply permanent attack speed multiplier
         cd /= (this.atkSpeedMultiplier || 1.0);
-        
+
         this.attackCd = cd;
         setTimeout(() => { if (this.state === 'attack') this.state = 'idle'; }, 300);
         return hit;
@@ -4119,11 +4296,11 @@
           c.shadowBlur = 15;
           c.lineWidth = 3;
           c.setLineDash([12, 18]);
-          
+
           c.beginPath();
           c.arc(0, 0, this.range, 0, Math.PI * 2);
           c.stroke();
-          
+
           // Draw a smaller inner pulsing ring
           c.rotate(-t * 1.6);
           c.strokeStyle = 'rgba(0, 255, 170, 0.4)';
@@ -4212,6 +4389,40 @@
           }
           c.shadowBlur = 0;
           if (Math.random() < 0.2) globalParticles.push(new Particle(this.x + (Math.random() - 0.5) * 60, this.y - Math.random() * 80, 0, -50, '#ffcc00', 0.5, 3, 'spark'));
+        }
+
+        // Dragon power Skill 2 buff (Tiến) - Mặt trước (Golden aura)
+        if (this.charId === 'tien' && this.tienSkill2BuffTimer > 0) {
+          c.save();
+          c.lineWidth = 3;
+          c.shadowColor = '#ffd700'; c.shadowBlur = 15;
+          c.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+
+          // Draw flame-like golden particles rising up
+          for (let i = 0; i < 3; i++) {
+            c.beginPath();
+            let rise = (t * 80 + i * 40) % 70;
+            let size = 20 - rise * 0.2;
+            c.arc(this.x + Math.sin(t * 3 + i) * 25, this.y - rise, size, 0, Math.PI * 2);
+            c.fillStyle = `rgba(255, 215, 0, ${0.4 * (1 - rise / 70)})`;
+            c.fill();
+          }
+          c.restore();
+
+          if (Math.random() < 0.3) {
+            globalParticles.push(new Particle(
+              this.x + (Math.random() - 0.5) * 60,
+              this.y - Math.random() * 60,
+              (Math.random() - 0.5) * 40,
+              -80 - Math.random() * 50,
+              '#ffd700',
+              0.6,
+              3 + Math.random() * 3,
+              'star',
+              -30,
+              0.2
+            ));
+          }
         }
 
         // Shield Hexagon 3D Dome (Thảo)
@@ -4331,6 +4542,7 @@
         this.pillSlamBlasted = false;
         this.pillCount = 0;
         this.pillSlamText = "BÚ THUỐC LẮC QUÁ ĐÃ AAAAAAA";
+        this.reviveCountdown = 0;
         this.superPillTimer = 0;
         this.superPillActive = false;
         this.audioCtx = null;
@@ -4514,12 +4726,21 @@
             }
           }
           else {
+            let hitAny = false;
             if (this.boss && Math.abs(this.boss.x - x) < radius) {
               this.boss.takeDamage(damage);
+              hitAny = true;
             }
             this.minions.forEach(m => {
-              if (Math.abs(m.x - x) < radius) m.takeDamage(damage);
+              if (Math.abs(m.x - x) < radius) {
+                m.takeDamage(damage);
+                hitAny = true;
+              }
             });
+            if (type === 'lightning' && !fromBoss && this.player.charId === 'tien' && hitAny) {
+              this.player.tienSkill2BuffTimer = 10.0;
+              showMsg('🐉 PHÊ! KÍCH HOẠT CỤC CỨT NỘI LỰC: X1.3 TỐC ĐÁNH & SÁT THƯƠNG THEO MÁU TỐI ĐA!');
+            }
           }
         }, 300);
       }
@@ -4537,7 +4758,35 @@
         let actual = this.player.takeDamage(dmg);
         if (actual > 0) {
           spawnHitParticles(this.player.x, this.player.y - 50, '#ff4444');
-          if (this.player.hp <= 0) this.playerDied();
+          if (this.player.hp <= 0) {
+            // Check Special Floor 10 Quiz Revival mechanism
+            if (this.floor === 10 && this.isBossFloor) {
+              if (this.player.charId === 'thao') {
+                if (!this.player.thaoPassiveUsed) {
+                  this.player.thaoPassiveUsed = true;
+                  this.player.hp = this.player.maxHp;
+                  this.player.mp = this.player.maxMp;
+                  this.player.skillCooldowns[0] = 0;
+                  this.player.skillCooldowns[1] = 0;
+                  if (this.player.extraSkillCooldowns) {
+                    this.player.extraSkillCooldowns.fill(0);
+                  }
+                  showMsg('❄️ NỘI TẠI BĂNG GIÁ: Cô Giáo Thảo tự động hồi sinh lần 1!');
+                  if (this.audioCtx) this.playBossRoar();
+                  return;
+                } else if (!this.player.quizReviveUsed) {
+                  this.triggerQuizRevive(3);
+                  return;
+                }
+              } else {
+                if (!this.player.quizReviveUsed) {
+                  this.triggerQuizRevive(2);
+                  return;
+                }
+              }
+            }
+            this.playerDied();
+          }
         }
       }
 
@@ -4582,7 +4831,7 @@
         let bossData = CHARS[boss];
         let choicesEl = document.getElementById('skill-choices');
         choicesEl.innerHTML = '';
-        
+
         // Render boss's skills
         bossData.skills.forEach((sk, i) => {
           let card = document.createElement('div');
@@ -4612,10 +4861,10 @@
 
         bonusList.forEach(item => {
           let isCurrent = (item.id === charId);
-          let rowStyle = isCurrent 
+          let rowStyle = isCurrent
             ? `display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; background: rgba(0, 255, 204, 0.15); border: 1px solid #00ffcc; color: #00ffcc; font-weight: bold; box-shadow: 0 0 8px rgba(0, 255, 204, 0.3); margin-bottom: 2px;`
             : `display: flex; justify-content: space-between; padding: 3px 6px; border-radius: 4px; margin-bottom: 2px; color: #ccc; opacity: 0.75;`;
-          
+
           bonusTable += `
           <div style="${rowStyle}">
             <span>${item.icon} ${item.name}:</span>
@@ -4656,9 +4905,9 @@
         p.atk = Math.round(p.atk * 1.1);
         p.hp = p.maxHp;
         p.mp = p.maxMp;
-        
+
         let customMsg = `✨ Đã cắn Thuốc Lắc! HP, MP & ATK tăng 10%!`;
-        
+
         if (p.charId === 'tien') {
           p.skills[0].cd = Math.max(2, p.skills[0].cd - 2);
           customMsg += `\n⚡ Tiến: Giảm 2s hồi chiêu 1! (Hồi chiêu hiện tại: ${p.skills[0].cd}s)`;
@@ -4680,9 +4929,9 @@
           p.petLifeTimeBonus = (p.petLifeTimeBonus || 0) + 3;
           customMsg += `\n🐼 Nga: Tăng thời gian Gấu Trúc tồn tại thêm 3s! (Thời gian tồn tại: ${25 + p.petLifeTimeBonus}s)`;
         }
-        
+
         showMsg(customMsg);
-        
+
         this.pillCount = (this.pillCount || 0) + 1;
         if (this.pillCount === 4) {
           this.pillSlamText = "BÚ QUÁ ĐỈNH, PHÊ HƠN CON TÊ TÊ";
@@ -4881,6 +5130,21 @@
         if (this.pillSlamTimer > 0) {
           this.pillSlamTimer = Math.max(0, this.pillSlamTimer - dt);
         }
+        if (this.reviveCountdown > 0) {
+          let prevCd = this.reviveCountdown;
+          this.reviveCountdown = Math.max(0, this.reviveCountdown - dt);
+          if (this.reviveCountdown <= 0 && prevCd > 0) {
+            this.playBgMusic(true);
+          }
+          this.effects.forEach(e => e.update(dt));
+          this.effects = this.effects.filter(e => !e.done);
+          this.particles.forEach(p => p.update(dt));
+          this.particles = this.particles.filter(p => p.life > 0);
+          globalParticles.forEach(p => p.update(dt));
+          globalParticles = globalParticles.filter(p => p.life > 0);
+          this.updateHUD();
+          return;
+        }
         if (this.superPillActive && this.superPillTimer > 0) {
           this.superPillTimer = Math.max(0, this.superPillTimer - dt);
           if (this.superPillTimer <= 0) {
@@ -4964,14 +5228,14 @@
         // Draw effects & particles (layered on top, using screen blending for neon glow)
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
-        
+
         // Draw effects
         this.effects.forEach(e => e.draw(ctx));
 
         // Draw particles
         this.particles.forEach(p => p.draw(ctx));
         globalParticles.forEach(p => p.draw(ctx));
-        
+
         ctx.restore();
 
         // Draw boss countdown
@@ -4985,6 +5249,41 @@
           ctx.fillText(Math.ceil(this.bossSpawnTimer), W / 2, H / 3);
           ctx.font = '24px "Segoe UI"';
           ctx.fillText("Boss đang tới...", W / 2, H / 3 + 40);
+          ctx.restore();
+        }
+
+        // Draw revive countdown
+        if (this.reviveCountdown > 0) {
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Draw "CHUẨN BỊ CHIẾN ĐẤU..." label
+          ctx.font = 'italic bold 26px "Segoe UI"';
+          ctx.shadowColor = '#00ffcc';
+          ctx.shadowBlur = 15;
+          ctx.strokeStyle = '#020008';
+          ctx.lineWidth = 6;
+          ctx.strokeText("CHUẨN BỊ CHIẾN ĐẤU...", W / 2, H / 2 - 180);
+          ctx.fillStyle = '#00ffcc';
+          ctx.fillText("CHUẨN BỊ CHIẾN ĐẤU...", W / 2, H / 2 - 180);
+
+          // Draw counting numbers (3, 2, 1) with pulse scale effect!
+          let ceilCd = Math.ceil(this.reviveCountdown);
+          let fraction = this.reviveCountdown - (ceilCd - 1); // 0 to 1
+          let scale = 1.0 + fraction * 0.5;
+
+          ctx.translate(W / 2, H / 2 - 110);
+          ctx.scale(scale, scale);
+          ctx.font = 'bold 90px "Segoe UI"';
+          ctx.shadowColor = '#00ffcc';
+          ctx.shadowBlur = 25;
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 10;
+          ctx.strokeText(ceilCd, 0, 0);
+          ctx.fillStyle = '#00ffcc';
+          ctx.fillText(ceilCd, 0, 0);
+          
           ctx.restore();
         }
 
@@ -5005,15 +5304,15 @@
             }
           }
 
-          let isTeTe = this.pillSlamText.includes("TÊ TÊ");
+          let isTeTe = this.pillSlamText.includes("TÊ TÊ") || this.pillSlamText.includes("HỒI SINH");
 
           if (elapsed >= 0.25 && !this.pillSlamBlasted) {
             this.shakeTime = isTeTe ? 0.9 : 0.6;
             this.pillSlamBlasted = true;
             let cx = W / 2;
             let cy = H / 2 - 50;
-            let colors = isTeTe 
-              ? ['#00ffcc', '#ff007f', '#ffd700', '#00ffff', '#ff00ff', '#ffffff'] 
+            let colors = isTeTe
+              ? ['#00ffcc', '#ff007f', '#ffd700', '#00ffff', '#ff00ff', '#ffffff']
               : ['#ffd700', '#ff3388', '#00ffff', '#ffffff'];
             let count = isTeTe ? 70 : 40;
             for (let i = 0; i < count; i++) {
@@ -5302,6 +5601,243 @@
           o.start(t + delay); o.stop(t + delay + 0.5);
         });
       }
+
+    triggerQuizRevive(numQuestions) {
+      this.paused = true;
+      this.stopBgMusic();
+
+      const QUIZ_QUESTIONS = [
+        {
+          type: 'inputs_ice',
+          question: 'Hãy nhập chính xác công thức Bát Bảo và chọn mức đá:',
+          inputs: [
+            { label: 'Trân châu đen', key: 'tc_den', correct: 60 },
+            { label: 'Trân châu củ năng', key: 'tc_cunang', correct: 25 },
+            { label: 'Bánh vuông', key: 'banh_vuong', correct: 25 },
+            { label: '3Q', key: 'three_q', correct: 20 },
+            { label: 'Thạch dừa', key: 'thach_dua', correct: 40 },
+            { label: 'Sương sáo', key: 'suong_sao', correct: 40 },
+            { label: 'Hạt sen', key: 'hat_sen', correct: 25 },
+            { label: 'Trà bí đao', key: 'tra_bidao', correct: 200 }
+          ],
+          ice_options: ['Đầy ly', 'Tới mức 600'],
+          correct_ice: 0
+        },
+        {
+          type: 'multiple_choice',
+          question: 'Công thức trà sữa socola thêm 1 phần trân châu đen khuấy trà ở đâu?',
+          options: [
+            'Ly PP',
+            'Ly định lượng',
+            'Khuấy ở đâu cũng được',
+            'Không cần khuấy, chỉ cần lắc'
+          ],
+          correct: 1
+        },
+        {
+          type: 'inputs_tea',
+          question: 'Hồng trà kem Cheese 50% đường cần bao nhiêu trà có đường và bao nhiêu trà không đường?',
+          inputs: [
+            { label: 'Trà có đường', key: 'tra_co_duong', correct: 250 },
+            { label: 'Trà không đường', key: 'tra_khong_duong', correct: 100 }
+          ]
+        },
+        {
+          type: 'multiple_choice',
+          question: 'Vì sao sữa tươi trân châu đường đen không được lắc?',
+          options: [
+            'Lắc bình thường, ai nói không được',
+            'Để trân châu nằm dưới đáy ly sẽ đẹp hơn là trôi lềnh bềnh trong ly nước',
+            'Vì đường đen mới bỏ vào còn nóng, khó tan',
+            'Sữa sủi bọt dễ gây đầy bụng'
+          ],
+          correct: 3
+        },
+        {
+          type: 'multiple_choice',
+          question: 'Sữa tươi khoai môn nghiền và sữa tươi trân châu đen đều cho sữa vào sau khi cho đá đúng không?',
+          options: [
+            'Đúng',
+            'Sai'
+          ],
+          correct: 1
+        }
+      ];
+
+      let shuffled = [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5);
+      this.quizQuestions = shuffled.slice(0, numQuestions);
+      this.currentQuestionIdx = 0;
+
+      document.getElementById('quiz-modal').style.display = 'flex';
+      this.renderQuizQuestion();
+    }
+
+    renderQuizQuestion() {
+      let q = this.quizQuestions[this.currentQuestionIdx];
+      let numQ = this.quizQuestions.length;
+
+      let header = document.querySelector('#quiz-modal .quiz-title');
+      header.textContent = `🔮 THỬ THÁCH SINH TỬ (${this.currentQuestionIdx + 1}/${numQ}) 🔮`;
+
+      let container = document.getElementById('quiz-question-container');
+      container.innerHTML = '';
+
+      let box = document.createElement('div');
+      box.className = 'quiz-question-box';
+
+      let text = document.createElement('div');
+      text.className = 'quiz-question-text';
+      text.textContent = q.question;
+      box.appendChild(text);
+
+      if (q.type === 'multiple_choice') {
+        this.selectedOptionIdx = null;
+        let group = document.createElement('div');
+        group.className = 'quiz-radio-group';
+
+        q.options.forEach((opt, idx) => {
+          let row = document.createElement('div');
+          row.className = 'quiz-radio-option';
+          row.innerHTML = `<span>${idx + 1}. ${opt}</span>`;
+          row.onclick = () => { this.selectQuizOption(idx); };
+          group.appendChild(row);
+        });
+        box.appendChild(group);
+      }
+      else if (q.type === 'inputs_tea') {
+        let grid = document.createElement('div');
+        grid.className = 'quiz-inputs-grid';
+
+        q.inputs.forEach(inp => {
+          let row = document.createElement('div');
+          row.className = 'quiz-input-row';
+          row.innerHTML = `<span>${inp.label}:</span>
+            <input type="number" id="quiz-input-${inp.key}" placeholder="Số...">`;
+          grid.appendChild(row);
+        });
+        box.appendChild(grid);
+      }
+      else if (q.type === 'inputs_ice') {
+        this.selectedIceIdx = null;
+        let grid = document.createElement('div');
+        grid.className = 'quiz-inputs-grid';
+
+        q.inputs.forEach(inp => {
+          let row = document.createElement('div');
+          row.className = 'quiz-input-row';
+          row.innerHTML = `<span>${inp.label}:</span>
+            <input type="number" id="quiz-input-${inp.key}" placeholder="Số...">`;
+          grid.appendChild(row);
+        });
+        box.appendChild(grid);
+
+        let subText = document.createElement('div');
+        subText.className = 'quiz-question-text';
+        subText.style.marginTop = '15px';
+        subText.style.fontSize = '13px';
+        subText.style.color = '#ffd700';
+        subText.textContent = 'Mức đá bình thường:';
+        box.appendChild(subText);
+
+        let group = document.createElement('div');
+        group.className = 'quiz-radio-group';
+        q.ice_options.forEach((opt, idx) => {
+          let row = document.createElement('div');
+          row.className = 'quiz-radio-option';
+          row.innerHTML = `<span>${idx + 1}. ${opt}</span>`;
+          row.onclick = () => { this.selectQuizIce(idx); };
+          group.appendChild(row);
+        });
+        box.appendChild(group);
+      }
+
+      container.appendChild(box);
+    }
+
+    selectQuizIce(idx) {
+      this.selectedIceIdx = idx;
+      document.querySelectorAll('#quiz-question-container .quiz-radio-option').forEach((opt, i) => {
+        if (i === idx) opt.classList.add('selected');
+        else opt.classList.remove('selected');
+      });
+    }
+
+    selectQuizOption(idx) {
+      this.selectedOptionIdx = idx;
+      document.querySelectorAll('#quiz-question-container .quiz-radio-option').forEach((opt, i) => {
+        if (i === idx) opt.classList.add('selected');
+        else opt.classList.remove('selected');
+      });
+    }
+
+    submitQuizAnswer() {
+      let q = this.quizQuestions[this.currentQuestionIdx];
+      let correct = false;
+
+      if (q.type === 'inputs_ice') {
+        let allCorrect = true;
+        q.inputs.forEach(inp => {
+          let el = document.getElementById(`quiz-input-${inp.key}`);
+          if (!el || parseInt(el.value) !== inp.correct) {
+            allCorrect = false;
+          }
+        });
+        if (this.selectedIceIdx !== q.correct_ice) {
+          allCorrect = false;
+        }
+        correct = allCorrect;
+      }
+      else if (q.type === 'inputs_tea') {
+        let allCorrect = true;
+        q.inputs.forEach(inp => {
+          let el = document.getElementById(`quiz-input-${inp.key}`);
+          if (!el || parseInt(el.value) !== inp.correct) {
+            allCorrect = false;
+          }
+        });
+        correct = allCorrect;
+      }
+      else if (q.type === 'multiple_choice') {
+        correct = (this.selectedOptionIdx === q.correct);
+      }
+
+      if (correct) {
+        this.currentQuestionIdx++;
+        if (this.currentQuestionIdx < this.quizQuestions.length) {
+          showMsg('✅ Chính xác! Sang câu tiếp theo...');
+          this.renderQuizQuestion();
+        } else {
+          document.getElementById('quiz-modal').style.display = 'none';
+
+          this.player.hp = this.player.maxHp;
+          this.player.mp = this.player.maxMp;
+          this.player.skillCooldowns[0] = 0;
+          this.player.skillCooldowns[1] = 0;
+          if (this.player.extraSkillCooldowns) {
+            this.player.extraSkillCooldowns.fill(0);
+          }
+          this.player.quizReviveUsed = true;
+          this.player.state = 'idle';
+          this.paused = false;
+          this.running = true;
+
+          // 3s preparation countdown
+          this.reviveCountdown = 3.0;
+
+          // Blast the neon text "SỤC THĂNG HOA, HỒI SINH BẤT NGỜ" for 2s
+          this.pillSlamText = "SỤC THĂNG HOA, HỒI SINH BẤT NGỜ";
+          this.pillSlamTimer = 2.0;
+          this.pillSlamBlasted = false;
+
+          showMsg('🔥 HỒI SINH THẦN KỲ! Tiếp tục chiến đấu cưng ơi!');
+          if (this.audioCtx) this.playVictoryFanfare();
+        }
+      } else {
+        document.getElementById('quiz-modal').style.display = 'none';
+        showMsg('😜 HÁ HÁ ĐÃ KỸ NĂNG KÉM CÒN KHÔNG THUỘC BÀI 😜');
+        this.playerDied();
+      }
+    }
     }
 
     // ============================
