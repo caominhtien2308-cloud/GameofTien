@@ -1650,10 +1650,11 @@
       <div style="font-size:12px; color:#aaa; text-align:left; background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; margin-bottom:20px; line-height:1.5; border:1px solid rgba(255,50,50,0.2); touch-action:auto;">
         <span style="color:#ff3333; font-weight:bold;">Trạng thái Sát Ý:</span><br>
         • Nhận <span style="color:#fff; font-weight:bold;">BẤT TỬ trong 2 giây đầu tiên</span>.<br>
-        • Tầm đánh thường <span style="color:#00ffcc; font-weight:bold;">tăng gấp 4 lần</span> (chỉ dùng đánh thường).<br>
-        • Sức tấn công mỗi phát bắn cố định <span style="color:#ffd700; font-weight:bold;">1000 HP + 10% HP hiện tại</span> của kẻ địch.<br>
+        • Tầm đánh thường <span style="color:#00ffcc; font-weight:bold;">tăng lên 600px (GẤP 5 LẦN)</span>, không thể Nhảy.<br>
+        • Sức tấn công bắn pháo cố định <span style="color:#ffd700; font-weight:bold;">900 HP + 10% HP tối đa</span> của kẻ địch.<br>
+        • Bắn đạn pháo phát nổ tạo pháo bông 7 màu tuyệt đẹp.<br>
         • <span style="color:#ff3333; font-weight:bold;">Tạm khóa tất cả chiêu thức</span> (kể cả chiêu phụ).<br>
-        • Tốc độ tấn công <span style="color:#ff8800; font-weight:bold;">giảm 20%</span>.<br>
+        • Tốc độ tấn công <span style="color:#ff8800; font-weight:bold;">giảm 50%</span>.<br>
         • Trạng thái này tồn tại cho tới khi qua màn.
       </div>
       <div style="display:flex; gap:15px; justify-content:center;">
@@ -2002,6 +2003,10 @@
             this.duration = 0.45;
             break;
 
+          case 'cannon_ball':
+            this.duration = 0.55;
+            break;
+
           case 'lightning': // Lôi Long
             this.duration = 1.8;
             // Lightning cloud activation sparks
@@ -2221,6 +2226,75 @@
                 0,
                 0.5
               ));
+            }
+          }
+        }
+
+        // 4.5. Cannon Ball (Huy Sat Y basic attack) - Projectile explosion into 7-color fireworks
+        if (this.type === 'cannon_ball') {
+          let p = this.time / this.duration;
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 600;
+          let currX = this.hit ? (this.collisionX || this.x) : (this.x + f * (p * r));
+
+          // smoke puff behind bullet
+          if (!this.hit && Math.random() < 0.3) {
+            this.particles.push(new Particle(
+              currX,
+              this.y + (Math.random() - 0.5) * 10,
+              -f * 40,
+              (Math.random() - 0.5) * 40,
+              'rgba(150, 150, 150, 0.4)',
+              0.3,
+              Math.random() * 3 + 2,
+              'circle'
+            ));
+          }
+
+          // Check collision with any active enemy!
+          let collidedEnemy = null;
+          if (game && !this.hit) {
+            // Check Boss
+            if (game.boss && game.boss.hp > 0 && Math.abs(game.boss.x - currX) < 45) {
+              collidedEnemy = game.boss;
+            }
+            // Check Minions
+            if (!collidedEnemy) {
+              for (let m of game.minions) {
+                if (m.hp > 0 && Math.abs(m.x - currX) < 35) {
+                  collidedEnemy = m;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!this.hit && (collidedEnemy || p >= 0.95)) {
+            this.hit = true;
+            this.collisionX = currX;
+            let colors = ['#ff3333', '#ffa500', '#ffff33', '#33ff33', '#33ffff', '#3333ff', '#ff33ff'];
+            if (game) {
+              game.shake(0.25, 16);
+              // Blast out 7-color firework sparks in all directions!
+              let particleCount = isMobile ? 25 : 45;
+              for (let i = 0; i < particleCount; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 320 + 150;
+                let color = colors[i % colors.length];
+                let size = Math.random() * 4 + 2.5;
+                let life = 1.0 + Math.random() * 0.6;
+                this.particles.push(new Particle(
+                  currX,
+                  this.y,
+                  Math.cos(angle) * speed,
+                  Math.sin(angle) * speed,
+                  color,
+                  life,
+                  size,
+                  'star',
+                  180 // gravity
+                ));
+              }
             }
           }
         }
@@ -2567,6 +2641,36 @@
           c.strokeStyle = '#ffffff'; c.lineWidth = 2.5;
           c.beginPath(); c.ellipse(0, 0, size * 1.6, size * 0.5, p * Math.PI * 5, 0, Math.PI * 2); c.stroke();
           c.beginPath(); c.ellipse(0, 0, size * 1.6, size * 0.5, -p * Math.PI * 5, 0, Math.PI * 2); c.stroke();
+
+          c.restore();
+        }
+
+        // 6.5. CANNON BALL (Huy Sat Y basic attack) - Glowing fireball projectile (only drawn before collision)
+        if (this.type === 'cannon_ball' && !this.hit) {
+          let f = this.extra ? this.extra.facing : 1;
+          let r = this.extra ? this.extra.range : 600;
+          let currX = this.x + f * (p * r);
+
+          c.save(); c.translate(currX, this.y);
+          c.globalAlpha = 1 - p;
+
+          // Draw burning fireball
+          let grad = c.createRadialGradient(0, 0, 0, 0, 0, 11);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.3, '#ffcc00');
+          grad.addColorStop(1, '#ff3300');
+          c.fillStyle = grad;
+          if (!isMobile) {
+            c.shadowColor = '#ff3300'; c.shadowBlur = 18;
+          }
+          c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.fill();
+
+          // Sparking fire trail
+          let trailGrad = c.createLinearGradient(-f * 40, 0, 0, 0);
+          trailGrad.addColorStop(0, 'transparent');
+          trailGrad.addColorStop(1, 'rgba(255, 69, 0, 0.45)');
+          c.fillStyle = trailGrad;
+          c.fillRect(-f * 40, -4, 40, 8);
 
           c.restore();
         }
@@ -4149,8 +4253,18 @@
     class Boss {
       constructor(charId, floor) {
         const ch = CHARS[charId];
-        const mult = 1 + floor * 0.2;
-        const skillMult = 1 + floor * 0.15;
+        let mult = 1 + floor * 0.2;
+        let skillMult = 1 + floor * 0.15;
+        if (floor === 4 || floor === 5) {
+          mult *= 1.10;
+          skillMult *= 1.10;
+        } else if (floor === 6 || floor === 7) {
+          mult *= 1.15;
+          skillMult *= 1.15;
+        } else if (floor >= 8) {
+          mult *= 1.20;
+          skillMult *= 1.20;
+        }
         this.charId = charId; this.name = ch.name; this.floor = floor;
         this.maxHp = Math.floor(ch.hp * mult * 3);
         this.hp = this.maxHp;
@@ -4168,6 +4282,8 @@
         this.damageReduction = 0; this.damageReductionTime = 0;
         this.slowEffect = 0; this.slowTime = 0;
         this.isFurious = false;
+        this.dashTimer = 0;
+        this.furyShieldTime = 0;
       }
       enterFuryMode(game) {
         this.isFurious = true;
@@ -4176,7 +4292,38 @@
         this.atk *= 2;
         this.shield = 0;
         this.shieldTime = 0;
-        showMsg('👹 BOSS CUỒNG NỘ: Đã hồi sinh, tăng x2 HP, x2 Sát thương và Tốc chạy!', false);
+        this.furyShieldTime = 5.0; // 5s 20% damage reduction
+
+        let msg = '👹 BOSS CUỒNG NỘ: Đã hồi sinh, tăng tốc chạy & tốc đánh!';
+        if (game && game.player) {
+          let invulCleared = false;
+          let buffsCleared = false;
+          if (game.player.invincible > 0) {
+            if (Math.random() < 0.5) {
+              game.player.invincible = 0;
+              invulCleared = true;
+            }
+          }
+          if (Math.random() < 0.5) {
+            game.player.speedBuff = 0;
+            game.player.atkBuff = 0;
+            game.player.regenActive = 0;
+            game.player.damageReductionTime = 0;
+            game.player.shield = 0;
+            game.player.shieldTime = 0;
+            game.player.trangRangeBuffTimer = 0;
+            game.player.tienSkill2BuffTimer = 0;
+            buffsCleared = true;
+          }
+          if (invulCleared && buffsCleared) {
+            msg = '👹 TIẾNG HÚ CUỒNG NỘ ĐÃ ĐẬP TAN BẤT TỬ VÀ TOÀN BỘ BUFF CỦA BẠN!';
+          } else if (invulCleared) {
+            msg = '👹 TIẾNG HÚ CUỒNG NỘ ĐÃ ĐẬP TAN TRẠNG THÁI BẤT TỬ CỦA BẠN!';
+          } else if (buffsCleared) {
+            msg = '👹 TIẾNG HÚ CUỒNG NỘ ĐÃ XÓA SẠCH TOÀN BỘ TRẠNG THÁI BUFF CỦA BẠN!';
+          }
+        }
+        showMsg(msg, false);
         game.shakeTime = 1.2;
 
         // Tạo vụ nổ hạt lửa đỏ rực
@@ -4188,6 +4335,8 @@
       update(dt, player, game) {
         this.animFrame += dt * 60;
         this.attackCd -= dt; this.moveCd -= dt; this.skillCd -= dt;
+        this.dashTimer -= dt;
+        if (this.furyShieldTime > 0) this.furyShieldTime -= dt;
         this.hurtTime = Math.max(0, this.hurtTime - dt);
         if (this.shieldTime > 0) { this.shieldTime -= dt; if (this.shieldTime <= 0) this.shield = 0; }
         if (this.damageReductionTime > 0) this.damageReductionTime -= dt;
@@ -4199,7 +4348,7 @@
         if (this.y >= GROUND) { this.vy = 0; }
 
         let spd = 120 * (1 - this.slowEffect);
-        if (this.isFurious) spd *= 2.0; // Tăng gấp đôi tốc độ di chuyển
+        if (this.isFurious) spd *= 2.6; // Tăng x2.6 tốc chạy khi cuồng nộ (+30% so với x2)
 
         // AI behavior - target player or player's pet
         let target = null;
@@ -4232,6 +4381,33 @@
           if (Math.abs(tdx) > 5) this.x += Math.sign(tdx) * spd * dt;
           this.x = Math.max(30, Math.min(W - 60, this.x));
 
+          // Tốc biến áp sát when player is > 400px away
+          if (Math.abs(targetX - this.x) > 400 && this.dashTimer <= 0) {
+            if (Math.random() < 0.5) {
+              let startX = this.x;
+              this.x = targetX - this.facing * 55;
+              this.x = Math.max(30, Math.min(W - 60, this.x));
+              
+              let steps = 15;
+              for (let i = 0; i <= steps; i++) {
+                let px = startX + (this.x - startX) * (i / steps);
+                game.particles.push(new Particle(
+                  px,
+                  this.y - 50 + (Math.random() - 0.5) * 20,
+                  (Math.random() - 0.5) * 40,
+                  (Math.random() - 0.5) * 40,
+                  this.color,
+                  0.4,
+                  6,
+                  'circle',
+                  0
+                ));
+              }
+              showMsg('⚡ ' + this.name + ' TỐC BIẾN áp sát!', false);
+            }
+            this.dashTimer = 4.0; // 4s cooldown
+          }
+
           // Attack
           if (this.attackCd <= 0 && Math.abs(dx) < 120) {
             this.state = 'attack';
@@ -4246,7 +4422,12 @@
               game.damagePlayer(dmg);
             }
 
-            this.attackCd = 1.5 + Math.random() * 1;
+            // Tăng 30% tốc đánh khi cuồng nộ (giảm cooldown 30%)
+            if (this.isFurious) {
+              this.attackCd = (1.5 + Math.random() * 1) * 0.7;
+            } else {
+              this.attackCd = 1.5 + Math.random() * 1;
+            }
           }
         }
 
@@ -4318,6 +4499,12 @@
         }
       }
       takeDamage(dmg) {
+        if (game && game.player && Math.abs(game.player.x - this.x) > 400) {
+          dmg = Math.floor(dmg * 0.65);
+        }
+        if (this.isFurious && this.furyShieldTime > 0) {
+          dmg = Math.floor(dmg * 0.80);
+        }
         if (this.damageReductionTime > 0) dmg = Math.floor(dmg * (1 - this.damageReduction));
         if (this.shield > 0) {
           let absorbed = Math.min(this.shield, dmg);
@@ -4328,6 +4515,16 @@
       }
       draw(c) {
         let alpha = this.hurtTime > 0 ? 0.6 : 1;
+
+        // Vẽ biểu tượng khiên trên đầu khi miễn thương tầm xa hoạt động
+        if (this.hp > 0 && game && game.player && Math.abs(game.player.x - this.x) > 400) {
+          c.save();
+          c.fillStyle = '#ffffff';
+          c.font = 'bold 16px "Segoe UI", sans-serif';
+          c.textAlign = 'center';
+          c.fillText('🛡️', this.x, this.y - 135);
+          c.restore();
+        }
 
         // Vẽ hiệu ứng hào quang đỏ nếu Cuồng nộ
         if (this.isFurious) {
@@ -4504,7 +4701,13 @@
         if ((keys['KeyD'] || keys['ArrowRight']) && this.x < W - 30) { this.x += spd * dt; this.facing = 1; moving = true; }
 
         // Jump
-        if ((keys['Space']) && this.y >= GROUND) { this.vy = -600; }
+        if ((keys['Space']) && this.y >= GROUND) {
+          if (this.satyMode) {
+            showMsg("❌ Không thể nhảy trong trạng thái Sát Ý!");
+          } else {
+            this.vy = -600;
+          }
+        }
 
         // Gravity
         if (this.y < GROUND) { this.vy += 800 * dt; }
@@ -4581,7 +4784,7 @@
           if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
             let dealDmg = dmg;
             if (this.satyMode) {
-              dealDmg = Math.floor(1000 + t.hp * 0.1);
+              dealDmg = Math.floor(900 + t.maxHp * 0.1);
             }
             t.takeDamage(dealDmg);
 
@@ -4621,7 +4824,7 @@
           else if (this.charId === 'thao') effectType = 'magic_ice';
           else if (this.charId === 'nga') effectType = 'magic_star';
           else if (this.charId === 'bin') effectType = 'dagger_cross';
-          else if (this.charId === 'huy') effectType = this.satyMode ? 'firewave' : 'axe_smash';
+          else if (this.charId === 'huy') effectType = this.satyMode ? 'cannon_ball' : 'axe_smash';
 
           // Tạo một khoảng cách nhỏ phía trước để vung vũ khí đẹp hơn
           let spawnX = this.x + this.facing * 20;
@@ -4653,9 +4856,9 @@
         // Apply permanent attack speed multiplier
         cd /= (this.atkSpeedMultiplier || 1.0);
 
-        // HUY SÁT Ý MODE ATTACK SPEED DECREASE BY 20%:
+        // HUY SÁT Ý MODE ATTACK SPEED DECREASE BY 50%:
         if (this.satyMode) {
-          cd /= 0.8;
+          cd /= 0.5;
         }
 
         this.attackCd = cd;
@@ -5248,7 +5451,7 @@
           let p = this.player;
           p.satyMode = true;
           p.invincible = 2.0; // 2 seconds of invincibility
-          p.range = 480;      // 4x range (120 * 4)
+          p.range = 600;      // 5x range (600px)
           showMsg("💀 HUY THẨM DU TIẾN VÀO TRẠNG THÁI SÁT Ý! ĐẠI BÁC SẴN SÀNG!");
 
           // Play epic roar
