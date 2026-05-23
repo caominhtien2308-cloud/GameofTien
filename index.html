@@ -1317,6 +1317,26 @@
         font-size: 13px !important;
         border-radius: 6px !important;
       }
+
+      .saty-desc-box {
+        font-size: 9.5px !important;
+        padding: 6px 10px !important;
+        margin-bottom: 8px !important;
+        line-height: 1.3 !important;
+      }
+    }
+
+    .saty-desc-box {
+      font-size: 12px;
+      color: #aaa;
+      text-align: left;
+      background: rgba(0,0,0,0.5);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      border: 1px solid rgba(255, 50, 50, 0.2);
+      touch-action: auto;
     }
 
     /* For very small devices, chars-grid becomes 2 columns */
@@ -1647,7 +1667,7 @@
     <div class="quiz-container" style="border-color:#ff3333; box-shadow:0 0 35px rgba(255, 50, 50, 0.4);">
       <div class="quiz-title" style="color:#ff3333; text-shadow:0 0 10px rgba(255, 50, 50, 0.5);">💀 KÍCH HOẠT SÁT Ý 💀</div>
       <div class="quiz-subtitle" style="font-size:14px; margin-bottom:20px;">Sinh lực của Huy Thẩm Du đã giảm dưới 50%! Bạn có muốn giải phóng nguồn sức mạnh SÁT Ý và chuyển đổi vũ khí thành ĐẠI BÁC không?</div>
-      <div style="font-size:12px; color:#aaa; text-align:left; background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; margin-bottom:20px; line-height:1.5; border:1px solid rgba(255,50,50,0.2); touch-action:auto;">
+      <div class="saty-desc-box">
         <span style="color:#ff3333; font-weight:bold;">Trạng thái Sát Ý:</span><br>
         • Nhận <span style="color:#fff; font-weight:bold;">BẤT TỬ trong 2 giây đầu tiên</span>.<br>
         • Tầm đánh thường <span style="color:#00ffcc; font-weight:bold;">tăng lên 600px (GẤP 5 LẦN)</span>, không thể Nhảy.<br>
@@ -1779,7 +1799,7 @@
       },
       nga: {
         id: 'nga', name: 'Nga Ngố', class: 'Kẻ Nắm Đầu Súc Vật', icon: '🐼',
-        hp: 1900, mp: 1600, atk: 60, color: '#ffcc44', weaponColor: '#ffe088', range: 360,
+        hp: 1900, mp: 1600, atk: 100, color: '#ffcc44', weaponColor: '#ffe088', range: 360,
         skills: [
           {
             name: 'Triệu Hồi Súc Vật BIN', key: '1', cd: 30, mpCost: 200, icon: '🐼',
@@ -1791,14 +1811,28 @@
               p.shield = 500;
               p.shieldTime = 999999;
               p.speedBuff = 10;
+              p.speedBuffPercent = 1.5;
               showMsg('🐼 THẰNG CHIM CỦA BÀ ĐÂU! +500 KHIÊN & +50% TỐC CHẠY!');
               return true;
             }
           },
           {
-            name: 'Phán HUY luôn có tội', key: '2', cd: 60, mpCost: 300, icon: '👼',
-            desc: 'Thiên sứ hiện ra phán khứa HUY luôn sai gây 800 sát thương, reset chiêu 1.',
-            use: (g, p) => { if (p.mp < 300) return false; p.mp -= 300; g.spawnEffect('angelJudge', p.x, p.y, 800 * (1 + p.bonusAtk), false, { game: g }); p.skillCooldowns[0] = 0; showMsg('👼 TẤT CẢ ĐỀU SAIIII!'); return true; }
+            name: 'Phán HUY luôn có tội', key: '2', cd: 30, mpCost: 300, icon: '👼',
+            desc: 'Thiên sứ hiện ra gây 800 sát thương, làm choáng boss 2.5s, tăng 20% tốc chạy trong 5s và reset chiêu 1.',
+            use: (g, p) => {
+              if (p.mp < 300) return false;
+              p.mp -= 300;
+              g.spawnEffect('angelJudge', p.x, p.y, 800 * (1 + p.bonusAtk), false, { game: g });
+              p.skillCooldowns[0] = 0;
+              if (g.boss && g.boss.hp > 0) {
+                g.boss.stunTime = 2.5;
+                showMsg('👼 THIÊN SỨ PHÁN QUYẾT: Boss bị CHOÁNG trong 2.5 giây!', false);
+              }
+              p.speedBuff = 5;
+              p.speedBuffPercent = 1.2;
+              showMsg('👼 NGA NGỐ nhận +20% tốc chạy trong 5 giây!');
+              return true;
+            }
           }
         ]
       }
@@ -4284,6 +4318,7 @@
         this.isFurious = false;
         this.dashTimer = 0;
         this.furyShieldTime = 0;
+        this.stunTime = 0;
       }
       enterFuryMode(game) {
         this.isFurious = true;
@@ -4337,6 +4372,7 @@
         this.attackCd -= dt; this.moveCd -= dt; this.skillCd -= dt;
         this.dashTimer -= dt;
         if (this.furyShieldTime > 0) this.furyShieldTime -= dt;
+        if (this.stunTime > 0) this.stunTime -= dt;
         this.hurtTime = Math.max(0, this.hurtTime - dt);
         if (this.shieldTime > 0) { this.shieldTime -= dt; if (this.shieldTime <= 0) this.shield = 0; }
         if (this.damageReductionTime > 0) this.damageReductionTime -= dt;
@@ -4349,6 +4385,24 @@
 
         let spd = 120 * (1 - this.slowEffect);
         if (this.isFurious) spd *= 2.6; // Tăng x2.6 tốc chạy khi cuồng nộ (+30% so với x2)
+
+        if (this.stunTime > 0) {
+          this.state = 'hurt';
+          if (Math.random() < 0.15) {
+            game.particles.push(new Particle(
+              this.x + (Math.random() - 0.5) * 30,
+              this.y - 120,
+              (Math.random() - 0.5) * 20,
+              -10 - Math.random() * 20,
+              '#ffd700',
+              0.5,
+              5,
+              'star',
+              0
+            ));
+          }
+          return;
+        }
 
         // AI behavior - target player or player's pet
         let target = null;
@@ -4382,10 +4436,12 @@
           this.x = Math.max(30, Math.min(W - 60, this.x));
 
           // Tốc biến áp sát when player is > 400px away
-          if (Math.abs(targetX - this.x) > 400 && this.dashTimer <= 0) {
+          let checkDist = (player.charId === 'nga') ? Math.abs(targetX - this.x) : Math.abs(player.x - this.x);
+          if (checkDist > 400 && this.dashTimer <= 0) {
             if (Math.random() < 0.5) {
               let startX = this.x;
-              this.x = targetX - this.facing * 55;
+              let destX = (player.charId === 'nga') ? targetX : player.x;
+              this.x = destX - this.facing * 55;
               this.x = Math.max(30, Math.min(W - 60, this.x));
               
               let steps = 15;
@@ -4404,8 +4460,10 @@
                 ));
               }
               showMsg('⚡ ' + this.name + ' TỐC BIẾN áp sát!', false);
+              this.dashTimer = 4.0; // 4s cooldown when successful
+            } else {
+              this.dashTimer = 0.5; // Retry in 0.5s if roll fails
             }
-            this.dashTimer = 4.0; // 4s cooldown
           }
 
           // Attack
@@ -4631,6 +4689,7 @@
         this.invisible = 0; this.nextHitBonus = 0;
         this.invincible = 0;
         this.speedBuff = 0; this.atkBuff = 0;
+        this.speedBuffPercent = 1.0;
         this.damageReduction = 0; this.damageReductionTime = 0;
         this.bonusAtk = 0;
         this.pet = null;
@@ -4692,7 +4751,7 @@
         let spd = 200;
         if (this.speedBuff > 0) {
           if (this.charId === 'trang') spd *= this.trangSpeedBuffVal;
-          else if (this.charId === 'nga') spd *= 1.5; // +50% speed buff for Nga
+          else if (this.charId === 'nga') spd *= (this.speedBuffPercent || 1.5);
           else spd *= 1.6;
         }
         if (this.invisible > 0 && this.charId === 'bin') spd *= 1.5; // +50% movement speed during stealth
