@@ -1642,6 +1642,27 @@
     </div>
   </div>
 
+  <!-- Custom Sat Y Modal for Huy -->
+  <div id="saty-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,0,0,0.85); backdrop-filter:blur(8px); z-index:4000; align-items:center; justify-content:center;">
+    <div class="quiz-container" style="border-color:#ff3333; box-shadow:0 0 35px rgba(255, 50, 50, 0.4);">
+      <div class="quiz-title" style="color:#ff3333; text-shadow:0 0 10px rgba(255, 50, 50, 0.5);">💀 KÍCH HOẠT SÁT Ý 💀</div>
+      <div class="quiz-subtitle" style="font-size:14px; margin-bottom:20px;">Sinh lực của Huy Thẩm Du đã giảm dưới 50%! Bạn có muốn giải phóng nguồn sức mạnh SÁT Ý và chuyển đổi vũ khí thành ĐẠI BÁC không?</div>
+      <div style="font-size:12px; color:#aaa; text-align:left; background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; margin-bottom:20px; line-height:1.5; border:1px solid rgba(255,50,50,0.2); touch-action:auto;">
+        <span style="color:#ff3333; font-weight:bold;">Trạng thái Sát Ý:</span><br>
+        • Nhận <span style="color:#fff; font-weight:bold;">BẤT TỬ trong 2 giây đầu tiên</span>.<br>
+        • Tầm đánh thường <span style="color:#00ffcc; font-weight:bold;">tăng gấp 4 lần</span> (chỉ dùng đánh thường).<br>
+        • Sức tấn công mỗi phát bắn cố định <span style="color:#ffd700; font-weight:bold;">1000 HP + 10% HP hiện tại</span> của kẻ địch.<br>
+        • <span style="color:#ff3333; font-weight:bold;">Tạm khóa tất cả chiêu thức</span> (kể cả chiêu phụ).<br>
+        • Tốc độ tấn công <span style="color:#ff8800; font-weight:bold;">giảm 20%</span>.<br>
+        • Trạng thái này tồn tại cho tới khi qua màn.
+      </div>
+      <div style="display:flex; gap:15px; justify-content:center;">
+        <button class="quiz-submit-btn" style="background:linear-gradient(135deg, #ff3333, #aa0000); color:#fff; box-shadow:0 4px 15px rgba(255, 0, 0, 0.4);" onclick="game.activateSatYState(true)">ĐỒNG Ý</button>
+        <button class="quiz-submit-btn" style="background:linear-gradient(135deg, #555, #222); color:#fff; box-shadow:none;" onclick="game.activateSatYState(false)">TỪ CHỐI</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ============================
     // MOBILE DETECTION (GLOBAL)
@@ -2827,7 +2848,7 @@
     // ============================
     // DRAW CHARACTER - PHIÊN BẢN HUMAN 3D-STYLED
     // ============================
-    function drawCharacter(c, x, y, charId, facing, state, animFrame, alpha = 1, scale = 1) {
+    function drawCharacter(c, x, y, charId, facing, state, animFrame, alpha = 1, scale = 1, customData = null) {
       c.save();
       c.globalAlpha = alpha;
       c.translate(x, y);
@@ -2863,12 +2884,12 @@
       }
 
       switch (charId) {
-        case 'tien': drawHumanTien(c, state, t, x, y, facing); break;
-        case 'thao': drawHumanThao(c, state, t, x, y, facing); break;
-        case 'bin': drawHumanBin(c, state, t, x, y, facing); break;
-        case 'trang': drawHumanTrang(c, state, t, x, y, facing); break;
-        case 'huy': drawHumanHuy(c, state, t, x, y, facing); break;
-        case 'nga': drawHumanNga(c, state, t, x, y, facing); break;
+        case 'tien': drawHumanTien(c, state, t, x, y, facing, customData); break;
+        case 'thao': drawHumanThao(c, state, t, x, y, facing, customData); break;
+        case 'bin': drawHumanBin(c, state, t, x, y, facing, customData); break;
+        case 'trang': drawHumanTrang(c, state, t, x, y, facing, customData); break;
+        case 'huy': drawHumanHuy(c, state, t, x, y, facing, customData); break;
+        case 'nga': drawHumanNga(c, state, t, x, y, facing, customData); break;
       }
 
       c.restore();
@@ -3501,7 +3522,7 @@
       c.restore();
     }
 
-    function drawHumanHuy(c, state, t, x, y, facing) { // Huy - Tanker
+    function drawHumanHuy(c, state, t, x, y, facing, customData) { // Huy - Tanker
       // Plate legs
       let legL = 0, legR = 0;
       if (state === 'run') {
@@ -3525,28 +3546,31 @@
       drawTitanLeg(c, -10, 20, legL);
       drawTitanLeg(c, 10, 20, legR);
 
-      // Volcanic Shield (Left hand, Background side but translated left)
-      c.save();
-      c.translate(-22, 6);
-      c.rotate(-0.2 + Math.sin(t * 3) * 0.1);
-      // Shield plate
-      c.fillStyle = '#111827';
-      c.beginPath();
-      c.moveTo(-14, -28); c.lineTo(14, -28); c.lineTo(10, 24); c.lineTo(0, 36); c.lineTo(-10, 24);
-      c.closePath(); c.fill();
-      // Glowing core cracks
-      let shGrad = c.createRadialGradient(0, 0, 2, 0, 0, 20);
-      shGrad.addColorStop(0, '#f97316');
-      shGrad.addColorStop(1, '#7f1d1d');
-      c.fillStyle = shGrad;
-      c.beginPath();
-      c.moveTo(-10, -22); c.lineTo(10, -22); c.lineTo(6, 18); c.lineTo(0, 28); c.lineTo(-6, 18);
-      c.closePath(); c.fill();
-      // Center steel spikes
-      c.fillStyle = '#9ca3af';
-      c.beginPath(); c.moveTo(-4, -4); c.lineTo(0, -22); c.lineTo(4, -4); c.lineTo(12, 0); c.lineTo(4, 4); c.lineTo(0, 22); c.lineTo(-4, 4); c.lineTo(-12, 0);
-      c.closePath(); c.fill();
-      c.restore();
+      // Volcanic Shield (Left hand, Background side but translated left) - disabled in Sát Ý mode
+      let isSaty = customData && customData.satyMode;
+      if (!isSaty) {
+        c.save();
+        c.translate(-22, 6);
+        c.rotate(-0.2 + Math.sin(t * 3) * 0.1);
+        // Shield plate
+        c.fillStyle = '#111827';
+        c.beginPath();
+        c.moveTo(-14, -28); c.lineTo(14, -28); c.lineTo(10, 24); c.lineTo(0, 36); c.lineTo(-10, 24);
+        c.closePath(); c.fill();
+        // Glowing core cracks
+        let shGrad = c.createRadialGradient(0, 0, 2, 0, 0, 20);
+        shGrad.addColorStop(0, '#f97316');
+        shGrad.addColorStop(1, '#7f1d1d');
+        c.fillStyle = shGrad;
+        c.beginPath();
+        c.moveTo(-10, -22); c.lineTo(10, -22); c.lineTo(6, 18); c.lineTo(0, 28); c.lineTo(-6, 18);
+        c.closePath(); c.fill();
+        // Center steel spikes
+        c.fillStyle = '#9ca3af';
+        c.beginPath(); c.moveTo(-4, -4); c.lineTo(0, -22); c.lineTo(4, -4); c.lineTo(12, 0); c.lineTo(4, 4); c.lineTo(0, 22); c.lineTo(-4, 4); c.lineTo(-12, 0);
+        c.closePath(); c.fill();
+        c.restore();
+      }
 
       // Heavy body with volcanic magma cracks
       c.save();
@@ -3596,30 +3620,81 @@
 
       c.restore(); // end body
 
-      // Magma Axe (Right hand foreground)
-      let axeAngle = state === 'attack' ? -1.3 + Math.sin(t * 18) * 1.5 : 0.4 + Math.sin(t * 2) * 0.15;
-      c.save();
-      c.translate(16, 5);
-      c.rotate(axeAngle);
-      // Rusted bronze shaft
-      c.strokeStyle = '#78350f'; c.lineWidth = 4;
-      c.beginPath(); c.moveTo(0, 28); c.lineTo(0, -32); c.stroke();
-      // Massive dual axe blade
-      c.fillStyle = '#374151';
-      c.beginPath();
-      // Left blade
-      c.moveTo(0, -28); c.quadraticCurveTo(-18, -26, -24, -14); c.quadraticCurveTo(-14, -6, 0, -8);
-      // Right blade
-      c.moveTo(0, -28); c.quadraticCurveTo(18, -26, 24, -14); c.quadraticCurveTo(14, -6, 0, -8);
-      c.closePath(); c.fill();
-      // Glowing molten edge
-      c.fillStyle = '#ea580c'; c.shadowColor = '#ff3300'; c.shadowBlur = 10;
-      c.beginPath();
-      c.moveTo(-24, -14); c.quadraticCurveTo(-26, -20, -20, -24); c.lineTo(-14, -20); c.closePath(); c.fill();
-      c.beginPath();
-      c.moveTo(24, -14); c.quadraticCurveTo(26, -20, 20, -24); c.lineTo(14, -20); c.closePath(); c.fill();
-      c.shadowBlur = 0;
-      c.restore();
+      // Volcanic Weapon (Right hand foreground) - Súng đại bác in Sát Ý mode, Magma Axe in normal mode
+      if (isSaty) {
+        // Giant Cannon (Đại Bác)
+        let cannonAngle = state === 'attack' ? -0.2 + Math.sin(t * 12) * 0.1 : 0.1 + Math.sin(t * 2) * 0.05;
+        c.save();
+        c.translate(16, 5);
+        c.rotate(cannonAngle);
+        
+        // Cannon metal base/body
+        c.fillStyle = '#1e293b'; c.strokeStyle = '#ef4444'; c.lineWidth = 2.5;
+        if (!isMobile) {
+          c.shadowColor = '#ff0000'; c.shadowBlur = 12;
+        }
+        
+        // Cannon barrel (nòng súng)
+        c.fillRect(0, -10, 36, 16);
+        c.strokeRect(0, -10, 36, 16);
+        
+        // Cannon muzzle / tip (họng súng)
+        c.fillStyle = '#0f172a';
+        c.fillRect(36, -13, 8, 22);
+        c.strokeRect(36, -13, 8, 22);
+        
+        // Glowing red neon energy chamber in the middle (buồng nạp năng lượng)
+        let energyGrad = c.createLinearGradient(4, 0, 32, 0);
+        energyGrad.addColorStop(0, '#7f1d1d');
+        energyGrad.addColorStop(0.5, '#ef4444');
+        energyGrad.addColorStop(1, '#ffffff');
+        c.fillStyle = energyGrad;
+        c.fillRect(6, -6, 22, 8);
+        
+        // Underbarrel grip / handles
+        c.fillStyle = '#475569';
+        c.fillRect(-4, 6, 10, 8); // rear handle
+        c.fillRect(16, 6, 8, 6);  // front support grip
+        
+        // Sparkling energy charging at muzzle when attacking
+        if (state === 'attack') {
+          c.fillStyle = '#ffffff';
+          if (!isMobile) {
+            c.shadowBlur = 20;
+          }
+          c.beginPath(); c.arc(44, -2, 8, 0, Math.PI * 2); c.fill();
+        }
+        
+        c.shadowBlur = 0;
+        c.restore();
+      } else {
+        let axeAngle = state === 'attack' ? -1.3 + Math.sin(t * 18) * 1.5 : 0.4 + Math.sin(t * 2) * 0.15;
+        c.save();
+        c.translate(16, 5);
+        c.rotate(axeAngle);
+        // Rusted bronze shaft
+        c.strokeStyle = '#78350f'; c.lineWidth = 4;
+        c.beginPath(); c.moveTo(0, 28); c.lineTo(0, -32); c.stroke();
+        // Massive dual axe blade
+        c.fillStyle = '#374151';
+        c.beginPath();
+        // Left blade
+        c.moveTo(0, -28); c.quadraticCurveTo(-18, -26, -24, -14); c.quadraticCurveTo(-14, -6, 0, -8);
+        // Right blade
+        c.moveTo(0, -28); c.quadraticCurveTo(18, -26, 24, -14); c.quadraticCurveTo(14, -6, 0, -8);
+        c.closePath(); c.fill();
+        // Glowing molten edge
+        c.fillStyle = '#ea580c';
+        if (!isMobile) {
+          c.shadowColor = '#ff3300'; c.shadowBlur = 10;
+        }
+        c.beginPath();
+        c.moveTo(-24, -14); c.quadraticCurveTo(-26, -20, -20, -24); c.lineTo(-14, -20); c.closePath(); c.fill();
+        c.beginPath();
+        c.moveTo(24, -14); c.quadraticCurveTo(26, -20, 20, -24); c.lineTo(14, -20); c.closePath(); c.fill();
+        c.shadowBlur = 0;
+        c.restore();
+      }
     }
 
     function drawHumanNga(c, state, t, x, y, facing) { // Nga - Summoner
@@ -4504,7 +4579,11 @@
         let hit = false;
         targets.forEach(t => {
           if (t && t.hp > 0 && Math.abs(t.x - this.x) < this.range) {
-            t.takeDamage(Math.floor(dmg));
+            let dealDmg = dmg;
+            if (this.satyMode) {
+              dealDmg = Math.floor(1000 + t.hp * 0.1);
+            }
+            t.takeDamage(dealDmg);
 
             // Additional source of damage for Tien during skill 2 buff (5% of max HP)
             if (this.charId === 'tien' && this.tienSkill2BuffTimer > 0) {
@@ -4513,9 +4592,9 @@
               spawnHitParticles(t.x, t.y - 30, '#ffd700', 'plus'); // beautiful golden healing/divine plus sparks for HP-based damage
             }
 
-            // Huy Skill 1 lifesteal: 100% basic attack damage
+            // Huy Skill 1 lifesteal: 100% basic attack damage (using dealDmg!)
             if (this.charId === 'huy' && this.invincible > 0) {
-              let healAmount = Math.floor(dmg);
+              let healAmount = Math.floor(dealDmg);
               this.hp = Math.min(this.maxHp, this.hp + healAmount);
               spawnHitParticles(this.x, this.y - 45, '#00ff66', 'plus'); // green plus sparks for healing
             }
@@ -4542,7 +4621,7 @@
           else if (this.charId === 'thao') effectType = 'magic_ice';
           else if (this.charId === 'nga') effectType = 'magic_star';
           else if (this.charId === 'bin') effectType = 'dagger_cross';
-          else if (this.charId === 'huy') effectType = 'axe_smash';
+          else if (this.charId === 'huy') effectType = this.satyMode ? 'firewave' : 'axe_smash';
 
           // Tạo một khoảng cách nhỏ phía trước để vung vũ khí đẹp hơn
           let spawnX = this.x + this.facing * 20;
@@ -4573,6 +4652,11 @@
 
         // Apply permanent attack speed multiplier
         cd /= (this.atkSpeedMultiplier || 1.0);
+
+        // HUY SÁT Ý MODE ATTACK SPEED DECREASE BY 20%:
+        if (this.satyMode) {
+          cd /= 0.8;
+        }
 
         this.attackCd = cd;
         setTimeout(() => { if (this.state === 'attack') this.state = 'idle'; }, 300);
@@ -4698,7 +4782,7 @@
           c.filter = 'blur(1px) drop-shadow(0 0 8px rgba(0,0,0,0.8))'; // Nhòa bóng đen
         }
 
-        drawCharacter(c, this.x, this.y, this.charId, this.facing, this.state, this.animFrame);
+        drawCharacter(c, this.x, this.y, this.charId, this.facing, this.state, this.animFrame, 1, 1, this);
         c.globalAlpha = 1;
         c.filter = 'none';
 
@@ -4939,8 +5023,16 @@
         if (this.superPillActive) {
           this.deactivateSuperPill();
         }
-        if (this.pillCount >= 4) {
+        this.isBossFloor = (this.floor % 2 === 0);
+        if (this.pillCount >= 4 && !this.isBossFloor) {
           this.activateSuperPill();
+        }
+
+        // Hủy trạng thái Sát Ý của Huy khi qua màn mới
+        if (this.player.charId === 'huy') {
+          this.player.satyMode = false;
+          this.player.satyPrompted = false;
+          this.player.range = CHARS['huy'].range || 120;
         }
 
         this.minions = []; this.effects = []; this.particles = [];
@@ -4948,7 +5040,6 @@
         this.player.shield = 0;
         this.player.shieldTime = 0;
         this.minionSpawnCd = 2; this.waveKills = 0;
-        this.isBossFloor = (this.floor % 2 === 0);
 
         let floorDiv = document.getElementById('floor-display');
         if (this.isBossFloor) {
@@ -5021,6 +5112,7 @@
 
       useSkill(idx) {
         if (this.paused || !this.running) return;
+        if (this.player.satyMode) { showMsg('❌ Không thể dùng chiêu thức trong Trạng thái Sát Ý!'); return; }
         let sk = this.player.skills[idx];
         if (!sk) return;
         if (this.player.skillCooldowns[idx] > 0) { showMsg(`⏱ ${sk.name} hồi chiêu: ${this.player.skillCooldowns[idx].toFixed(0)}s`); return; }
@@ -5033,6 +5125,7 @@
 
       useExtraSkill(idx) {
         if (this.paused || !this.running) return;
+        if (this.player.satyMode) { showMsg('❌ Không thể dùng chiêu thức trong Trạng thái Sát Ý!'); return; }
         let sk = this.player.extraSkills[idx];
         if (!sk) return;
         if (this.player.extraSkillCooldowns[idx] > 0) { showMsg(`⏱ Hồi chiêu: ${this.player.extraSkillCooldowns[idx].toFixed(0)}s`); return; }
@@ -5101,6 +5194,20 @@
         let actual = this.player.takeDamage(dmg);
         if (actual > 0) {
           spawnHitParticles(this.player.x, this.player.y - 50, '#ff4444');
+
+          // TIẾN SPECIAL REGEN COOLDOWN MECHANIC:
+          if (this.player.charId === 'tien' && this.player.regenActive > 0) {
+            this.player.skillCooldowns[0] = Math.max(0, this.player.skillCooldowns[0] - 1.0);
+            showMsg('💚 OLONG NHO GIẢM 1S HỒI CHIÊU 1!');
+          }
+
+          // HUY SPECIAL SÁT Ý TRIGGER MECHANIC:
+          if (this.player.charId === 'huy' && !this.player.satyMode && !this.player.satyPrompted && this.player.hp < this.player.maxHp * 0.5 && this.player.hp > 0) {
+            this.player.satyPrompted = true;
+            this.paused = true;
+            document.getElementById('saty-modal').style.display = 'flex';
+          }
+
           if (this.player.hp <= 0) {
             // Check Special Floor 10 Quiz Revival mechanism
             if (this.floor === 10 && this.isBossFloor) {
@@ -5130,6 +5237,29 @@
             }
             this.playerDied();
           }
+        }
+      }
+
+      activateSatYState(accept) {
+        document.getElementById('saty-modal').style.display = 'none';
+        this.paused = false;
+
+        if (accept) {
+          let p = this.player;
+          p.satyMode = true;
+          p.invincible = 2.0; // 2 seconds of invincibility
+          p.range = 480;      // 4x range (120 * 4)
+          showMsg("💀 HUY THẨM DU TIẾN VÀO TRẠNG THÁI SÁT Ý! ĐẠI BÁC SẴN SÀNG!");
+
+          // Play epic roar
+          if (this.audioCtx) this.playBossRoar();
+
+          // visual explosion particles
+          for (let i = 0; i < 40; i++) {
+            this.particles.push(new Particle(p.x, p.y - 45, (Math.random() - 0.5) * 400, -Math.random() * 400, '#ff3333', 1.0, Math.random() * 6 + 4, 'lava_rock'));
+          }
+        } else {
+          showMsg("🛡️ Đã từ chối kích hoạt Sát Ý.");
         }
       }
 
@@ -5530,6 +5660,21 @@
           if (cd > 0) { ov.style.display = 'flex'; ov.textContent = Math.ceil(cd) + 's'; }
           else { ov.style.display = 'none'; }
         }
+
+        // Gray out skill slots in Sát Ý mode
+        for (let i = 0; i < 6; i++) {
+          let el = document.getElementById(`sk${i}`);
+          if (el) {
+            if (p.satyMode) {
+              el.style.opacity = '0.3';
+              el.style.pointerEvents = 'none';
+            } else {
+              el.style.opacity = '1';
+              el.style.pointerEvents = 'auto';
+            }
+          }
+        }
+
         // Boss HP
         if (this.boss) {
           document.getElementById('boss-hp-bar').style.width = (Math.max(0, this.boss.hp) / this.boss.maxHp * 100) + '%';
@@ -5832,6 +5977,11 @@
               document.getElementById('floor-display').textContent = `Tầng ${this.floor} | Boss: ${this.boss.name}`;
               showMsg(`⚔️ BỐ TỚI NÈ CON: ${this.boss.name}!`);
               this.playBossRoar();
+
+              // Kích hoạt siêu thuốc lắc ở màn Boss khi Boss thực sự xuất hiện!
+              if (this.pillCount >= 4) {
+                this.activateSuperPill();
+              }
             }
           } else if (this.boss) {
             this.boss.update(dt, this.player, this);
