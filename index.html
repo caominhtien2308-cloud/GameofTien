@@ -1363,6 +1363,47 @@
         margin-top: 2px !important;
       }
     }
+
+    @keyframes red-glow-run {
+      0% {
+        box-shadow: 0 0 8px #ff0000, inset 0 0 5px #ff0000;
+        border-color: #ff0000;
+      }
+
+      50% {
+        box-shadow: 0 0 25px #ff3333, inset 0 0 12px #ff3333;
+        border-color: #ff3333;
+      }
+
+      100% {
+        box-shadow: 0 0 8px #ff0000, inset 0 0 5px #ff0000;
+        border-color: #ff0000;
+      }
+    }
+
+    .recommended-skill-card {
+      position: relative;
+      border: 2px solid #ff0000 !important;
+      animation: red-glow-run 1.5s infinite alternate !important;
+    }
+
+    .recommended-badge {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff0000;
+      color: #fff;
+      font-size: 9px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      box-shadow: 0 0 10px #ff0000;
+      border: 1px solid #ff6666;
+      z-index: 10;
+    }
   </style>
 </head>
 
@@ -3792,6 +3833,132 @@
       takeDamage(dmg) { this.hp -= dmg; if (this.hp <= 0) { this.active = false; for (let i = 0; i < 20; i++) globalParticles.push(new Particle(this.x, this.y - 40, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, '#ff4444', 1, 3, 'spark')); } }
     }
 
+    class TanSkeletonBoss {
+      constructor() {
+        this.name = 'Tân Skeleton';
+        this.x = W * 0.75;
+        this.y = GROUND;
+        this.facing = -1;
+        this.state = 'idle';
+        this.animFrame = 0;
+        this.hp = 9999;
+        this.maxHp = 9999;
+        this.hurtTime = 0;
+      }
+      update(dt) {
+        this.animFrame += dt * 60;
+        this.hurtTime = Math.max(0, this.hurtTime - dt);
+      }
+      takeDamage(dmg) {
+        // HP is not reduced even if player hits
+        this.hurtTime = 0.15;
+      }
+      draw(c) {
+        c.save();
+        c.translate(this.x, this.y);
+        c.scale(this.facing * 1.5, 1.5);
+
+        let t = Date.now() / 150;
+        let bob = Math.sin(t) * 4;
+        c.translate(0, -bob);
+
+        let alpha = this.hurtTime > 0 ? 0.6 : 1;
+        c.globalAlpha = alpha;
+
+        // Head
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(0, -70, 22, 0, Math.PI * 2);
+        c.fill();
+
+        // Jaw / mouth
+        c.fillRect(-10, -52, 20, 10);
+        c.strokeStyle = '#333333';
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(-6, -48); c.lineTo(6, -48);
+        c.moveTo(-4, -52); c.lineTo(-4, -44);
+        c.moveTo(0, -52); c.lineTo(0, -44);
+        c.moveTo(4, -52); c.lineTo(4, -44);
+        c.stroke();
+
+        // Big Eyes! (hollow black circles)
+        c.fillStyle = '#000000';
+        c.beginPath();
+        c.arc(-8, -72, 8, 0, Math.PI * 2);
+        c.arc(8, -72, 8, 0, Math.PI * 2);
+        c.fill();
+
+        // Big Pupils (glowing red)
+        c.fillStyle = '#ff3333';
+        c.beginPath();
+        c.arc(-8, -72, 3, 0, Math.PI * 2);
+        c.arc(8, -72, 3, 0, Math.PI * 2);
+        c.fill();
+
+        // Nose cavity
+        c.fillStyle = '#000000';
+        c.beginPath();
+        c.moveTo(-2, -62);
+        c.lineTo(2, -62);
+        c.lineTo(0, -58);
+        c.closePath();
+        c.fill();
+
+        // Spine
+        c.strokeStyle = '#ffffff';
+        c.lineWidth = 6;
+        c.beginPath();
+        c.moveTo(0, -42);
+        c.lineTo(0, -10);
+        c.stroke();
+
+        // Ribcage
+        c.lineWidth = 4;
+        for (let i = 0; i < 3; i++) {
+          let ry = -35 + i * 10;
+          c.beginPath();
+          c.arc(0, ry, 15, Math.PI, 0);
+          c.stroke();
+        }
+
+        // Pelvis
+        c.fillStyle = '#ffffff';
+        c.fillRect(-12, -14, 24, 6);
+
+        // Legs
+        c.strokeStyle = '#ffffff';
+        c.lineWidth = 4;
+        c.beginPath();
+        c.moveTo(-8, -8);
+        c.lineTo(-12, 10);
+        c.stroke();
+        c.beginPath();
+        c.moveTo(8, -8);
+        c.lineTo(12, 10);
+        c.stroke();
+
+        // Arms
+        c.beginPath();
+        c.moveTo(-15, -40);
+        c.lineTo(-25, -20);
+        c.stroke();
+        c.beginPath();
+        c.moveTo(15, -40);
+        c.lineTo(25, -20);
+        c.stroke();
+
+        c.restore();
+
+        // HP bar above boss
+        c.save(); c.translate(this.x - 40, this.y - 120);
+        c.fillStyle = 'rgba(0,0,0,0.7)'; c.fillRect(0, 0, 80, 10);
+        c.fillStyle = '#ff4444'; c.fillRect(0, 0, 80 * (Math.max(0, this.hp) / this.maxHp), 10);
+        c.strokeStyle = 'rgba(255,100,100,0.5)'; c.lineWidth = 1; c.strokeRect(0, 0, 80, 10);
+        c.restore();
+      }
+    }
+
     class Boss {
       constructor(charId, floor) {
         const ch = CHARS[charId];
@@ -4865,6 +5032,12 @@
         if (this.isBossFloor) {
           this.bossIndex++;
           if (this.bossIndex >= 5) {
+            // Victory after bossIndex >= 5! If floor 10, go to Heaven Stage instead!
+            if (this.floor === 10) {
+              showMsg(`🏆 Boss cuối đã gục ngã! Cảnh sắc Thiên Đường đang mở ra...`);
+              setTimeout(() => { this.startHeavenStage(); }, 1500);
+              return;
+            }
             // Victory!
             setTimeout(() => { document.getElementById('victory').style.display = 'flex'; }, 1500);
             return;
@@ -4882,6 +5055,179 @@
         }
       }
 
+      startHeavenStage() {
+        this.isHeavenStage = true;
+        this.isBossFloor = true;
+        this.paused = false;
+        this.running = true;
+        this.floor = 11; // Special Heaven floor number for display
+
+        // Clear other entities
+        this.minions = [];
+        this.effects = [];
+        this.particles = [];
+
+        // Spawn Tan Skeleton Boss
+        this.boss = new TanSkeletonBoss();
+        document.getElementById('boss-hud').style.display = 'block';
+        document.getElementById('boss-name-display').textContent = `👹 BOSS: ${this.boss.name}`;
+
+        // 1. Remove old pet if active
+        if (this.player.pet) {
+          this.player.pet.active = false;
+        }
+
+        // 2. Refresh Summon Skill Cooldown (if player has it)
+        this.refreshSummonSkill();
+
+        // 3. Set Suicide Countdown (12 seconds)
+        this.heavenSuicideTimer = 12.0;
+        this.tanSkeletonExploding = false;
+        this.heavenCutsceneStep = 0;
+        this.heavenCutsceneTimer = 0;
+
+        // 4. Show warnings
+        showMsg("Tân Skeleton chuẩn bị thiến chim tự sát trong 12s! Bạn sẽ chết nếu hứng trọn vụ nổ!", false);
+        this.heavenWarnTimer = 4.0; // Show secondary message after 4s
+
+        // Play epic music if available
+        this.playBgMusic(true);
+      }
+
+      refreshSummonSkill() {
+        let p = this.player;
+        let found = false;
+        if (p.charId === 'nga') {
+          p.skillCooldowns[0] = 0;
+          found = true;
+        }
+        for (let i = 0; i < p.extraSkills.length; i++) {
+          if (p.extraSkills[i].name.includes('Súc Vật')) {
+            p.extraSkillCooldowns[i] = 0;
+            found = true;
+          }
+        }
+      }
+
+      triggerHeavenExplosion() {
+        this.tanSkeletonExploding = true;
+        this.explosionTimer = 1.5;
+        this.shake(1.5, 30);
+        if (this.audioCtx) this.playBossRoar();
+        // Spawn huge sparks explosion particles at Tan Skeleton's position
+        for (let i = 0; i < 100; i++) {
+          let angle = Math.random() * Math.PI * 2;
+          let speed = Math.random() * 450 + 200;
+          globalParticles.push(new Particle(
+            this.boss.x,
+            this.boss.y - 60,
+            Math.cos(angle) * speed,
+            Math.sin(angle) * speed,
+            Math.random() < 0.5 ? '#ffffff' : '#ffd700',
+            1.5,
+            Math.random() * 6 + 3,
+            'spark'
+          ));
+        }
+      }
+
+      completeHeavenExplosion() {
+        this.tanSkeletonExploding = false;
+        this.boss = null; // Tan Skeleton is destroyed!
+        if (this.player.pet) {
+          // Pet Panda vanishes in a puff of sparkles
+          let pet = this.player.pet;
+          pet.active = false;
+          for (let i = 0; i < 40; i++) {
+            globalParticles.push(new Particle(pet.x, pet.y - 45, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, '#ffffff', 0.5, 4, 'spark'));
+          }
+        }
+        // Start cutscene sequence step 1 (3 seconds)
+        this.heavenCutsceneStep = 1;
+        this.heavenCutsceneTimer = 3.0;
+        showMsg("Súc vật Bin đã hứng trọn vụ nổ cho bạn và ngỏm củ tỏi.", false);
+      }
+
+      triggerHeavenLethalExplosion() {
+        // Red flash and player dies immediately!
+        this.paused = true;
+        this.running = false;
+        this.tanSkeletonExploding = true;
+        this.explosionTimer = 1.0;
+        this.shake(1.0, 40);
+
+        // Spawn lethal fire particles
+        for (let i = 0; i < 80; i++) {
+          let angle = Math.random() * Math.PI * 2;
+          let speed = Math.random() * 500 + 100;
+          globalParticles.push(new Particle(
+            this.boss.x,
+            this.boss.y - 60,
+            Math.cos(angle) * speed,
+            Math.sin(angle) * speed,
+            '#ff3333',
+            1.2,
+            Math.random() * 8 + 3,
+            'lava_rock'
+          ));
+        }
+
+        this.player.hp = 0;
+        this.player.state = 'death';
+
+        setTimeout(() => {
+          this.tanSkeletonExploding = false;
+          showMsg("☠️ Bạn đã bị thiến chết trong vụ nổ của Tân Skeleton!");
+          setTimeout(() => {
+            document.getElementById('gameOver').style.display = 'flex';
+          }, 1500);
+        }, 1200);
+      }
+
+      advanceHeavenCutscene() {
+        if (this.heavenCutsceneStep === 1) {
+          this.heavenCutsceneStep = 2;
+          this.heavenCutsceneTimer = 4.0;
+          showMsg("BẠN CÓ VUI VÀ TỰ HÀO KHI LỢI DỤNG SÚC VẬT BIN ĐỂ CHIẾN THẮNG KHÔNG HẢ", false);
+        } else if (this.heavenCutsceneStep === 2) {
+          this.heavenCutsceneStep = 0;
+          showMsg("", true); // Clear message
+          this.paused = true; // Pause input
+          this.victoryCelebrationActive = true;
+          document.getElementById('victory').style.display = 'flex';
+          this.playVictoryFanfare();
+        }
+      }
+
+      spawnFireworks() {
+        if (!this.fireworkTimer) this.fireworkTimer = 0;
+        this.fireworkTimer -= 1 / 60;
+        if (this.fireworkTimer <= 0) {
+          this.fireworkTimer = 0.25;
+          let fx = Math.random() * W;
+          let fy = Math.random() * (H * 0.4) + 50;
+          let colors = ['#ff3333', '#33ff33', '#3333ff', '#ffff33', '#ff33ff', '#33ffff', '#ffa500', '#ffffff'];
+          let color = colors[Math.floor(Math.random() * colors.length)];
+          // Sound
+          if (this.audioCtx && Math.random() < 0.5) this.playHitSound();
+          for (let i = 0; i < 35; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let speed = Math.random() * 250 + 120;
+            globalParticles.push(new Particle(
+              fx,
+              fy,
+              Math.cos(angle) * speed,
+              Math.sin(angle) * speed,
+              color,
+              1.2,
+              Math.random() * 4 + 2.5,
+              'star',
+              120 // gravity
+            ));
+          }
+        }
+      }
+
       showSkillPick() {
         let boss = this.bossOrder[this.bossIndex - 1];
         let bossData = CHARS[boss];
@@ -4891,10 +5237,18 @@
         // Render boss's skills
         bossData.skills.forEach((sk, i) => {
           let card = document.createElement('div');
-          card.className = 'skill-choice-card';
-          card.innerHTML = `<div class="skill-icon">${sk.icon || '⭐'}</div>
+          if (boss === 'nga' && sk.name.includes('Súc Vật')) {
+            card.className = 'skill-choice-card recommended-skill-card';
+            card.innerHTML = `<div class="recommended-badge">khuyến nghị nên chọn</div>
+        <div class="skill-icon">${sk.icon || '⭐'}</div>
         <div class="skill-name">${sk.name}</div>
         <div class="skill-desc">${sk.desc}</div>`;
+          } else {
+            card.className = 'skill-choice-card';
+            card.innerHTML = `<div class="skill-icon">${sk.icon || '⭐'}</div>
+        <div class="skill-name">${sk.name}</div>
+        <div class="skill-desc">${sk.desc}</div>`;
+          }
           card.onclick = () => { this.learnSkill(sk); };
           choicesEl.appendChild(card);
         });
@@ -5068,6 +5422,67 @@
 
       // Background layers
       drawBackground() {
+        if (this.isHeavenStage) {
+          let t = Date.now() / 1000;
+          // 1. Bright sky gradient
+          let grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, '#a0c4ff');
+          grad.addColorStop(0.5, '#e2eaff');
+          grad.addColorStop(1, '#fffdf0');
+          ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+          // 2. Light shafts (sunrays)
+          ctx.save();
+          ctx.globalCompositeOperation = 'screen';
+          for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = 'rgba(255, 235, 150, 0.12)';
+            ctx.beginPath();
+            let rx = (W * 0.15) + i * 250 + Math.sin(t * 0.4 + i) * 80;
+            ctx.moveTo(rx - 60, 0);
+            ctx.lineTo(rx + 60, 0);
+            ctx.lineTo(rx + 250, H);
+            ctx.lineTo(rx - 250, H);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+
+          // 3. Drifting white fluffy clouds
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+          for (let i = 0; i < 8; i++) {
+            let cx = ((i * 350 + t * 25) % (W + 400)) - 200;
+            let cy = (H * 0.1) + (i % 3) * 60;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 45, 0, Math.PI * 2);
+            ctx.arc(cx + 35, cy - 20, 55, 0, Math.PI * 2);
+            ctx.arc(cx + 70, cy, 45, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // 4. Golden Pillars / Columns in the background
+          ctx.fillStyle = 'rgba(255, 245, 200, 0.35)';
+          for (let i = 0; i < 5; i++) {
+            let colX = ((i * 450 - this.bgOffset * 0.2) % (W + 500));
+            if (colX < 0) colX += W + 500;
+            colX -= 250;
+            ctx.fillRect(colX, GROUND - 320, 35, 320);
+            // Column Capitals
+            ctx.fillRect(colX - 8, GROUND - 320, 51, 15);
+          }
+
+          // 5. Golden Floor (marble reflections)
+          let gGrad = ctx.createLinearGradient(0, GROUND, 0, H);
+          gGrad.addColorStop(0, '#ffd700');
+          gGrad.addColorStop(1, '#ffffff');
+          ctx.fillStyle = gGrad; ctx.fillRect(0, GROUND, W, H - GROUND);
+
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND);
+          ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 15;
+          ctx.stroke(); ctx.shadowBlur = 0;
+          return;
+        }
+
         let t = Date.now() / 1000;
 
         // 1. Deep space gradient
@@ -5169,12 +5584,22 @@
       }
 
       loop(timestamp) {
-        if (!this.running && !this.paused) return;
+        if (!this.running && !this.paused && !this.victoryCelebrationActive) return;
         let dt = Math.min((timestamp - this.lastTime) / 1000, 0.05);
         this.lastTime = timestamp;
 
         if (!this.paused) {
           this.update(dt);
+          if (this.victoryCelebrationActive) {
+            this.spawnFireworks();
+          }
+        } else if (this.victoryCelebrationActive) {
+          // Update particles and fireworks while paused (victory screen is open)
+          globalParticles.forEach(p => p.update(dt));
+          globalParticles = globalParticles.filter(p => p.life > 0);
+          this.particles.forEach(p => p.update(dt));
+          this.particles = this.particles.filter(p => p.life > 0);
+          this.spawnFireworks();
         }
         this.draw();
         requestAnimationFrame(t => this.loop(t));
@@ -5185,6 +5610,72 @@
         this.shakeTime = Math.max(0, this.shakeTime - dt);
         if (this.pillSlamTimer > 0) {
           this.pillSlamTimer = Math.max(0, this.pillSlamTimer - dt);
+        }
+
+        if (this.isHeavenStage) {
+          // Update player & pet
+          this.player.update(dt, this.keys);
+          if (this.player.pet) this.player.pet.update(dt, this);
+
+          // Update boss (Tân Skeleton)
+          if (this.boss) {
+            this.boss.update(dt);
+
+            // Check if player has summoned the pet Panda successfully
+            if (this.player.pet && this.player.pet.active && !this.tanSkeletonExploding) {
+              this.triggerHeavenExplosion();
+            }
+          }
+
+          // Update warnings timer
+          if (this.heavenWarnTimer > 0) {
+            this.heavenWarnTimer -= dt;
+            if (this.heavenWarnTimer <= 0) {
+              showMsg("Đề xuất: Hãy sử dụng kỹ năng Triệu Hồi Súc Vật BIN!", false);
+            }
+          }
+
+          // If Tân Skeleton is prepare-exploding (Safe or Lethal)
+          if (this.tanSkeletonExploding) {
+            this.explosionTimer -= dt;
+            if (this.explosionTimer <= 0) {
+              if (this.player.hp <= 0) {
+                // Game over is handled by setTimeout in triggerHeavenLethalExplosion
+              } else {
+                this.completeHeavenExplosion();
+              }
+            }
+          }
+
+          // Update Suicide Countdown (6 seconds)
+          if (!this.tanSkeletonExploding && this.boss && this.heavenSuicideTimer > 0) {
+            this.heavenSuicideTimer -= dt;
+            let displayTime = Math.max(0, this.heavenSuicideTimer);
+            document.getElementById('floor-display').textContent = `Thiên Đàng | Tự sát trong: ${displayTime.toFixed(1)}s`;
+
+            if (this.heavenSuicideTimer <= 0) {
+              this.triggerHeavenLethalExplosion();
+            }
+          }
+
+          // Update cutscene timers
+          if (this.heavenCutsceneStep > 0) {
+            this.heavenCutsceneTimer -= dt;
+            if (this.heavenCutsceneTimer <= 0) {
+              this.advanceHeavenCutscene();
+            }
+          }
+
+          // Update effects & particles
+          this.effects.forEach(e => e.update(dt));
+          this.effects = this.effects.filter(e => !e.done);
+          this.particles.forEach(p => p.update(dt));
+          this.particles = this.particles.filter(p => p.life > 0);
+          globalParticles.forEach(p => p.update(dt));
+          globalParticles = globalParticles.filter(p => p.life > 0);
+
+          this.updateHUD();
+          return;
         }
         if (this.reviveCountdown > 0) {
           let prevCd = this.reviveCountdown;
@@ -5313,7 +5804,7 @@
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          
+
           // Draw "CHUẨN BỊ CHIẾN ĐẤU..." label
           ctx.font = 'italic bold 26px "Segoe UI"';
           ctx.shadowColor = '#00ffcc';
@@ -5339,7 +5830,7 @@
           ctx.strokeText(ceilCd, 0, 0);
           ctx.fillStyle = '#00ffcc';
           ctx.fillText(ceilCd, 0, 0);
-          
+
           ctx.restore();
         }
 
@@ -5429,6 +5920,19 @@
           ctx.fillStyle = grad;
           ctx.fillText(text, 0, 0);
 
+          ctx.restore();
+        }
+
+        // Draw fullscreen white explosion flash if exploding
+        if (this.isHeavenStage && this.tanSkeletonExploding) {
+          ctx.save();
+          let alpha = Math.max(0, this.explosionTimer / 1.5);
+          if (this.player.hp <= 0) {
+            ctx.fillStyle = `rgba(255, 50, 50, ${alpha * 0.95})`;
+          } else {
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+          }
+          ctx.fillRect(0, 0, W, H);
           ctx.restore();
         }
 
@@ -5658,242 +6162,242 @@
         });
       }
 
-    triggerQuizRevive(numQuestions) {
-      this.paused = true;
-      this.stopBgMusic();
+      triggerQuizRevive(numQuestions) {
+        this.paused = true;
+        this.stopBgMusic();
 
-      const QUIZ_QUESTIONS = [
-        {
-          type: 'inputs_ice',
-          question: 'Hãy nhập chính xác công thức Bát Bảo và chọn mức đá:',
-          inputs: [
-            { label: 'Trân châu đen', key: 'tc_den', correct: 60 },
-            { label: 'Trân châu củ năng', key: 'tc_cunang', correct: 25 },
-            { label: 'Bánh vuông', key: 'banh_vuong', correct: 25 },
-            { label: '3Q', key: 'three_q', correct: 20 },
-            { label: 'Thạch dừa', key: 'thach_dua', correct: 40 },
-            { label: 'Sương sáo', key: 'suong_sao', correct: 40 },
-            { label: 'Hạt sen', key: 'hat_sen', correct: 25 },
-            { label: 'Trà bí đao', key: 'tra_bidao', correct: 200 }
-          ],
-          ice_options: ['Đầy ly', 'Tới mức 600'],
-          correct_ice: 0
-        },
-        {
-          type: 'multiple_choice',
-          question: 'Công thức trà sữa socola thêm 1 phần trân châu đen khuấy trà ở đâu?',
-          options: [
-            'Ly PP',
-            'Ly định lượng',
-            'Khuấy ở đâu cũng được',
-            'Không cần khuấy, chỉ cần lắc'
-          ],
-          correct: 1
-        },
-        {
-          type: 'inputs_tea',
-          question: 'Hồng trà kem Cheese 50% đường cần bao nhiêu trà có đường và bao nhiêu trà không đường?',
-          inputs: [
-            { label: 'Trà có đường', key: 'tra_co_duong', correct: 250 },
-            { label: 'Trà không đường', key: 'tra_khong_duong', correct: 100 }
-          ]
-        },
-        {
-          type: 'multiple_choice',
-          question: 'Vì sao sữa tươi trân châu đường đen không được lắc?',
-          options: [
-            'Lắc bình thường, ai nói không được',
-            'Để trân châu nằm dưới đáy ly sẽ đẹp hơn là trôi lềnh bềnh trong ly nước',
-            'Vì đường đen mới bỏ vào còn nóng, khó tan',
-            'Sữa sủi bọt dễ gây đầy bụng'
-          ],
-          correct: 3
-        },
-        {
-          type: 'multiple_choice',
-          question: 'Sữa tươi khoai môn nghiền và sữa tươi trân châu đen đều cho sữa vào sau khi cho đá đúng không?',
-          options: [
-            'Đúng',
-            'Sai'
-          ],
-          correct: 1
+        const QUIZ_QUESTIONS = [
+          {
+            type: 'inputs_ice',
+            question: 'Hãy nhập chính xác công thức Bát Bảo và chọn mức đá:',
+            inputs: [
+              { label: 'Trân châu đen', key: 'tc_den', correct: 60 },
+              { label: 'Trân châu củ năng', key: 'tc_cunang', correct: 25 },
+              { label: 'Bánh vuông', key: 'banh_vuong', correct: 25 },
+              { label: '3Q', key: 'three_q', correct: 20 },
+              { label: 'Thạch dừa', key: 'thach_dua', correct: 40 },
+              { label: 'Sương sáo', key: 'suong_sao', correct: 40 },
+              { label: 'Hạt sen', key: 'hat_sen', correct: 25 },
+              { label: 'Trà bí đao', key: 'tra_bidao', correct: 200 }
+            ],
+            ice_options: ['Đầy ly', 'Tới mức 600'],
+            correct_ice: 0
+          },
+          {
+            type: 'multiple_choice',
+            question: 'Công thức trà sữa socola thêm 1 phần trân châu đen khuấy trà ở đâu?',
+            options: [
+              'Ly PP',
+              'Ly định lượng',
+              'Khuấy ở đâu cũng được',
+              'Không cần khuấy, chỉ cần lắc'
+            ],
+            correct: 1
+          },
+          {
+            type: 'inputs_tea',
+            question: 'Hồng trà kem Cheese 50% đường cần bao nhiêu trà có đường và bao nhiêu trà không đường?',
+            inputs: [
+              { label: 'Trà có đường', key: 'tra_co_duong', correct: 250 },
+              { label: 'Trà không đường', key: 'tra_khong_duong', correct: 100 }
+            ]
+          },
+          {
+            type: 'multiple_choice',
+            question: 'Vì sao sữa tươi trân châu đường đen không được lắc?',
+            options: [
+              'Lắc bình thường, ai nói không được',
+              'Để trân châu nằm dưới đáy ly sẽ đẹp hơn là trôi lềnh bềnh trong ly nước',
+              'Vì đường đen mới bỏ vào còn nóng, khó tan',
+              'Sữa sủi bọt dễ gây đầy bụng'
+            ],
+            correct: 3
+          },
+          {
+            type: 'multiple_choice',
+            question: 'Sữa tươi khoai môn nghiền và sữa tươi trân châu đen đều cho sữa vào sau khi cho đá đúng không?',
+            options: [
+              'Đúng',
+              'Sai'
+            ],
+            correct: 1
+          }
+        ];
+
+        let shuffled = [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5);
+        this.quizQuestions = shuffled.slice(0, numQuestions);
+        this.currentQuestionIdx = 0;
+
+        document.getElementById('quiz-modal').style.display = 'flex';
+        this.renderQuizQuestion();
+      }
+
+      renderQuizQuestion() {
+        let q = this.quizQuestions[this.currentQuestionIdx];
+        let numQ = this.quizQuestions.length;
+
+        let header = document.querySelector('#quiz-modal .quiz-title');
+        header.textContent = `🔮 THỬ THÁCH SINH TỬ (${this.currentQuestionIdx + 1}/${numQ}) 🔮`;
+
+        let container = document.getElementById('quiz-question-container');
+        container.innerHTML = '';
+
+        let box = document.createElement('div');
+        box.className = 'quiz-question-box';
+
+        let text = document.createElement('div');
+        text.className = 'quiz-question-text';
+        text.textContent = q.question;
+        box.appendChild(text);
+
+        if (q.type === 'multiple_choice') {
+          this.selectedOptionIdx = null;
+          let group = document.createElement('div');
+          group.className = 'quiz-radio-group';
+
+          q.options.forEach((opt, idx) => {
+            let row = document.createElement('div');
+            row.className = 'quiz-radio-option';
+            row.innerHTML = `<span>${idx + 1}. ${opt}</span>`;
+            row.onclick = () => { this.selectQuizOption(idx); };
+            group.appendChild(row);
+          });
+          box.appendChild(group);
         }
-      ];
+        else if (q.type === 'inputs_tea') {
+          let grid = document.createElement('div');
+          grid.className = 'quiz-inputs-grid';
 
-      let shuffled = [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5);
-      this.quizQuestions = shuffled.slice(0, numQuestions);
-      this.currentQuestionIdx = 0;
-
-      document.getElementById('quiz-modal').style.display = 'flex';
-      this.renderQuizQuestion();
-    }
-
-    renderQuizQuestion() {
-      let q = this.quizQuestions[this.currentQuestionIdx];
-      let numQ = this.quizQuestions.length;
-
-      let header = document.querySelector('#quiz-modal .quiz-title');
-      header.textContent = `🔮 THỬ THÁCH SINH TỬ (${this.currentQuestionIdx + 1}/${numQ}) 🔮`;
-
-      let container = document.getElementById('quiz-question-container');
-      container.innerHTML = '';
-
-      let box = document.createElement('div');
-      box.className = 'quiz-question-box';
-
-      let text = document.createElement('div');
-      text.className = 'quiz-question-text';
-      text.textContent = q.question;
-      box.appendChild(text);
-
-      if (q.type === 'multiple_choice') {
-        this.selectedOptionIdx = null;
-        let group = document.createElement('div');
-        group.className = 'quiz-radio-group';
-
-        q.options.forEach((opt, idx) => {
-          let row = document.createElement('div');
-          row.className = 'quiz-radio-option';
-          row.innerHTML = `<span>${idx + 1}. ${opt}</span>`;
-          row.onclick = () => { this.selectQuizOption(idx); };
-          group.appendChild(row);
-        });
-        box.appendChild(group);
-      }
-      else if (q.type === 'inputs_tea') {
-        let grid = document.createElement('div');
-        grid.className = 'quiz-inputs-grid';
-
-        q.inputs.forEach(inp => {
-          let row = document.createElement('div');
-          row.className = 'quiz-input-row';
-          row.innerHTML = `<span>${inp.label}:</span>
+          q.inputs.forEach(inp => {
+            let row = document.createElement('div');
+            row.className = 'quiz-input-row';
+            row.innerHTML = `<span>${inp.label}:</span>
             <input type="number" id="quiz-input-${inp.key}" placeholder="Số...">`;
-          grid.appendChild(row);
-        });
-        box.appendChild(grid);
-      }
-      else if (q.type === 'inputs_ice') {
-        this.selectedIceIdx = null;
-        let grid = document.createElement('div');
-        grid.className = 'quiz-inputs-grid';
+            grid.appendChild(row);
+          });
+          box.appendChild(grid);
+        }
+        else if (q.type === 'inputs_ice') {
+          this.selectedIceIdx = null;
+          let grid = document.createElement('div');
+          grid.className = 'quiz-inputs-grid';
 
-        q.inputs.forEach(inp => {
-          let row = document.createElement('div');
-          row.className = 'quiz-input-row';
-          row.innerHTML = `<span>${inp.label}:</span>
+          q.inputs.forEach(inp => {
+            let row = document.createElement('div');
+            row.className = 'quiz-input-row';
+            row.innerHTML = `<span>${inp.label}:</span>
             <input type="number" id="quiz-input-${inp.key}" placeholder="Số...">`;
-          grid.appendChild(row);
-        });
-        box.appendChild(grid);
+            grid.appendChild(row);
+          });
+          box.appendChild(grid);
 
-        let subText = document.createElement('div');
-        subText.className = 'quiz-question-text';
-        subText.style.marginTop = '15px';
-        subText.style.fontSize = '13px';
-        subText.style.color = '#ffd700';
-        subText.textContent = 'Mức đá bình thường:';
-        box.appendChild(subText);
+          let subText = document.createElement('div');
+          subText.className = 'quiz-question-text';
+          subText.style.marginTop = '15px';
+          subText.style.fontSize = '13px';
+          subText.style.color = '#ffd700';
+          subText.textContent = 'Mức đá bình thường:';
+          box.appendChild(subText);
 
-        let group = document.createElement('div');
-        group.className = 'quiz-radio-group';
-        q.ice_options.forEach((opt, idx) => {
-          let row = document.createElement('div');
-          row.className = 'quiz-radio-option';
-          row.innerHTML = `<span>${idx + 1}. ${opt}</span>`;
-          row.onclick = () => { this.selectQuizIce(idx); };
-          group.appendChild(row);
-        });
-        box.appendChild(group);
+          let group = document.createElement('div');
+          group.className = 'quiz-radio-group';
+          q.ice_options.forEach((opt, idx) => {
+            let row = document.createElement('div');
+            row.className = 'quiz-radio-option';
+            row.innerHTML = `<span>${idx + 1}. ${opt}</span>`;
+            row.onclick = () => { this.selectQuizIce(idx); };
+            group.appendChild(row);
+          });
+          box.appendChild(group);
+        }
+
+        container.appendChild(box);
       }
 
-      container.appendChild(box);
-    }
+      selectQuizIce(idx) {
+        this.selectedIceIdx = idx;
+        document.querySelectorAll('#quiz-question-container .quiz-radio-option').forEach((opt, i) => {
+          if (i === idx) opt.classList.add('selected');
+          else opt.classList.remove('selected');
+        });
+      }
 
-    selectQuizIce(idx) {
-      this.selectedIceIdx = idx;
-      document.querySelectorAll('#quiz-question-container .quiz-radio-option').forEach((opt, i) => {
-        if (i === idx) opt.classList.add('selected');
-        else opt.classList.remove('selected');
-      });
-    }
+      selectQuizOption(idx) {
+        this.selectedOptionIdx = idx;
+        document.querySelectorAll('#quiz-question-container .quiz-radio-option').forEach((opt, i) => {
+          if (i === idx) opt.classList.add('selected');
+          else opt.classList.remove('selected');
+        });
+      }
 
-    selectQuizOption(idx) {
-      this.selectedOptionIdx = idx;
-      document.querySelectorAll('#quiz-question-container .quiz-radio-option').forEach((opt, i) => {
-        if (i === idx) opt.classList.add('selected');
-        else opt.classList.remove('selected');
-      });
-    }
+      submitQuizAnswer() {
+        let q = this.quizQuestions[this.currentQuestionIdx];
+        let correct = false;
 
-    submitQuizAnswer() {
-      let q = this.quizQuestions[this.currentQuestionIdx];
-      let correct = false;
-
-      if (q.type === 'inputs_ice') {
-        let allCorrect = true;
-        q.inputs.forEach(inp => {
-          let el = document.getElementById(`quiz-input-${inp.key}`);
-          if (!el || parseInt(el.value) !== inp.correct) {
+        if (q.type === 'inputs_ice') {
+          let allCorrect = true;
+          q.inputs.forEach(inp => {
+            let el = document.getElementById(`quiz-input-${inp.key}`);
+            if (!el || parseInt(el.value) !== inp.correct) {
+              allCorrect = false;
+            }
+          });
+          if (this.selectedIceIdx !== q.correct_ice) {
             allCorrect = false;
           }
-        });
-        if (this.selectedIceIdx !== q.correct_ice) {
-          allCorrect = false;
+          correct = allCorrect;
         }
-        correct = allCorrect;
-      }
-      else if (q.type === 'inputs_tea') {
-        let allCorrect = true;
-        q.inputs.forEach(inp => {
-          let el = document.getElementById(`quiz-input-${inp.key}`);
-          if (!el || parseInt(el.value) !== inp.correct) {
-            allCorrect = false;
-          }
-        });
-        correct = allCorrect;
-      }
-      else if (q.type === 'multiple_choice') {
-        correct = (this.selectedOptionIdx === q.correct);
-      }
+        else if (q.type === 'inputs_tea') {
+          let allCorrect = true;
+          q.inputs.forEach(inp => {
+            let el = document.getElementById(`quiz-input-${inp.key}`);
+            if (!el || parseInt(el.value) !== inp.correct) {
+              allCorrect = false;
+            }
+          });
+          correct = allCorrect;
+        }
+        else if (q.type === 'multiple_choice') {
+          correct = (this.selectedOptionIdx === q.correct);
+        }
 
-      if (correct) {
-        this.currentQuestionIdx++;
-        if (this.currentQuestionIdx < this.quizQuestions.length) {
-          showMsg('✅ Chính xác! Sang câu tiếp theo...');
-          this.renderQuizQuestion();
+        if (correct) {
+          this.currentQuestionIdx++;
+          if (this.currentQuestionIdx < this.quizQuestions.length) {
+            showMsg('✅ Chính xác! Sang câu tiếp theo...');
+            this.renderQuizQuestion();
+          } else {
+            document.getElementById('quiz-modal').style.display = 'none';
+
+            this.player.hp = this.player.maxHp;
+            this.player.mp = this.player.maxMp;
+            this.player.skillCooldowns[0] = 0;
+            this.player.skillCooldowns[1] = 0;
+            if (this.player.extraSkillCooldowns) {
+              this.player.extraSkillCooldowns.fill(0);
+            }
+            this.player.quizReviveUsed = true;
+            this.player.state = 'idle';
+            this.paused = false;
+            this.running = true;
+
+            // 3s preparation countdown
+            this.reviveCountdown = 3.0;
+
+            // Blast the neon text "SỤC THĂNG HOA, HỒI SINH BẤT NGỜ" for 2s
+            this.pillSlamText = "SỤC THĂNG HOA, HỒI SINH BẤT NGỜ";
+            this.pillSlamTimer = 2.0;
+            this.pillSlamBlasted = false;
+
+            showMsg('🔥 HỒI SINH THẦN KỲ! Tiếp tục chiến đấu cưng ơi!');
+            if (this.audioCtx) this.playVictoryFanfare();
+          }
         } else {
           document.getElementById('quiz-modal').style.display = 'none';
-
-          this.player.hp = this.player.maxHp;
-          this.player.mp = this.player.maxMp;
-          this.player.skillCooldowns[0] = 0;
-          this.player.skillCooldowns[1] = 0;
-          if (this.player.extraSkillCooldowns) {
-            this.player.extraSkillCooldowns.fill(0);
-          }
-          this.player.quizReviveUsed = true;
-          this.player.state = 'idle';
-          this.paused = false;
-          this.running = true;
-
-          // 3s preparation countdown
-          this.reviveCountdown = 3.0;
-
-          // Blast the neon text "SỤC THĂNG HOA, HỒI SINH BẤT NGỜ" for 2s
-          this.pillSlamText = "SỤC THĂNG HOA, HỒI SINH BẤT NGỜ";
-          this.pillSlamTimer = 2.0;
-          this.pillSlamBlasted = false;
-
-          showMsg('🔥 HỒI SINH THẦN KỲ! Tiếp tục chiến đấu cưng ơi!');
-          if (this.audioCtx) this.playVictoryFanfare();
+          showMsg('😜 HÁ HÁ ĐÃ KỸ NĂNG KÉM CÒN KHÔNG THUỘC BÀI 😜');
+          this.playerDied();
         }
-      } else {
-        document.getElementById('quiz-modal').style.display = 'none';
-        showMsg('😜 HÁ HÁ ĐÃ KỸ NĂNG KÉM CÒN KHÔNG THUỘC BÀI 😜');
-        this.playerDied();
       }
-    }
     }
 
     // ============================
