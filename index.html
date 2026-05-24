@@ -1724,7 +1724,7 @@
         hp: 1800, mp: 1500, atk: 100, color: '#88ccff', weaponColor: '#ffffff', range: 360,
         skills: [
           {
-            name: 'Người Yêu Cũ Là Người Yêu Mới', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
+            name: 'Nói không với nấu ăn', key: '1', cd: 20, mpCost: 180, icon: '🛡️',
             desc: 'Lá chắn băng hấp thụ 800 sát thương trong 8s. Tung chiêu lập tức hồi ngay Chiêu 2!',
             use: (g, p) => {
               if (p.mp < 180) return false;
@@ -1732,7 +1732,7 @@
               p.shield = 800;
               p.shieldTime = 8;
               p.skillCooldowns[1] = 0;
-              showMsg('🛡️ ANH TÚ ĐI RA ĐIIII! ĐÃ LÀM MỚI CHIÊU 2!');
+              showMsg('🛡️ KHÔNG BIẾT NẤU ĂN CÓ GÌ SAIIIII');
               return true;
             }
           },
